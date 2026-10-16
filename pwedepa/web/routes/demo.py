@@ -83,22 +83,37 @@ def _seed() -> None:
     )
 
 
+def _enter(username: str, endpoint: str) -> Response:
+  user = get_user_by_username(db(), username)
+  issued = create_session(db(), user.id, at=now())
+  response = redirect(url_for(endpoint))
+  response.set_cookie(
+    SESSION_COOKIE,
+    issued.token,
+    httponly=True,
+    secure=True,
+    samesite="None",
+    max_age=int(SESSION_TTL.total_seconds()),
+    path="/",
+  )
+  return response
+
+
 @bp.get("/demo")
 def demo() -> Response:
   """Open a seeded demo session without credentials when demo mode is on."""
   if not current_app.config.get("DEMO_MODE"):
     abort(404)
   _seed()
-  admin = get_user_by_username(db(), "demo-admin")
-  issued = create_session(db(), admin.id, at=now())
-  response = redirect(url_for("records.workspace"))
-  response.set_cookie(
-    SESSION_COOKIE,
-    issued.token,
-    httponly=True,
-    secure=current_app.config["SESSION_COOKIE_SECURE"],
-    samesite="Lax",
-    max_age=int(SESSION_TTL.total_seconds()),
-    path="/",
-  )
-  return response
+  return _enter("demo-admin", "records.workspace")
+
+
+@bp.get("/demo/switch/<role>")
+def switch(role: str) -> Response:
+  """Swap the demo seat between the staff and client demo users."""
+  if not current_app.config.get("DEMO_MODE"):
+    abort(404)
+  _seed()
+  if role == "client":
+    return _enter("demo-Mara", "pages.home")
+  return _enter("demo-admin", "records.workspace")

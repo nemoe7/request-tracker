@@ -237,3 +237,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .setting-row { align-items: flex-start; flex-direction: column; gap: 6px; }
   .setting-row input[type="text"] { max-width: none; width: 100%; box-sizing: border-box; }
 }
+.demo-switch { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: var(--panel); }
+.demo-switch a { padding: 4px 12px; border-radius: 999px; color: var(--muted); font-weight: 600; font-size: 13px; }
+.demo-switch a.on { background: var(--accent); color: #fff; }

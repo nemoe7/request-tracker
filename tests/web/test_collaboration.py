@@ -173,6 +173,32 @@ def test_demo_mode_opens_seeded_workspace_without_credentials(tmp_path):
 def test_demo_route_stays_off_by_default(cast):
   admin, _ = cast["admin"]
   assert admin.get("/demo").status_code == 404
+  assert admin.get("/demo/switch/client").status_code == 404
+
+
+def test_demo_switch_swaps_between_staff_and_client(tmp_path):
+  demo_app = create_app(
+    {
+      "DATABASE": str(tmp_path / "demo2.db"),
+      "WEBAUTHN_RP_ID": "example.com",
+      "WEBAUTHN_RP_NAME": "PwedePa",
+      "WEBAUTHN_ORIGIN": "https://example.com",
+      "SESSION_COOKIE_SECURE": False,
+      "DEMO_MODE": True,
+    }
+  )
+  client = demo_app.test_client()
+  landing = client.get("/")
+  assert b"Sign in with a passkey" not in landing.data
+  assert b"Open the demo" in landing.data
+  assert client.get("/demo").status_code == 302
+  assert client.get("/workspace").status_code == 200
+  assert client.get("/demo/switch/client").status_code == 302
+  home = client.get("/home")
+  assert home.status_code == 200
+  assert b"Staff" in home.data and b"Client" in home.data
+  assert client.get("/demo/switch/staff").status_code == 302
+  assert client.get("/workspace").status_code == 200
 
 
 def test_notifications_and_preferences(cast, db):
