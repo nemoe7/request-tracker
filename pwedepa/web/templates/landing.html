@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}PwedePa — pwede? pa.{% endblock %}
+{% block title %}PwedePa — pwede pa...?{% endblock %}
 {% block content %}
 <section class="hero">
   <img class="hero-icon" src="{{ url_for('static', filename='icons/icon-animated.webp') }}" alt="Pleading face, the PwedePa stub icon">
-  <h1>pwede? pa.</h1>
+  <h1 id="tagline">pwede pa<span id="tagline-marks" aria-hidden="true">.</span></h1>
   <p class="lede">Ask for a fix, track who picked it up, and see it through. Requests stay requests until someone raises them into issues. No passwords, no email, no noise.</p>
   <div class="hero-actions">
     <a class="btn primary big" href="{{ url_for('pages.login') }}">Sign in with a passkey</a>

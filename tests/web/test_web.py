@@ -118,6 +118,11 @@ def test_landing_renders_and_home_requires_login(client):
   assert landing.status_code == 200
   assert b"PwedePa" in landing.data
   assert b"Sign in" in landing.data
+  assert b"pwede pa" in landing.data
+  assert b'id="tagline-marks"' in landing.data
+
+  script = client.get("/static/app.js")
+  assert b"pwede na!" in script.data
 
   home = client.get("/home")
   assert home.status_code == 302

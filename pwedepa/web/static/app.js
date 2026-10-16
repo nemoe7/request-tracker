@@ -23,6 +23,23 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js").catch(() => {});
 }
 
+/* Tagline: asks "pwede pa...?" while loading, answers "pwede na!" when done. */
+const taglineMarks = document.querySelector("#tagline-marks");
+if (taglineMarks) {
+  const frames = [".", "..", "...", "...?"];
+  let frame = 0;
+  const timer = setInterval(() => {
+    frame = (frame + 1) % frames.length;
+    taglineMarks.textContent = frames[frame];
+  }, 450);
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      clearInterval(timer);
+      document.querySelector("#tagline").textContent = "pwede na!";
+    }, 1200);
+  });
+}
+
 /* WebAuthn helpers: the server speaks base64url JSON, the browser wants buffers. */
 function toBuffer(value) {
   const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
