@@ -567,3 +567,11 @@ def test_the_admin_user_page_caps_its_width(app, db):
   css = client.get("/static/app.css").data.decode()
   rule = css[css.index(".admin-page {") :].split("}", 1)[0]
   assert "max-width" in rule
+
+
+def test_the_four_admin_pages_share_one_width(app, db):
+  """A page left out of the wrapper would stretch wider than its neighbours."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  for path in ("/admin", "/admin/users", "/admin/shares", "/admin/audit"):
+    body = client.get(path).data
+    assert b'class="admin-page"' in body, path
