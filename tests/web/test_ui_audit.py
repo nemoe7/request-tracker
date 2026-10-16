@@ -1,3 +1,4 @@
+import re
 from datetime import UTC, datetime
 
 import pytest
@@ -100,6 +101,81 @@ def test_motion_stays_fluid(app):
 def test_display_name_keeps_its_alignment_on_focus(app):
   css = app.test_client().get("/static/app.css").data
   assert b".ios-input:focus { outline: none; text-align: left; }" not in css
+
+
+def _statements(css: str) -> list[str]:
+  """Return the top-level stylesheet text between comments, blocks, and strings."""
+  without_comments = re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
+  statements: list[str] = []
+  current: list[str] = []
+  depth = 0
+  quote: str | None = None
+  for character in without_comments:
+    if quote:
+      current.append(character)
+      if character == quote:
+        quote = None
+      continue
+    if character in "\"'":
+      quote = character
+      current.append(character)
+      continue
+    if character == "{":
+      depth += 1
+      statements.append("".join(current).strip() + " {")
+      current = []
+      continue
+    if character == "}":
+      depth -= 1
+      statements.append("".join(current).strip() + "}" if depth < 0 else "")
+      current = []
+      continue
+    if character == ";" and depth == 0:
+      statements.append("".join(current).strip() + ";")
+      current = []
+      continue
+    if depth == 0:
+      current.append(character)
+  statements.append("".join(current).strip())
+  return [statement for statement in statements if statement]
+
+
+def _stylesheet_errors(css: str) -> list[str]:
+  """Name every top-level statement that is not an at-rule or a rule block."""
+  errors = []
+  for statement in _statements(css):
+    if statement.endswith("}"):
+      errors.append(f"a closing brace without an opening brace: {statement}")
+    elif statement.endswith(";"):
+      if not statement.startswith("@"):
+        errors.append(f"a top-level statement ends with a semicolon: {statement}")
+    elif not statement.endswith("{"):
+      errors.append(f"a top-level statement opens no block: {statement}")
+  return errors
+
+
+def test_stylesheets_hold_no_stray_statements(app):
+  client = app.test_client()
+  for name in ("app.css", "tokens.css"):
+    css = client.get(f"/static/{name}").data.decode()
+    assert _stylesheet_errors(css) == []
+
+
+def test_every_control_keeps_a_keyboard_focus_ring(app):
+  css = app.test_client().get("/static/app.css").data.decode()
+  ringed = [
+    selector
+    for selector, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)
+    if "outline: 2px solid var(--accent)" in body
+  ]
+  assert ringed, "no rule draws the shared focus ring"
+  for control in ("input", "select", "textarea", ".ios-input"):
+    assert any(f"{control}:focus-visible" in selector for selector in ringed), (
+      f"{control} loses its focus ring"
+    )
+  quiet = css.index(".ios-input:focus {")
+  visible = css.index(".ios-input:focus-visible")
+  assert quiet < visible, "the quiet rule must come first, so the ring wins"
 
 
 def test_workspace_centers_the_inspector(app, db):
