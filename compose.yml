@@ -21,7 +21,7 @@ services:
     container_name: pwedepa-tailscale
     environment:
       # Mint an untagged auth key, so the node carries no ACL tags.
-      TS_AUTHKEY: ${TS_AUTHKEY:-}
+      TS_AUTHKEY: ${TS_AUTHKEY:?set TS_AUTHKEY in .env}
       TS_HOSTNAME: pwedepa
       TS_STATE_DIR: /var/lib/tailscale
       TS_SERVE_CONFIG: /config/tailscale-funnel.json

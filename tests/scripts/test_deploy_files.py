@@ -86,3 +86,14 @@ def test_env_example_lists_every_variable_compose_reads():
   assert names, "compose reads no variable at all"
   missing = [name for name in names if f"{name}=" not in example]
   assert not missing, f".env.example misses {missing}"
+
+
+def test_compose_requires_its_own_auth_key():
+  text = (ROOT / "compose.yml").read_text(encoding="utf-8")
+  assert "${TS_AUTHKEY:?" in text, "a deploy must supply its own auth key"
+
+
+def test_the_sidecar_mounts_the_config_folder():
+  text = (ROOT / "compose.yml").read_text(encoding="utf-8")
+  assert "./tailscale:/config:ro" in text, "a single-file mount hides config edits"
+  assert (ROOT / "tailscale" / "serve.json").is_file()
