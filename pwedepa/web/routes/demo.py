@@ -15,6 +15,7 @@ from pwedepa.core import Issue, Priority, Request, Visibility
 from pwedepa.data import domains as domains_data
 from pwedepa.data import issues as issues_data
 from pwedepa.data import requests as requests_data
+from pwedepa.data.domains import domain_slot
 
 from .. import SESSION_COOKIE, now
 from ._helpers import db
@@ -65,7 +66,7 @@ def _seed() -> None:
         description="The projector powers on, then drops the image after two minutes.",
         requester_id=Mara.id,
         priority_suggestion=Priority.HIGH,
-        domains=(names[0], names[1]),
+        domains=(domain_slot(names, 0), domain_slot(names, 1)),
         created_at=now(),
         updated_at=now(),
       ),
@@ -79,7 +80,7 @@ def _seed() -> None:
         requester_id=admin.id,
         priority_suggestion=Priority.MEDIUM,
         visibility=Visibility.PUBLIC,
-        domains=(names[4],),
+        domains=(domain_slot(names, 4),),
         created_at=now(),
         updated_at=now(),
       ),
@@ -94,7 +95,7 @@ def _seed() -> None:
         requester_id=Mara.id,
         assignee_id=Sam.id,
         priority=Priority.HIGH,
-        domains=(names[2], names[3]),
+        domains=(domain_slot(names, 2), domain_slot(names, 3)),
         created_at=now(),
         updated_at=now(),
       ),

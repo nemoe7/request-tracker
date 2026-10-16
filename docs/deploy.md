@@ -49,5 +49,6 @@ Pages serves files only, so forms and passkey buttons stay inert in the frozen c
 ## Notes
 
 - Back up the `pwedepa-data` volume. It holds the only database copy.
+- The starter Domains come from `domains.json`. Keep it at the project root. The image copies it to `/app/domains.json`, and a missing file fails the demo seed with a clear error.
 - Demo mode stays off in deployment. Leave `PWEDEPA_DEMO` unset.
 - The container workflow scans each image build for high and critical findings.
