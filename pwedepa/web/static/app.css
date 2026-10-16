@@ -107,8 +107,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .queue-item:hover { background: var(--surface-2); }
 .queue-item.is-active { background: var(--st-open-bg); color: var(--accent); font-weight: 600; }
 .count { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; color: var(--muted); margin-left: 8px; }
-.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
-.seg a { padding: 5px 12px; border-radius: 999px; font-size: 13px; color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; min-height: 32px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 4px; gap: 4px; }
+.seg a { padding: 6px 14px; border-radius: 999px; font-size: 13px; color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; min-height: 32px; }
 .seg a.is-active { background: var(--accent-fill); color: var(--on-accent); font-weight: 600; }
 .record-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .record-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); }
@@ -136,6 +136,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
 .inspector h2 { font-size: 20px; text-transform: none; letter-spacing: -0.02em; color: var(--text); margin: 4px 0 8px; }
 .inspector h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 18px 0 8px; }
+.inspector > .btn { margin-top: 14px; }
 .desc { font-size: 15px; }
 .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin: 14px 0; }
 .facts dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
@@ -360,5 +361,5 @@ html { scrollbar-gutter: stable; }
 .user-menu .demo-switch a { flex: 1; text-align: center; }
 .user-menu-item { display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; padding: 9px 10px; border: 0; border-radius: 8px; background: none; color: var(--text); font: inherit; font-size: 14px; text-decoration: none; text-align: left; cursor: pointer; }
 .user-menu-item:hover { background: var(--surface-2); }
-select:not([multiple]) { appearance: none; -webkit-appearance: none; padding-right: 34px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238A94A6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6 6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+select:not([multiple]) { appearance: none; -webkit-appearance: none; min-height: 40px; padding-top: 8px; padding-bottom: 8px; padding-right: 34px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238A94A6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
 0px center; }
