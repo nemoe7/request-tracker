@@ -352,6 +352,17 @@ def test_workspace_opens_two_cards_then_swaps_the_centre_one(app, db):
   )
 
 
+def test_the_share_row_gives_every_control_one_height(app):
+  css = app.test_client().get("/static/app.css").data.decode()
+  rules = {sel.strip(): body for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)}
+  assert "min-height: 44px" in rules.get(".share-form .field select", ""), (
+    "the Access select must match the Expires input"
+  )
+  button = rules.get(".share-form .btn", "")
+  assert "min-height: 44px" in button, "Create link must match the fields"
+  assert "font-size: 14px" in button, "Create link must match the field text"
+
+
 def test_settings_rows_share_grouped_lists(app, db):
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   body = client.get("/settings").data
