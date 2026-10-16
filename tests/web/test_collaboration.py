@@ -255,19 +255,20 @@ def test_notification_dismiss_and_clear(app, cast, db):
   assert anonymous.post("/notifications/1/dismiss").status_code == 302
 
 
-def test_header_nav_is_a_single_requests_tab(cast, db):
+def test_header_nav_calls_the_middle_tab_requests(cast, db):
   admin, _ = cast["admin"]
   Mara, _ = cast["Mara"]
   staff_page = admin.get("/workspace").data
   assert b'href="/workspace"' in staff_page
+  assert b">Workspace</a>" in staff_page
+  assert b'href="/my"' in staff_page
   assert b">Requests</a>" in staff_page
   assert b">My requests</a>" not in staff_page
-  assert b">Issues</a>" not in staff_page
-  assert b">Workspace</a>" not in staff_page
+  assert b">Issues</a>" in staff_page
   client_page = Mara.get("/my").data
-  assert b'href="/my"' in client_page
   assert b">Requests</a>" in client_page
-  assert b">Issues</a>" not in client_page
+  assert b">Issues</a>" in client_page
+  assert b">Workspace</a>" not in client_page
 
 
 def test_clock_preference_and_stamp_rendering(cast, db):
