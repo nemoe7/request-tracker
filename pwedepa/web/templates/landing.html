@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}PwedePa — pwede? pa.{% endblock %}
+{% block content %}
+<section class="hero">
+  <img class="hero-icon" src="{{ url_for('static', filename='icons/icon-animated.webp') }}" alt="Pleading face, the PwedePa stub icon">
+  <h1>pwede? pa.</h1>
+  <p class="lede">Ask for a fix, track who picked it up, and see it through. Requests stay requests until someone raises them into issues. No passwords, no email, no noise.</p>
+  <div class="hero-actions">
+    <a class="btn primary big" href="{{ url_for('pages.login') }}">Sign in with a passkey</a>
+    <a class="btn big" href="{{ url_for('pages.enroll') }}">I have an enrollment token</a>
+  </div>
+</section>
+
+<section class="cards">
+  <article class="panel">
+    <h2>Ask once</h2>
+    <p>File a request with a title, a few lines, and a domain like Home or Property. Pick Public or Private. That is the whole form.</p>
+  </article>
+  <article class="panel">
+    <h2>Follow it</h2>
+    <p>Every move lands in the record: triage, delay, comments, and the moment a request turns into real work.</p>
+  </article>
+  <article class="panel">
+    <h2>Passkeys only</h2>
+    <p>Sign-in uses the passkey on your phone or laptop. An admin hands you a one-time enrollment token to start.</p>
+  </article>
+</section>
+{% endblock %}

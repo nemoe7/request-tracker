@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Sign in — PwedePa{% endblock %}
+{% block content %}
+<section class="auth-card panel">
+  <p class="eyebrow">Welcome back</p>
+  <h1>Sign in</h1>
+  <p class="muted">Use the passkey you enrolled on this device. Your browser will ask you to confirm.</p>
+  <button class="btn primary big" id="login-button" type="button">Sign in with a passkey</button>
+  <p class="status" id="status" role="status"></p>
+  <p class="muted">New here? <a href="{{ url_for('pages.enroll') }}">Enroll with a token</a> instead.</p>
+</section>
+{% endblock %}

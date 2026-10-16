@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" data-theme="system">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}PwedePa{% endblock %}</title>
+  <meta name="theme-color" content="#2563EB">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='icons/icon-static.png') }}">
+  <script>
+    document.documentElement.dataset.theme =
+      localStorage.getItem("pwedepa-theme") || "system";
+  </script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('pages.landing') }}">
+      <span class="app-icon" aria-hidden="true">
+        <img class="icon-static" src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="">
+        <img class="icon-animated" src="{{ url_for('static', filename='icons/icon-animated.webp') }}" alt="">
+      </span>
+      <span>PwedePa</span>
+    </a>
+    {% if user %}
+    <nav class="tabs" aria-label="Main">
+      <a class="is-active" href="{{ url_for('pages.home') }}">Home</a>
+      <span class="tab-soon" aria-disabled="true">Requests</span>
+      <span class="tab-soon" aria-disabled="true">Issues</span>
+    </nav>
+    {% endif %}
+    <div class="top-actions">
+      <button class="chip-btn" id="theme-toggle" type="button">◐ <span id="theme-label">System</span></button>
+      {% if user %}
+      <button class="chip-btn" id="logout-button" type="button">Sign out</button>
+      <span class="avatar" aria-hidden="true">{{ user.display_name[0] }}</span>
+      {% else %}
+      <a class="btn primary" href="{{ url_for('pages.login') }}">Sign in</a>
+      {% endif %}
+    </div>
+  </header>
+  <main class="wrap">
+    {% block content %}{% endblock %}
+  </main>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

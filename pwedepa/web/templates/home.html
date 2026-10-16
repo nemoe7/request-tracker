@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Home — PwedePa{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <p class="eyebrow">Signed in</p>
+    <h1>Hi, {{ user.display_name }}.</h1>
+    <p class="muted">Requests and Issues land here in the next slice. Your account shell is ready now.</p>
+  </div>
+</section>
+
+<section class="cards">
+  <article class="panel">
+    <h2>Account</h2>
+    <dl class="facts">
+      <div><dt>Username</dt><dd>{{ user.username }}</dd></div>
+      <div><dt>Status</dt><dd>{{ user.status.value | capitalize }}</dd></div>
+    </dl>
+  </article>
+
+  <article class="panel">
+    <h2>Passkeys</h2>
+    <p class="muted">You have {{ passkeys | length }} passkey{{ "" if passkeys | length == 1 else "s" }} on this account.</p>
+    <ul class="passkey-list">
+      {% for passkey in passkeys %}
+      <li>
+        <span>Passkey · added {{ passkey.created_at.strftime("%b %d, %Y") if passkey.created_at else "" }}</span>
+        <button class="btn danger" type="button" data-revoke-passkey="{{ passkey.id }}">Revoke</button>
+      </li>
+      {% else %}
+      <li class="muted">No passkeys yet.</li>
+      {% endfor %}
+    </ul>
+    <button class="btn primary" id="add-passkey" type="button">Add a passkey</button>
+    <p class="status" id="status" role="status"></p>
+  </article>
+
+  <article class="panel">
+    <h2>Next up</h2>
+    <p class="muted">Requests, Issues, sharing, and Settings arrive in the following slices. The shell, sign-in, and enrollment are live today.</p>
+  </article>
+</section>
+{% endblock %}

@@ -1,0 +1,74 @@
+/* PwedePa design tokens: Scheme 2 (Slate and blue) with Inter.
+   A future design pick swaps values here and nowhere else. */
+
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/inter-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/inter-latin-600-normal.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/inter-latin-800-normal.woff2") format("woff2");
+  font-weight: 800;
+  font-display: swap;
+}
+
+:root,
+:root[data-theme="light"] {
+  --bg: #F4F6F8;
+  --surface: #FFFFFF;
+  --surface-2: #F8FAFC;
+  --line: #DCE3EA;
+  --text: #17222E;
+  --muted: #5B6B7B;
+  --accent: #2563EB;
+  --accent-fill: #2563EB;
+  --on-accent: #FFFFFF;
+  --danger: #DC2626;
+  --warn: #B45309;
+  --ok: #15803D;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0C1118;
+  --surface: #131B26;
+  --surface-2: #182233;
+  --line: #243144;
+  --text: #E4EBF3;
+  --muted: #93A5B8;
+  --accent: #6EA8FE;
+  --accent-fill: #1D4ED8;
+  --on-accent: #FFFFFF;
+  --danger: #FF9C94;
+  --warn: #F5B04C;
+  --ok: #6FD598;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] {
+    --bg: #0C1118;
+    --surface: #131B26;
+    --surface-2: #182233;
+    --line: #243144;
+    --text: #E4EBF3;
+    --muted: #93A5B8;
+    --accent: #6EA8FE;
+    --accent-fill: #1D4ED8;
+    --on-accent: #FFFFFF;
+    --danger: #FF9C94;
+    --warn: #F5B04C;
+    --ok: #6FD598;
+    color-scheme: dark;
+  }
+}

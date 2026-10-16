@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Enroll — PwedePa{% endblock %}
+{% block content %}
+<section class="auth-card panel">
+  <p class="eyebrow">First time</p>
+  <h1>Enroll a passkey</h1>
+  <p class="muted">Paste the one-time token from your admin. The token dies as soon as your passkey lands, and we sign you in right away.</p>
+  <form id="enroll-form">
+    <label for="token">Enrollment token</label>
+    <input id="token" name="token" type="text" autocomplete="off" required placeholder="Paste your token">
+    <button class="btn primary big" type="submit">Create my passkey</button>
+  </form>
+  <p class="status" id="status" role="status"></p>
+  <p class="muted">Already enrolled? <a href="{{ url_for('pages.login') }}">Sign in</a>.</p>
+</section>
+{% endblock %}
