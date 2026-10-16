@@ -1,0 +1,346 @@
+#!/bin/bash
+# Installer for the arena automatic poll hook and the state directory. Idempotent: safe to run repeatedly, and a sandbox restore requires it again.
+# Run from the repository root, where the skill lives at .agents/skills/arena-skill.
+set -u
+
+VENV="$HOME/.agents/.arena-preview-venv"
+REPO_ROOT="$(pwd)"
+SKILL_REL=".agents/skills/arena-skill"
+STATE_REL="arena-state"
+GLOBAL_IGNORE="$HOME/.gitignore_global"
+HOOK="$HOME/.arena-preview-hook.sh"
+PROFILE="$HOME/.bash_profile"
+MARKER="# arena-preview-hook"
+PATH_MARKER="# arena-preview-path"
+
+fail(){ echo "arena-preview installer: $*" >&2; exit 1; }
+
+# 1. Check the skill in this repository checkout.
+[ -f "$SKILL_REL/scripts/preview.py" ] || fail "missing $SKILL_REL/scripts/preview.py; run this installer from the repository root"
+[ -x "$SKILL_REL/scripts/arena-preview" ] || fail "missing $SKILL_REL/scripts/arena-preview; update the installed skill and rerun this installer"
+
+# 2. Persistent venv for the hook's interpreter.
+if [ ! -x "$VENV/bin/python" ]; then
+  python3 -m venv "$VENV" || fail "cannot create venv at $VENV"
+fi
+
+# 3. Markdown-it-py into the venv, so serve can start from it too.
+if ! "$VENV/bin/python" -c 'import markdown_it' >/dev/null 2>&1; then
+  "$VENV/bin/pip" install --quiet markdown-it-py || fail "cannot install markdown-it-py into $VENV"
+fi
+
+# 4. Ignore the state directory through core.excludesFile, never through the repository .gitignore.
+touch "$GLOBAL_IGNORE" || fail "cannot write $GLOBAL_IGNORE"
+grep -qxF "$STATE_REL/" "$GLOBAL_IGNORE" || echo "$STATE_REL/" >> "$GLOBAL_IGNORE" || fail "cannot append to $GLOBAL_IGNORE"
+git config --global core.excludesFile "$GLOBAL_IGNORE" || fail "cannot set core.excludesFile"
+mkdir -p "$STATE_REL" || fail "cannot create $STATE_REL"
+git check-ignore -q "$STATE_REL/state.sqlite3" || echo "arena-preview installer: warning: $STATE_REL is not ignored, so state shows in git status until this installer runs again" >&2
+
+# 4b. Install a project commit-msg hook that enforces the spec without adding a trailer.
+GIT_DIR="$(git rev-parse --absolute-git-dir)" || fail "cannot locate the Git directory"
+GIT_HOOKS="$GIT_DIR/hooks"
+GIT_HOOK="$GIT_HOOKS/commit-msg"
+LOCAL_HOOKS="$(git config --local --get core.hooksPath 2>/dev/null || true)"
+if [ -n "$LOCAL_HOOKS" ] && [ "$LOCAL_HOOKS" != "$GIT_HOOKS" ]; then
+  fail "core.hooksPath is already set to $LOCAL_HOOKS; refusing to replace it"
+fi
+mkdir -p "$GIT_HOOKS" || fail "cannot create $GIT_HOOKS"
+cat > "$GIT_HOOK" <<'COMMIT_MSG_HOOK' || fail "cannot write $GIT_HOOK"
+#!/bin/sh
+set -eu
+if [ "$#" -ne 1 ]; then
+  echo "commit-msg hook: expected the commit message file" >&2
+  exit 1
+fi
+exec python3 - "$1" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+def reject(message):
+  print(f"commit-msg: {message}", file=sys.stderr)
+  raise SystemExit(1)
+
+allowed_types = "feat fix refactor perf style docs test build chore ci revert".split()
+subject_limit = 72
+
+try:
+  message = Path(sys.argv[1]).read_text(encoding="utf-8")
+except OSError as error:
+  reject(f"cannot read commit message: {error}")
+
+lines = [
+  line
+  for line in message.splitlines()
+  if line.strip() and not line.lstrip().startswith("#")
+]
+if len(lines) != 1:
+  reject("use one subject line and no body")
+
+subject = lines[0]
+if subject != subject.strip():
+  reject("subject cannot start or end with whitespace")
+if len(subject) > subject_limit:
+  reject(f"subject must be at most {subject_limit} characters")
+
+types = "|".join(re.escape(commit_type) for commit_type in allowed_types)
+pattern = re.compile(
+  rf"^(?:{types})(?:\([^()\s]+\))?!?: (?P<description>.+)$"
+)
+match = pattern.fullmatch(subject)
+if not match:
+  reject(
+    "subject must match <type>[optional scope][!]: <description>; "
+    f"allowed types: {', '.join(allowed_types)}"
+  )
+if not match.group("description")[0].islower():
+  reject("description must start with a lowercase letter")
+if subject.endswith("."):
+  reject("subject must not end with a period")
+PY
+COMMIT_MSG_HOOK
+chmod 755 "$GIT_HOOK" || fail "cannot make $GIT_HOOK executable"
+git config --local core.hooksPath "$GIT_HOOKS" || fail "cannot set core.hooksPath"
+echo "arena-preview installer: commit-msg validation active at $GIT_HOOK"
+
+# 5. Hook script: save $?, print the unacked-count reminder on stderr, restore the exit code.
+cat > "$HOOK" <<EOF || fail "cannot write $HOOK"
+#!/bin/bash
+# arena-preview-hook: poll the steering inbox after every agent call.
+rc=\$?
+# The platform runs processes and probes through login shells. Those shells would otherwise count as agent calls and stamp call ends.
+# These are the shapes the gate already ignores, so the count and the stamp answer for the agent's own calls. The hook is a child of the shell that exits, so its parent carries that shell's line.
+# case: platform-shell
+case "\$(tr '\\0' ' ' < /proc/\$PPID/cmdline 2>/dev/null)" in
+  *arena-workspace*|*"ss -ltn"*|*"netstat -ltn"*|*"source ~/.profile"*|*"mkdir -p '/home/user'"*)
+    exit "\$rc" ;;
+esac
+"$VENV/bin/python" "$REPO_ROOT/$SKILL_REL/scripts/preview.py" --reminder >&2
+exit "\$rc"
+EOF
+chmod 755 "$HOOK"
+
+# Drop one marked block from $PROFILE so this run's copy always wins.
+strip_block() {
+  awk -v marker="$1" '
+    $0 == marker { skip = 1; if (n > 0 && out[n] == "") n--; next }
+    skip && /^# arena-preview-/ { skip = 0 }
+    !skip { out[++n] = $0 }
+    END { for (i = 1; i <= n; i++) print out[i] }
+  ' "$PROFILE" > "$PROFILE.new" || fail "cannot rewrite $PROFILE"
+  mv "$PROFILE.new" "$PROFILE"
+}
+
+# 6. Refreshing EXIT trap in ~/.bash_profile.
+touch "$PROFILE"
+strip_block "$MARKER"
+  cat >> "$PROFILE" <<'EOF' || fail "cannot append to $PROFILE"
+
+# arena-preview-hook
+case "$(trap -p EXIT)" in
+  *arena-preview-hook*) ;;
+  *) trap 'rc=$?; "$HOME/.arena-preview-hook.sh"; exit "$rc"' EXIT ;;
+esac
+EOF
+
+# 6b. Idempotent DEBUG gate function in ~/.bash_profile: block bash past the call threshold with a pending inbox.
+GATE_MARKER="# arena-preview-gate"
+strip_block "$GATE_MARKER"
+  cat >> "$PROFILE" <<EOF || fail "cannot append to $PROFILE"
+
+# arena-preview-gate
+_arena_preview_gate() {
+  # Arena gates only an agent call shell. That shell hosts each long-lived process through a launcher script.
+  # An exit ends the hosted process.
+  # case: shell-shape
+  case "\${0##*/}" in bash|sh|dash|ksh|zsh) ;; *) return 0 ;; esac
+  # Never gate Arena probes or bookkeeping shells. An exit from either can report a dead preview or sandbox while the server runs.
+  # Mark such a shell once from its command line and leave the rest of it alone.
+  case "\${_arena_preview_platform:-}" in 1) return 0 ;; esac
+  # The shell command line never changes, so one read per shell serves every command.
+  # case: shell-line
+  case "\${_arena_preview_line:-}" in
+    "") _arena_preview_line="\$(tr '\\0' ' ' < /proc/\$\$/cmdline 2>/dev/null)" ;;
+  esac
+  # case: platform-shell
+  case "\$_arena_preview_line" in
+    *arena-workspace*|*"ss -ltn"*|*"netstat -ltn"*|*"source ~/.profile"*|*"mkdir -p '/home/user'"*)
+      _arena_preview_platform=1
+      return 0
+      ;;
+  esac
+  # case: task-reminder
+  case "\$BASH_COMMAND" in
+    *"git commit"*|*"git push"*|*"gh pr checks"*)
+      if [ -z "\${_arena_preview_reminded:-}" ]; then
+        _arena_preview_reminded=1
+        printf '%s\n' "Finished a task? Update the task list: arena-preview task <id> --status finished." >&2
+      fi
+      ;;
+  esac
+  # A branch that trails origin/main replays onto a stale base.
+  # Run this check once per shell. Check only lines that name a commit or push.
+  # case: main-moved
+  case "\$BASH_COMMAND" in
+    *"git commit"*|*"git push"*)
+      if [ -z "\${_arena_preview_main_checked:-}" ]; then
+        _arena_preview_main_checked=1
+        _arena_preview_behind="\$(git rev-list --count HEAD..origin/main 2>/dev/null)"
+        case "\${_arena_preview_behind:-}" in
+          ''|0) ;;
+          *)
+            # A shallow fetch leaves main's tip alone in the graph. The count then
+            # measures the graft, not main, so the line waits for a visible history.
+            _arena_preview_lone=0
+            if [ "\$(git rev-parse --is-shallow-repository 2>/dev/null)" = true ]; then
+              case "\$(git rev-list --count origin/main 2>/dev/null)" in
+                0|1) _arena_preview_lone=1 ;;
+              esac
+            fi
+            if [ "\${_arena_preview_lone}" = 0 ]; then
+              printf '%s\n' "origin/main carries \${_arena_preview_behind} commit(s) this branch lacks. Replay your commits over main: run git fetch origin and git rebase origin/main, then push." >&2
+            fi
+            ;;
+        esac
+      fi
+      ;;
+  esac
+  # A detached route runs its own line. Its marker prevents the gate from matching its family twice.
+  # case: route-marker
+  case "\${ARENA_PREVIEW_ROUTE:-}" in 1) return 0 ;; esac
+  # A PR-check wait runs in the background. The gate detaches it, prints its status, and prevents a second run here.
+  # case: long-run
+  case "\$BASH_COMMAND" in
+    *gh*"pr"[[:space:]]*"checks"*|*gh*"run"[[:space:]]*"watch"*|*pytest*|*"node --test"*|*"npm test"*|*"npm run test"*|*"yarn test"*|*"pnpm test"*|*"make test"*|*"npx jest"*|*"npx vitest"*|*"npx mocha"*|*"npx ava"*|*"go test"*|*"cargo test"*|*"dotnet test"*|*"mvn test"*|*"mvnw test"*|*"gradle test"*|*"gradlew test"*|*" tox"*|*"tox "*|tox|*" nox"*|*"nox "*|nox)
+      "$VENV/bin/python" "$REPO_ROOT/$SKILL_REL/scripts/preview.py" pr-check-tick "\$_arena_preview_line" --command "\$BASH_COMMAND"
+      case \$? in
+        # The gate stops only a line that names a wait.
+        # A started wait ends the call. A failed start keeps the refusal.
+        1) exit 0 ;;
+        2) exit 130 ;;
+      esac
+      ;;
+  esac
+  # The command sits on PATH in every shell the installer touched, so a spelled-out path only buries the call.
+  # Say it once per shell, then let the line run its gate.
+  # case: bare-path
+  case "\$_arena_preview_line" in
+    *"$REPO_ROOT/$SKILL_REL/scripts/arena-preview"*|*"$REPO_ROOT/$SKILL_REL/scripts/preview.py"*)
+      if [ -z "\${_arena_preview_bare_told:-}" ]; then
+        _arena_preview_bare_told=1
+        printf '%s\n' 'Call it bare: arena-preview works from any directory, so drop the full path.' >&2
+      fi
+      ;;
+  esac
+  # A read the sandbox cannot reach on its own: the hook names the proxy route once a shell.
+  # case: proxy-route
+  case "\$_arena_preview_line" in
+    *code-scanning*|*code_scanning*|*"gh run view"*|*"gh run download"*|*actions/runs*)
+      if [ -z "\${_arena_preview_proxy_told:-}" ]; then
+        _arena_preview_proxy_told=1
+        printf '%s\n' 'Read that through the proxy: the arena skill carries the routes for code-scanning alerts and run logs.' >&2
+      fi
+      ;;
+  esac
+  # A backtick inside double quotes runs as a command, so the shell eats the ticks before the tool sees the text.
+  # The warning lands before the ack runs, and it names the file form.
+  # case: ack-ticks
+  case "\$BASH_COMMAND" in
+    *"arena-preview ack"*|*"preview.py ack"*)
+      "$VENV/bin/python" "$REPO_ROOT/$SKILL_REL/scripts/preview.py" ack-tick "\$BASH_COMMAND"
+      ;;
+  esac
+  # A serve on another port hides the owner's page from the address the skill names.
+  # The warning lands before the call runs.
+  # case: serve-port
+  case "\$BASH_COMMAND" in
+    *"arena-preview serve"*|*"preview.py serve"*)
+      "$VENV/bin/python" "$REPO_ROOT/$SKILL_REL/scripts/preview.py" serve-tick "\$BASH_COMMAND"
+      ;;
+  esac
+  # A fetch to a host outside the egress allowlist fails its TLS handshake, and the error reads as a transient fault.
+  # The warning lands before the call runs, and it names the tool that reaches the host instead.
+  # case: egress
+  case "\$BASH_COMMAND" in
+    *curl*|*wget*|*"git clone"*|*"git fetch"*|*"git ls-remote"*)
+      "$VENV/bin/python" "$REPO_ROOT/$SKILL_REL/scripts/preview.py" egress-tick "\$BASH_COMMAND"
+      ;;
+  esac
+  # A detached task worktree never commits. The ID scan then rejects session-local citations.
+  # case: commit-id
+  case "\$BASH_COMMAND" in
+    *"git commit"*)
+      "$VENV/bin/python" "$REPO_ROOT/$SKILL_REL/scripts/preview.py" worktree-tick commit
+      case \$? in
+        1) exit 130 ;;
+      esac
+      "$VENV/bin/python" "$REPO_ROOT/$SKILL_REL/scripts/preview.py" commit-tick --repo .
+      case \$? in
+        1) exit 130 ;;
+      esac
+      ;;
+  esac
+  # case: inert-line
+  case "\$BASH_COMMAND" in *preview*|*profile*|*bashrc*|*arena-state*|gh*|sleep*|true*|:*|test*|"git status"*|"git diff"*|"git add"*|"git commit"*|*arena-workspace*|*"ss -ltn"*|*"netstat -ltn"*) return 0 ;; esac
+  # A detached task worktree never pushes. The root push remains an inbox checkpoint.
+  # case: push-checkpoint
+  case "\$BASH_COMMAND" in
+    *"git push"*)
+      "$VENV/bin/python" "$REPO_ROOT/$SKILL_REL/scripts/preview.py" worktree-tick push
+      case \$? in
+        1) exit 130 ;;
+      esac
+      "$VENV/bin/python" "$REPO_ROOT/$SKILL_REL/scripts/preview.py" gate --push --line "\$_arena_preview_line" 2>/dev/null
+      case \$? in
+        1) exit 130 ;;
+      esac
+      ;;
+  esac
+  # An inbox line must reach its read. A cd prefix stays quiet for the count gate. The push check still runs.
+  # A quiet line holds only inbox calls and inert prefixes. A read beside work never exempts that work.
+  # case: inbox-line
+  case "\$_arena_preview_line" in
+    *"arena-preview read"*|*"arena-preview ack"*|*"arena-preview poll"*|*"arena-preview task"*|*"preview.py read"*|*"preview.py ack"*|*"preview.py poll"*|*"preview.py task"*)
+      if "$VENV/bin/python" "$REPO_ROOT/$SKILL_REL/scripts/preview.py" inbox-line "\$_arena_preview_line" 2>/dev/null; then
+        return 0
+      fi
+      ;;
+  esac
+  case "\${_arena_preview_gate_checked:-}" in 1) return 0 ;; esac
+  _arena_preview_gate_checked=1
+  "$VENV/bin/python" "$REPO_ROOT/$SKILL_REL/scripts/preview.py" gate --line "\$_arena_preview_line" 2>/dev/null
+  # case: call-count
+  case \$? in
+    1) exit 130 ;;
+  esac
+}
+EOF
+
+# 7. Add this repository's skill scripts to PATH in new Bash shells.
+strip_block "$PATH_MARKER"
+  cat >> "$PROFILE" <<'EOF' || fail "cannot append to $PROFILE"
+
+# arena-preview-path
+# The installer pins the root at install time.
+# A source-time lookup could read a shell outside the checkout.
+_arena_preview_scripts="__ARENA_PREVIEW_ROOT__/.agents/skills/arena-skill/scripts"
+if [ -x "$_arena_preview_scripts/arena-preview" ]; then
+  case ":$PATH:" in
+    *":$_arena_preview_scripts:"*) ;;
+    *) export PATH="$_arena_preview_scripts:$PATH" ;;
+  esac
+fi
+unset _arena_preview_scripts
+EOF
+sed -i "s|__ARENA_PREVIEW_ROOT__|$REPO_ROOT|" "$PROFILE" || fail "cannot pin the PATH root in $PROFILE"
+
+echo "arena-preview installer: ok; state: $REPO_ROOT/$STATE_REL, ignored through $GLOBAL_IGNORE; command: arena-preview in new Bash shells"
+
+# 8. Install the DEBUG gate trap last in ~/.bash_profile.
+GATE_TRAP_MARKER="# arena-preview-gate-trap"
+strip_block "$GATE_TRAP_MARKER"
+  cat >> "$PROFILE" <<'EOF' || fail "cannot append to $PROFILE"
+
+# arena-preview-gate-trap
+trap '_arena_preview_gate : # arena-preview-gate' DEBUG
+EOF

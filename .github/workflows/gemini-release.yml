@@ -1,0 +1,93 @@
+name: Gemini Release Draft
+
+on:
+  workflow_dispatch:
+    inputs:
+      proposal_run_id:
+        description: Successful proposal run ID to approve (leave blank to propose)
+        required: false
+        type: string
+      target_sha:
+        description: Optional full commit SHA reachable from the default branch
+        required: false
+        type: string
+      impact_override:
+        description: Optional major, minor, patch or none (proposal only)
+        required: false
+        type: choice
+        options:
+          - auto
+          - major
+          - minor
+          - patch
+          - none
+        default: auto
+      evidence:
+        description: What Gemini reads (proposal only)
+        required: false
+        type: choice
+        options:
+          - commits-and-diffs
+          - commits
+        default: commits-and-diffs
+      promote_to_stable:
+        description: Promote a published 0.y.z release to 1.0.0 (proposal only)
+        required: false
+        type: boolean
+        default: false
+      models:
+        description: Comma-separated Gemini model ladder, tried in order (proposal only)
+        default: gemini-3.8-flash,gemini-3.6-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: gemini-release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check Out Trusted Workflow Sources
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set Up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Propose Release
+        id: propose
+        if: ${{ inputs.proposal_run_id == '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TARGET_SHA: ${{ inputs.target_sha }}
+          IMPACT_OVERRIDE: ${{ inputs.impact_override }}
+          EVIDENCE: ${{ inputs.evidence }}
+          PROMOTE_TO_STABLE: ${{ inputs.promote_to_stable }}
+          GEMINI_MODELS: ${{ inputs.models }}
+          PROPOSAL_PATH: ${{ runner.temp }}/gemini-proposal/proposal.json
+        run: python .github/workflows/gemini_release.py
+      - name: Approve Proposal
+        if: ${{ inputs.proposal_run_id != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROPOSAL_RUN_ID: ${{ inputs.proposal_run_id }}
+        run: python .github/workflows/gemini_release.py
+      - name: Upload Proposal
+        if: steps.propose.outputs.generated == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: gemini-release-proposal
+          path: ${{ runner.temp }}/gemini-proposal/proposal.json
+          if-no-files-found: error
+          retention-days: 30
