@@ -1,0 +1,42 @@
+name: Pages demo
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "pwedepa/web/**"
+      - "scripts/build_pages_demo.py"
+      - "scripts/demo_seed.py"
+      - ".github/workflows/pages.yml"
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.2.0
+      - run: uv sync --locked
+      - run: uv run --no-sync python scripts/build_pages_demo.py
+      - uses: actions/upload-pages-artifact@v3.0.1
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4.0.5
