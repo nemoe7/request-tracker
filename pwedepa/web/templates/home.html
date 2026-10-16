@@ -21,23 +21,23 @@
   <article class="panel">
     <h2>Passkeys</h2>
     <p class="muted">You have {{ passkeys | length }} passkey{{ "" if passkeys | length == 1 else "s" }} on this account.</p>
+    {% if passkeys %}
     <ul class="passkey-list">
       {% for passkey in passkeys %}
       <li>
         <span>Passkey · added {{ passkey.created_at.strftime("%b %d, %Y") if passkey.created_at else "" }}</span>
         <button class="btn danger" type="button" data-revoke-passkey="{{ passkey.id }}">Revoke</button>
       </li>
-      {% else %}
-      <li class="muted">No passkeys yet.</li>
       {% endfor %}
     </ul>
+    {% endif %}
     <button class="btn primary" id="add-passkey" type="button">Add a passkey</button>
     <p class="status" id="status" role="status"></p>
   </article>
 
   <article class="panel">
     <h2>Next up</h2>
-    <p class="muted">Requests, Issues, sharing, and Settings arrive in the following slices. The shell, sign-in, and enrollment are live today.</p>
+    <p class="muted">Requests and Issues live in their own tabs. Sharing, alerts, and Settings ride along on each record and account.</p>
   </article>
 </section>
 {% endblock %}

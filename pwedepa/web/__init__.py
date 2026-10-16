@@ -51,6 +51,13 @@ def create_app(config: dict | None = None) -> Flask:
       "demo_mode": bool(app.config.get("DEMO_MODE")),
     }
 
+  @app.errorhandler(403)
+  @app.errorhandler(404)
+  def styled_error(error):
+    from flask import render_template
+
+    return render_template("error.html", error=error), error.code
+
   @app.teardown_appcontext
   def close_db(error: BaseException | None = None) -> None:
     connection = g.pop("db", None)

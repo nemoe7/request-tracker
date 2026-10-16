@@ -270,6 +270,8 @@ def workspace() -> str | Response:
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
+  if not is_staff(user):
+    return redirect(url_for("records.my_requests"))
   actor = _actor(user)
   queue = request.args.get("queue", "triage")
   domain = request.args.get("domain", "")

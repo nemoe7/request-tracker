@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ error.code }} — PwedePa{% endblock %}
+{% block content %}
+<section class="panel empty-state">
+  <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="72" height="72">
+  <h1>{{ error.code }} · {{ error.name }}</h1>
+  <p class="muted">
+    {% if error.code == 404 %}That page is not here. It may have moved, or the link may be old.
+    {% else %}You do not have access to this page.{% endif %}
+  </p>
+  <a class="btn primary" href="{{ url_for('pages.landing') }}">Go to PwedePa</a>
+</section>
+{% endblock %}

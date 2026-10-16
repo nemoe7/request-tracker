@@ -22,6 +22,11 @@
       {% endfor %}
     </tbody>
   </table>
-  {% else %}<p class="muted">No share links yet.</p>{% endif %}
+  {% else %}
+  <div class="empty">
+    <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="48" height="48">
+    <p>No share links yet.</p>
+  </div>
+  {% endif %}
 </section>
 {% endblock %}

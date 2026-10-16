@@ -117,7 +117,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .record-table a { color: var(--text); font-weight: 600; text-decoration: none; }
 .row-sub { display: block; font-size: 12px; }
 .row-sub a { color: var(--accent); font-weight: 400; }
-.strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 8px; }
+.strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 8px; }
 .strip-title { margin-top: 20px; }
 .strip-col h3 { display: flex; align-items: center; gap: 6px; font-size: 13px; margin: 0 0 8px; }
 .mini { display: block; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; color: var(--text); text-decoration: none; font-size: 13px; font-weight: 600; }
@@ -167,7 +167,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .card-mini .mini-title { color: var(--text); font-family: inherit; font-size: 14px; }
 .form { display: grid; gap: 14px; }
 .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-.field input[type="text"], .field select, .field textarea, .comment-form textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 15px; min-height: 44px; box-sizing: border-box; }
+.field input[type="text"], .field input[type="number"], .field select, .field textarea, .comment-form textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 15px; min-height: 44px; box-sizing: border-box; }
 .field .help { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
 .check { display: flex; gap: 8px; align-items: center; font-size: 14px; min-height: 44px; }
 .check input { width: 20px; height: 20px; accent-color: var(--accent-fill); }
@@ -194,7 +194,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .filter-form { display: grid; gap: 8px; }
 .filter-form select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; min-height: 44px; box-sizing: border-box; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
-.priority-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin: 14px 0; }
+.priority-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px 0; }
 .priority-form label { font-size: 13px; font-weight: 600; }
 .priority-form select { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; min-height: 44px; }
 
@@ -276,7 +276,7 @@ main { animation: page-in 0.18s ease-out; }
 .ios-group > .ios-row { border: 1px solid var(--line); border-radius: 16px; }
 .ios-fieldset { border: 0; margin: 0 0 14px; padding: 0; background: transparent; }
 .ios-fieldset > legend { float: left; width: 100%; box-sizing: border-box; padding-top: 12px; }
-.ios-row { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 16px; border-bottom: 1px solid var(--line); color: var(--text); font-size: 15px; text-decoration: none; box-sizing: border-box; }
+.ios-row { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 16px; border-bottom: 1px solid var(--line); color: var(--text); font-size: 15px; text-decoration: none; box-sizing: border-box; background: var(--surface); }
 .ios-row:last-child { border-bottom: 0; }
 .ios-label { flex: 1; }
 .ios-sub { display: block; font-size: 12px; color: var(--muted); }

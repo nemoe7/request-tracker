@@ -46,7 +46,7 @@
       {% for role in details[person.id].roles %}<span class="pill st-open"><span class="dot"></span>{{ role.value | capitalize }}</span>{% else %}<span class="muted">No roles</span>{% endfor %}
     </div>
     <form class="inline-form" method="post" action="{{ url_for('admin.change_role', user_id=person.id) }}">
-      <select name="role" aria-label="Role">{% for role in roles %}<option value="{{ role }}">{{ role | capitalize }}</option>{% endfor %}</select>
+      <select name="role" aria-label="Role" required><option value="" selected>Choose a role</option>{% for role in roles %}<option value="{{ role }}">{{ role | capitalize }}</option>{% endfor %}</select>
       <button class="btn" type="submit" name="action" value="assign">Assign</button>
       <button class="btn danger" type="submit" name="action" value="revoke">Revoke</button>
     </form>

@@ -82,7 +82,7 @@
       </div>
       {% endfor %}
       <div class="strip-col">
-        <h3>Closed<span class="count">{{ closed_count }}</span></h3>
+        <h3><span class="pill st-closed"><span class="dot"></span>Closed</span><span class="count">{{ closed_count }}</span></h3>
         <a class="mini" href="{{ url_for('records.issue_board') }}">Open the board</a>
       </div>
     </div>
