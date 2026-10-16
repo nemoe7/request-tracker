@@ -116,7 +116,7 @@ def count_for_user(db: Connection, user_id: int) -> int:
 
 
 def delete_for_user(db: Connection, user_id: int, notice_id: int) -> bool:
-  """Delete one of the user's own notices; True when a row went away."""
+  """Delete one of the user's own notices. Returns True when a row went away."""
   cursor = db.exec_driver_sql(
     "DELETE FROM notifications WHERE id = ? AND user_id = ?",
     (notice_id, user_id),
@@ -126,10 +126,8 @@ def delete_for_user(db: Connection, user_id: int, notice_id: int) -> bool:
 
 
 def delete_all_for_user(db: Connection, user_id: int) -> int:
-  """Delete every notice the user holds; returns the count removed."""
-  cursor = db.exec_driver_sql(
-    "DELETE FROM notifications WHERE user_id = ?", (user_id,)
-  )
+  """Delete every notice the user holds. Returns the count deleted."""
+  cursor = db.exec_driver_sql("DELETE FROM notifications WHERE user_id = ?", (user_id,))
   db.commit()
   return cursor.rowcount
 
