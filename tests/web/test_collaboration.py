@@ -224,6 +224,36 @@ def test_notifications_and_preferences(cast, db):
   assert not any("comment" in message.lower() for message in messages)
 
 
+def test_notification_dismiss_and_clear(app, cast, db):
+  admin, _ = cast["admin"]
+  Mara, Mara_user = cast["Mara"]
+  Sam, _ = cast["Sam"]
+  _request(db, Mara_user.id)
+  admin.post("/requests/1/transition", data={"target": "PENDING"})
+  admin.post("/requests/1/comment", data={"text": "Any news?"})
+  assert notifications_data.count_for_user(db, Mara_user.id) == 2
+  notices = notifications_data.list_for_user(db, Mara_user.id)
+
+  Sam.post(f"/notifications/{notices[0].id}/dismiss")
+  assert notifications_data.count_for_user(db, Mara_user.id) == 2
+
+  Mara.post(f"/notifications/{notices[0].id}/dismiss")
+  remaining = notifications_data.list_for_user(db, Mara_user.id)
+  assert [notice.id for notice in remaining] == [notices[1].id]
+
+  inbox = Mara.get("/notifications")
+  assert b'action="/notifications/clear"' in inbox.data
+  assert f'action="/notifications/{notices[1].id}/dismiss"'.encode() in inbox.data
+
+  Mara.post("/notifications/clear")
+  assert notifications_data.count_for_user(db, Mara_user.id) == 0
+  assert b"No notifications yet." in Mara.get("/notifications").data
+
+  anonymous = app.test_client()
+  assert anonymous.post("/notifications/clear").status_code == 302
+  assert anonymous.post("/notifications/1/dismiss").status_code == 302
+
+
 def test_settings_profile_and_admin_pages(cast, db):
   admin, _ = cast["admin"]
   Mara, Mara_user = cast["Mara"]

@@ -210,6 +210,13 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .share-list li, .compact-list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
 .notice { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
 .notice p { margin: 0 0 6px; }
+.page-actions { display: flex; gap: 8px; align-items: center; }
+.page-actions form { margin: 0; }
+.notice-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.notice-top form { margin: 0; }
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; flex: none; }
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+.icon-btn .icon { width: 16px; height: 16px; }
 .settings-page h1 { margin-bottom: 16px; }
 .settings-group { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 6px 16px 16px; margin-bottom: 18px; }
 .settings-group h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 14px 0 8px; }
