@@ -121,6 +121,15 @@ def test_enrollment_token_is_hashed_single_use_and_expiring(db, user):
     )
 
 
+def test_a_session_stamps_its_use_once_an_hour(db, user):
+  """A page load must not take a write for a stamp that nothing reads."""
+  issued = sessions.create_session(db, user.id, at=AT)
+  early = sessions.resolve_session(db, issued.token, at=AT + timedelta(minutes=5))
+  assert early.last_used_at == AT, "a five minute old stamp holds"
+  old = sessions.resolve_session(db, issued.token, at=AT + timedelta(hours=2))
+  assert old.last_used_at == AT + timedelta(hours=2), "an old stamp refreshes"
+
+
 def test_session_lifecycle_and_rotation_reuse_detection(db, user):
   issued = sessions.create_session(db, user.id, at=AT)
   row = db.exec_driver_sql("SELECT token_hash FROM sessions").fetchone()

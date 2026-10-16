@@ -14,6 +14,10 @@ from .users import UserStatus
 
 SESSION_TTL = timedelta(days=30)
 
+# SQLite allows one writer at a time, so a page load stamps the session at most
+# once an hour. Nothing reads the exact minute of the last use.
+SESSION_STAMP_INTERVAL = timedelta(hours=1)
+
 
 @dataclass(frozen=True)
 class Session:
@@ -60,12 +64,14 @@ def resolve_session(db: Connection, token: str, *, at: datetime) -> Session | No
   row = _find_token(db, token)
   if row is None or not _is_usable(db, row, at):
     return None
-  db.exec_driver_sql(
-    "UPDATE sessions SET last_used_at = ? WHERE id = ?",
-    (pack_time(at), row._mapping["id"]),
-  )
-  db.commit()
-  return _get_session(db, row._mapping["id"])
+  session_id = row._mapping["id"]
+  stamp = unpack_time(row._mapping["last_used_at"])
+  if stamp is None or at - stamp >= SESSION_STAMP_INTERVAL:
+    db.exec_driver_sql(
+      "UPDATE sessions SET last_used_at = ? WHERE id = ?", (pack_time(at), session_id)
+    )
+    db.commit()
+  return _get_session(db, session_id)
 
 
 def rotate_session(
