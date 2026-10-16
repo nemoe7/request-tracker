@@ -294,6 +294,24 @@ def test_settings_rows_share_grouped_lists(app, db):
   assert body.count(b'class="ios-list"') >= 3
 
 
+def test_notification_categories_keep_their_own_cards(app, db):
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  body = client.get("/settings").data
+  assert b'class="ios-split"' in body
+  css = client.get("/static/app.css").data
+  split = css[css.index(b".ios-split") :]
+  assert b".ios-split .ios-fieldset {" in split
+  assert b"border-radius: 16px" in split[:400]
+  assert b".ios-split > .ios-action {" in split
+
+
+def test_the_switch_takes_its_on_color_from_a_token(app):
+  css = app.test_client().get("/static/app.css").data.decode()
+  rule = css[css.index(".switch:checked {") :].split("}", 1)[0]
+  assert "var(--accent" in rule
+  assert "#" not in rule
+
+
 def test_header_controls_live_in_the_user_menu(app, db):
   client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   body = client.get("/workspace").data

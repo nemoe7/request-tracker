@@ -73,7 +73,7 @@
 
     <section class="ios-group" id="notifications" aria-label="Notifications">
       <h2>Notifications</h2>
-      <form method="post" action="{{ url_for('settings.notification_preferences') }}">
+      <form class="ios-split" method="post" action="{{ url_for('settings.notification_preferences') }}">
         {% for pref in preferences %}
         <fieldset class="ios-fieldset">
           <legend>{{ pref.category | capitalize }}</legend>
