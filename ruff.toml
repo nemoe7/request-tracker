@@ -1,0 +1,14 @@
+indent-width = 2
+required-version = "0.16.6"
+exclude = [".agents"]
+
+[lint]
+# Every line holds at most 120 characters. The formatter keeps its own default.
+extend-select = ["E501"]
+
+[lint.pycodestyle]
+max-line-length = 120
+
+[lint.per-file-ignores]
+# The Gemini release file comes from another repository, so its lines stay.
+".github/workflows/gemini_release.py" = ["E501"]
