@@ -39,55 +39,6 @@
     </form>
   </aside>
 
-  <section class="panel records" aria-label="Records">
-    {% if rows %}
-    <table class="record-table">
-      <thead>
-        <tr><th>Title</th><th>Status</th><th>Requester</th><th>Domain</th></tr>
-      </thead>
-      <tbody>
-        {% for row in rows %}
-        <tr{% if selected and row.id == selected.id %} class="is-selected"{% endif %}>
-          <td>
-            {% if row_kind == "request" %}
-            <a href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter, selected=row.id) }}">{{ row.title }}</a>
-            <span class="row-sub"><a href="{{ url_for('records.request_detail', request_id=row.id) }}"> Open #{{ row.id }}</a></span>
-            {% else %}
-            <a href="{{ url_for('records.issue_detail', issue_id=row.id) }}">{{ row.title }}</a>
-            <span class="row-sub">Issue #{{ row.id }}</span>
-            {% endif %}
-          </td>
-          <td>{{ pill(row.status) }}</td>
-          <td>{{ names.get(row.requester_id, "—") }}</td>
-          <td>{{ row.domains | join(", ") or "—" }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div class="empty">
-      <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="48" height="48">
-      <p>Nothing here yet.</p>
-    </div>
-    {% endif %}
-
-    <h2 class="strip-title">Issue strip</h2>
-    <div class="strip">
-      {% for status, issues in board.items() %}
-      <div class="strip-col">
-        <h3>{{ pill(status) }}<span class="count">{{ issues | length }}</span></h3>
-        {% for issue in issues %}
-        <a class="mini" href="{{ url_for('records.issue_detail', issue_id=issue.id) }}">{{ issue.title }}<span>#{{ issue.id }} · {{ issue.priority.value | capitalize }}</span></a>
-        {% endfor %}
-      </div>
-      {% endfor %}
-      <div class="strip-col">
-        <h3><span class="pill st-closed"><span class="dot"></span>Closed</span><span class="count">{{ closed_count }}</span></h3>
-        <a class="mini" href="{{ url_for('records.issue_board') }}">Open the board</a>
-      </div>
-    </div>
-  </section>
-
   <aside class="panel inspector" aria-label="Inspector">
     {% if selected %}
     <p class="eyebrow">Request #{{ selected.id }} · opened by {{ names.get(selected.requester_id, "—") }}</p>
@@ -118,5 +69,49 @@
     </div>
     {% endif %}
   </aside>
+
+  <section class="panel records" aria-label="Records">
+    {% if rows %}
+    <table class="record-table">
+      <thead>
+        <tr><th>Title</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr{% if selected and row.id == selected.id %} class="is-selected"{% endif %}>
+          <td>
+            {% if row_kind == "request" %}
+            <a href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter, selected=row.id) }}">{{ row.title }}</a>
+            <span class="row-sub"><a href="{{ url_for('records.request_detail', request_id=row.id) }}"> Open #{{ row.id }}</a> · {{ names.get(row.requester_id, "—") }} · {{ row.domains | join(", ") or "—" }}</span>
+            {% else %}
+            <a href="{{ url_for('records.issue_detail', issue_id=row.id) }}">{{ row.title }}</a>
+            <span class="row-sub">Issue #{{ row.id }} · {{ names.get(row.requester_id, "—") }} · {{ row.domains | join(", ") or "—" }}</span>
+            {% endif %}
+          </td>
+          <td>{{ pill(row.status) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="48" height="48">
+      <p>Nothing here yet.</p>
+    </div>
+    {% endif %}
+
+    <h2 class="strip-title">Issue strip</h2>
+    <div class="strip">
+      {% for status, issues in board.items() %}
+      <div class="strip-col">
+        <h3>{{ pill(status) }}<span class="count">{{ issues | length }}</span></h3>
+        {% for issue in issues %}
+        <a class="mini" href="{{ url_for('records.issue_detail', issue_id=issue.id) }}">{{ issue.title }}<span>#{{ issue.id }} · {{ issue.priority.value | capitalize }}</span></a>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
 </div>
 {% endblock %}

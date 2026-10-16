@@ -329,7 +329,12 @@ def workspace() -> str | Response:
     selected = next((r for r in rows if r.id == selected_id), rows[0])
   board = {
     status: [i for i in all_issues if i.status is status and in_domain(i)]
-    for status in (IssueStatus.OPEN, IssueStatus.BLOCKED, IssueStatus.RESOLVED)
+    for status in (
+      IssueStatus.OPEN,
+      IssueStatus.BLOCKED,
+      IssueStatus.RESOLVED,
+      IssueStatus.CLOSED,
+    )
   }
   domains = sorted({d for r in all_requests + all_issues for d in r.domains})
   return render_template(
@@ -345,7 +350,6 @@ def workspace() -> str | Response:
     rows=rows,
     row_kind=row_kind,
     board=board,
-    closed_count=sum(1 for i in all_issues if i.status is IssueStatus.CLOSED),
     selected=selected,
     selected_actions=_request_actions(actor, selected) if selected else [],
     selected_events=(
