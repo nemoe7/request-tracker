@@ -314,3 +314,20 @@ def test_two_new_requests_keep_their_own_numbers(cast, db):
   listed = Mara.get("/requests").data
   assert b"First chairs" in listed
   assert b"Second chairs" in listed
+
+
+def test_a_failed_create_leaves_no_record(cast, db, monkeypatch):
+  """One transaction: a failure after the row write leaves no half record."""
+  from pwedepa.data import events as events_data
+
+  Mara, _ = cast["Mara"]
+
+  def fail(*args, **kwargs):
+    raise RuntimeError("the event store is down")
+
+  monkeypatch.setattr(events_data, "append", fail)
+  response = Mara.post(
+    "/requests", data={"title": "Half a record", "description": "Nothing stays."}
+  )
+  assert response.status_code == 500
+  assert requests_data.list_requests(db) == []

@@ -1,5 +1,7 @@
 """SQLAlchemy storage opening and schema loading for the data layer."""
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from importlib.resources import files
 from pathlib import Path
 
@@ -43,4 +45,15 @@ def initialize(db: Connection) -> None:
   for statement in SCHEMA.split(";"):
     if statement.strip():
       db.exec_driver_sql(statement)
+  db.commit()
+
+
+@contextmanager
+def transaction(db: Connection) -> Iterator[Connection]:
+  """Run every write in one transaction, or leave no write behind."""
+  try:
+    yield db
+  except BaseException:
+    db.rollback()
+    raise
   db.commit()

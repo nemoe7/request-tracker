@@ -80,6 +80,7 @@ def notify(
   object_type: str | None = None,
   object_id: int | None = None,
   actor_id: int | None = None,
+  commit: bool = True,
 ) -> Notification | None:
   """Store one notice when the recipient keeps that category in the inbox."""
   picked = preference(db, user_id, category)
@@ -91,7 +92,8 @@ def notify(
     "VALUES (?, ?, ?, ?, ?, ?, ?)",
     (user_id, category, object_type, object_id, message, actor_id, pack_time(at)),
   )
-  db.commit()
+  if commit:
+    db.commit()
   row = db.exec_driver_sql(
     "SELECT * FROM notifications WHERE id = ?", (cursor.lastrowid,)
   ).fetchone()

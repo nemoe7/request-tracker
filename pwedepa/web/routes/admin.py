@@ -40,6 +40,7 @@ from pwedepa.data import issues as issues_data
 from pwedepa.data import notifications as notifications_data
 from pwedepa.data import sharing as sharing_data
 from pwedepa.data import site as site_data
+from pwedepa.data.db import transaction
 
 from .. import now
 from ._helpers import current_user, db
@@ -285,21 +286,23 @@ def create_issue() -> Response:
     created_at=at,
     updated_at=at,
   )
-  record = issues_data.save(db(), record)
-  event = Event("issue.created", user.id, at, {})
-  events_data.append(db(), "issue", record.id, event)
-  for recipient in {record.requester_id, record.assignee_id}:
-    if recipient is not None and recipient != user.id:
-      notifications_data.notify(
-        db(),
-        recipient,
-        "activity",
-        f"New record: {record.title}",
-        at=at,
-        object_type="issue",
-        object_id=record.id,
-        actor_id=user.id,
-      )
+  with transaction(db()):
+    record = issues_data.save(db(), record, commit=False)
+    event = Event("issue.created", user.id, at, {})
+    events_data.append(db(), "issue", record.id, event, commit=False)
+    for recipient in {record.requester_id, record.assignee_id}:
+      if recipient is not None and recipient != user.id:
+        notifications_data.notify(
+          db(),
+          recipient,
+          "activity",
+          f"New record: {record.title}",
+          at=at,
+          object_type="issue",
+          object_id=record.id,
+          actor_id=user.id,
+          commit=False,
+        )
   record_audit(
     db(),
     "issue.created_directly",

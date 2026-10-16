@@ -9,7 +9,9 @@ from pwedepa.core import Event
 from ._rows import pack_time, unpack_time
 
 
-def append(db: Connection, object_type: str, object_id: int, event: Event) -> None:
+def append(
+  db: Connection, object_type: str, object_id: int, event: Event, *, commit: bool = True
+) -> None:
   db.exec_driver_sql(
     "INSERT INTO events (object_type, object_id, event_type, actor_id, at, data) "
     "VALUES (?, ?, ?, ?, ?, ?)",
@@ -22,7 +24,8 @@ def append(db: Connection, object_type: str, object_id: int, event: Event) -> No
       json.dumps(event.data),
     ),
   )
-  db.commit()
+  if commit:
+    db.commit()
 
 
 def list_for(db: Connection, object_type: str, object_id: int) -> list[Event]:

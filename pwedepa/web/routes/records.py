@@ -37,6 +37,7 @@ from pwedepa.data import issues as issues_data
 from pwedepa.data import notifications as notifications_data
 from pwedepa.data import requests as requests_data
 from pwedepa.data import sharing as sharing_data
+from pwedepa.data.db import transaction
 
 from .. import now
 from ._helpers import current_user, db
@@ -163,7 +164,7 @@ def _event_message(record, event) -> str:
   return f"{record.title}: {event.event_type.replace('.', ' ')}"
 
 
-def _notify_event(object_type: str, record, event) -> None:
+def _notify_event(object_type: str, record, event, *, commit: bool = True) -> None:
   if event.event_type.endswith("comment"):
     category = "comments"
   elif "share" in event.event_type:
@@ -182,16 +183,17 @@ def _notify_event(object_type: str, record, event) -> None:
       category,
       _event_message(record, event),
       at=now(),
+      commit=commit,
       object_type=object_type,
       object_id=record.id,
       actor_id=event.actor_id,
     )
 
 
-def _append_all(object_type: str, record, change) -> None:
+def _append_all(object_type: str, record, change, *, commit: bool = True) -> None:
   for event in change.events:
-    events_data.append(db(), object_type, record.id, event)
-    _notify_event(object_type, record, event)
+    events_data.append(db(), object_type, record.id, event, commit=commit)
+    _notify_event(object_type, record, event, commit=commit)
 
 
 def _request_actions(actor, record) -> list[tuple[str, str]]:
@@ -399,28 +401,30 @@ def request_create() -> Response:
     return redirect(url_for("records.request_new"))
   at = now()
   priority = request.form.get("priority_suggestion", "")
-  record = requests_data.save(
-    db(),
-    Request(
-      id=0,
-      title=title,
-      description=request.form.get("description", "").strip(),
-      requester_id=user.id,
-      priority_suggestion=Priority(priority) if priority else None,
-      priority_unsure="priority_unsure" in request.form,
-      visibility=Visibility(request.form.get("visibility", "PRIVATE")),
-      domains=tuple(
-        part.strip()
-        for part in request.form.get("domains", "").split(",")
-        if part.strip()
+  with transaction(db()):
+    record = requests_data.save(
+      db(),
+      Request(
+        id=0,
+        title=title,
+        description=request.form.get("description", "").strip(),
+        requester_id=user.id,
+        priority_suggestion=Priority(priority) if priority else None,
+        priority_unsure="priority_unsure" in request.form,
+        visibility=Visibility(request.form.get("visibility", "PRIVATE")),
+        domains=tuple(
+          part.strip()
+          for part in request.form.get("domains", "").split(",")
+          if part.strip()
+        ),
+        created_at=at,
+        updated_at=at,
       ),
-      created_at=at,
-      updated_at=at,
-    ),
-  )
-  created = Event("request.created", user.id, at)
-  events_data.append(db(), "request", record.id, created)
-  _notify_event("request", record, created)
+      commit=False,
+    )
+    created = Event("request.created", user.id, at)
+    events_data.append(db(), "request", record.id, created, commit=False)
+    _notify_event("request", record, created, commit=False)
   return redirect(url_for("records.request_detail", request_id=record.id))
 
 
@@ -461,15 +465,16 @@ def request_transition(request_id: int) -> Response:
   at = now()
   try:
     if target is RequestStatus.RAISED:
-      issue, change = raise_request(record, actor, at=at)
-      issue = issues_data.save(db(), issue)
-      requests_data.save(db(), change.object)
-      _append_all("request", record, change)
-      raised = Event("issue.raised_from_request", user.id, at, {"issue_id": issue.id})
-      events_data.append(db(), "request", record.id, raised)
-      created = Event("issue.created", user.id, at, {})
-      events_data.append(db(), "issue", issue.id, created)
-      _notify_event("issue", issue, created)
+      with transaction(db()):
+        issue, change = raise_request(record, actor, at=at)
+        issue = issues_data.save(db(), issue, commit=False)
+        requests_data.save(db(), change.object, commit=False)
+        _append_all("request", record, change, commit=False)
+        raised = Event("issue.raised_from_request", user.id, at, {"issue_id": issue.id})
+        events_data.append(db(), "request", record.id, raised, commit=False)
+        created = Event("issue.created", user.id, at, {})
+        events_data.append(db(), "issue", issue.id, created, commit=False)
+        _notify_event("issue", issue, created, commit=False)
       flash(f"Raised into Issue #{issue.id}.")
       return redirect(url_for("records.issue_detail", issue_id=issue.id))
     change = transition_request(

@@ -14,7 +14,7 @@ COLUMNS = (
 )
 
 
-def save(db: Connection, request: Request) -> Request:
+def save(db: Connection, request: Request, *, commit: bool = True) -> Request:
   """Store the request. An unsaved request takes the id SQLite assigns."""
   cursor = db.exec_driver_sql(
     f"INSERT INTO requests ({COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
@@ -42,7 +42,8 @@ def save(db: Connection, request: Request) -> Request:
       pack_time(request.deleted_at),
     ),
   )
-  db.commit()
+  if commit:
+    db.commit()
   return request if request.id else replace(request, id=cursor.lastrowid)
 
 

@@ -14,7 +14,7 @@ COLUMNS = (
 )
 
 
-def save(db: Connection, issue: Issue) -> Issue:
+def save(db: Connection, issue: Issue, *, commit: bool = True) -> Issue:
   """Store the issue. An unsaved issue takes the id SQLite assigns."""
   cursor = db.exec_driver_sql(
     f"INSERT INTO issues ({COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
@@ -41,7 +41,8 @@ def save(db: Connection, issue: Issue) -> Issue:
       pack_time(issue.deleted_at),
     ),
   )
-  db.commit()
+  if commit:
+    db.commit()
   return issue if issue.id else replace(issue, id=cursor.lastrowid)
 
 
