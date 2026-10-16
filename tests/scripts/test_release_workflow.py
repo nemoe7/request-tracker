@@ -57,6 +57,15 @@ def test_the_dev_tags_keep_the_moving_name_and_the_commit():
   assert "version=dev-%s" in text
 
 
+def test_latest_moves_only_for_the_newest_release_tag():
+  text = _docker_text()
+  assert "matching-refs/tags/v" in text, "the newest tag decides latest"
+  assert text.count("type=raw,value=latest,enable=") == 2
+  assert _docker()["jobs"]["release"]["outputs"]["latest"] == (
+    "${{ steps.release.outputs.latest }}"
+  )
+
+
 def test_the_release_tags_carry_the_release_and_latest():
   text = _docker_text()
   assert "type=raw,value=${{ needs.release.outputs.tag }}" in text

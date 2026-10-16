@@ -255,6 +255,7 @@ jobs:
     outputs:
       tag: ${{ steps.release.outputs.tag }}
       expected_sha: ${{ steps.release.outputs.expected_sha }}
+      latest: ${{ steps.release.outputs.latest }}
       skip: ${{ steps.release.outputs.skip }}
     steps:
       - id: release
@@ -322,6 +323,17 @@ jobs:
             fi
             printf 'tag=%s\n' "$tag" >>"$GITHUB_OUTPUT"
             printf 'expected_sha=%s\n' "$expected_sha" >>"$GITHUB_OUTPUT"
+
+            # `latest` follows only the newest release tag, so a rebuild of an
+            # older tag cannot move every deploy backwards.
+            newest="$(gh api --paginate "repos/$REPOSITORY/git/matching-refs/tags/v" \
+              --jq '.[].ref' | sed 's#refs/tags/##' | sort -rV | head -n 1)"
+            if [[ "$tag" == "$newest" ]]; then
+              printf 'latest=1\n' >>"$GITHUB_OUTPUT"
+            else
+              printf 'latest=0\n' >>"$GITHUB_OUTPUT"
+              echo "tag $tag is not the newest release tag ($newest); latest stays put" >&2
+            fi
           fi
 
           printf 'skip=%s\n' "$skip" >>"$GITHUB_OUTPUT"
@@ -379,7 +391,7 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/pwedepa
           tags: |
             type=raw,value=${{ needs.release.outputs.tag }}
-            type=raw,value=latest
+            type=raw,value=latest,enable=${{ needs.release.outputs.latest == '1' }}
       # A digest only: the merge job puts the release tags on the manifest list.
       - id: build
         uses: docker/build-push-action@v7.4.0
@@ -441,7 +453,7 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/pwedepa
           tags: |
             type=raw,value=${{ needs.release.outputs.tag }}
-            type=raw,value=latest
+            type=raw,value=latest,enable=${{ needs.release.outputs.latest == '1' }}
       - name: Create the Manifest
         working-directory: /tmp/digests
         env:
