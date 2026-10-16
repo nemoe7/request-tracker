@@ -93,6 +93,27 @@ def test_the_phone_drops_a_single_stop_nav(app, db):
   assert '<body class="is-staff">' not in client.get("/requests").get_data(as_text=True)
 
 
+def test_the_phone_workspace_folds_its_filters(app, db):
+  """On a phone the list leads, and one row opens the rail."""
+  client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  page = client.get("/workspace").get_data(as_text=True)
+  rail = page[
+    page.index('class="panel filters"') : page.index('class="panel inspector"')
+  ]
+  assert 'class="filters-toggle"' in rail, "one control folds the rail"
+  assert 'for="filters-toggle"' in rail, "the row toggles it"
+  assert 'class="filters-body"' in rail, "the rail content folds into one body"
+  css = client.get("/static/app.css").data.decode()
+  phone_at = css.index("@media (max-width: 899px)")
+  assert ".filters-toggle, .filters-row { display: none; }" in css[:phone_at], (
+    "wide screens hide the row"
+  )
+  phone = css[phone_at:]
+  assert ".filters-toggle:not(:checked) ~ .filters-body { display: none; }" in phone
+  orders = dict(re.findall(r"\.workspace-grid \.(\w+) \{ order: (\d)", phone))
+  assert int(orders["records"]) < int(orders["filters"]), "the list leads on a phone"
+
+
 def test_the_stylesheet_holds_one_phone_block(app):
   css = app.test_client().get("/static/app.css").data.decode()
   assert len(re.findall(r"@media \(max-width: 899px\)", css)) == 1, (
