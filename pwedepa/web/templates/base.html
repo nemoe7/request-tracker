@@ -42,8 +42,8 @@
           <p class="user-menu-id"><strong>{{ user.display_name }}</strong><span>@{{ user.username }}</span></p>
           {% if demo_mode %}
           <nav class="demo-switch" aria-label="Demo seat">
-            <a href="{{ url_for('demo.switch', role='staff') }}"{% if is_staff %} class="on"{% endif %}>Staff</a>
-            <a href="{{ url_for('demo.switch', role='client') }}"{% if not is_staff %} class="on"{% endif %}>Client</a>
+            <a href="{{ url_for('records.workspace') }}"{% if is_staff %} class="on"{% endif %}>Staff</a>
+            <a href="{{ url_for('pages.home') }}"{% if not is_staff %} class="on"{% endif %}>Client</a>
           </nav>
           {% endif %}
           <a class="user-menu-item" href="{{ url_for('settings.settings') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg>Settings</a>

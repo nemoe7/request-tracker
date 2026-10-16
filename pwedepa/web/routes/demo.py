@@ -1,30 +1,32 @@
-"""Opt-in demo entry. It stays off unless PWEDEPA_DEMO=1."""
+"""The demo seat. Demo mode stays off unless code asks for it."""
 
-from flask import Blueprint, abort, current_app, redirect, url_for
-from werkzeug.wrappers import Response
+from flask import current_app
 
 from pwedepa.auth import (
   Role,
   assign_role,
-  create_session,
   create_user,
   get_user_by_username,
 )
-from pwedepa.auth.sessions import SESSION_TTL
 from pwedepa.core import Issue, Priority, Request, Visibility
 from pwedepa.data import domains as domains_data
 from pwedepa.data import issues as issues_data
 from pwedepa.data import requests as requests_data
 from pwedepa.data.domains import domain_slot
 
-from .. import SESSION_COOKIE, now
+from .. import now
 from ._helpers import db
 
-bp = Blueprint("demo", __name__)
-
 # The demo seat lives server-side. Preview frames can block the session
-# cookie, and the demo must still open with one click.
-_seat = {"username": "demo-admin"}
+# cookie, and the demo must still open with one click. The frozen build sets
+# the seat here per page set, so no URL opens or swaps it.
+SEATS = {"staff": "demo-admin", "client": "demo-Mara"}
+_seat = {"username": SEATS["staff"]}
+
+
+def set_seat(role: str) -> None:
+  """Aim the demo seat at a role. The Pages build sets it per page set."""
+  _seat["username"] = SEATS[role]
 
 
 def seat_user():
@@ -100,43 +102,3 @@ def _seed() -> None:
         updated_at=now(),
       ),
     )
-
-
-def _enter(username: str, endpoint: str) -> Response:
-  user = get_user_by_username(db(), username)
-  issued = create_session(db(), user.id, at=now())
-  response = redirect(url_for(endpoint))
-  response.set_cookie(
-    SESSION_COOKIE,
-    issued.token,
-    httponly=True,
-    secure=True,
-    samesite="None",
-    partitioned=True,
-    max_age=int(SESSION_TTL.total_seconds()),
-    path="/",
-  )
-  return response
-
-
-@bp.get("/demo")
-def demo() -> Response:
-  """Open a seeded demo session without credentials when demo mode is on."""
-  if not current_app.config.get("DEMO_MODE"):
-    abort(404)
-  _seed()
-  _seat["username"] = "demo-admin"
-  return _enter("demo-admin", "records.workspace")
-
-
-@bp.get("/demo/switch/<role>")
-def switch(role: str) -> Response:
-  """Swap the demo seat between the staff and client demo users."""
-  if not current_app.config.get("DEMO_MODE"):
-    abort(404)
-  _seed()
-  if role == "client":
-    _seat["username"] = "demo-Mara"
-    return _enter("demo-Mara", "pages.home")
-  _seat["username"] = "demo-admin"
-  return _enter("demo-admin", "records.workspace")

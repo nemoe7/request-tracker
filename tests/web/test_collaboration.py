@@ -150,10 +150,10 @@ def test_authenticated_share_grants_only_the_picked_access(cast, db):
   assert Sam.get(f"/share/{edit_token}").status_code == 404
 
 
-def test_demo_mode_opens_seeded_workspace_without_credentials(tmp_path):
-  demo_app = create_app(
+def _demo_app(tmp_path, name: str = "demo.db"):
+  return create_app(
     {
-      "DATABASE": str(tmp_path / "demo.db"),
+      "DATABASE": str(tmp_path / name),
       "WEBAUTHN_RP_ID": "example.com",
       "WEBAUTHN_RP_NAME": "PwedePa",
       "WEBAUTHN_ORIGIN": "https://example.com",
@@ -161,48 +161,58 @@ def test_demo_mode_opens_seeded_workspace_without_credentials(tmp_path):
       "DEMO_MODE": True,
     }
   )
-  client = demo_app.test_client()
+
+
+def test_demo_mode_opens_seeded_workspace_without_credentials(tmp_path):
+  client = _demo_app(tmp_path).test_client()
   assert "/workspace" in client.get("/").headers["Location"]
-  opened = client.get("/demo")
-  assert opened.status_code == 302
-  assert "/workspace" in opened.headers["Location"]
   workspace = client.get("/workspace")
   assert workspace.status_code == 200
   assert b"Broken projector in Room 4" in workspace.data
 
 
-def test_demo_route_stays_off_by_default(cast):
+def test_the_demo_entry_is_not_a_url(cast, tmp_path):
   admin, _ = cast["admin"]
   assert admin.get("/demo").status_code == 404
   assert admin.get("/demo/switch/client").status_code == 404
+  demo = _demo_app(tmp_path, "demo-url.db").test_client()
+  assert demo.get("/demo").status_code == 404
+  assert demo.get("/demo/switch/staff").status_code == 404
 
 
-def test_demo_switch_swaps_between_staff_and_client(tmp_path):
-  demo_app = create_app(
+def test_the_demo_seat_swaps_in_code(tmp_path):
+  from pwedepa.web.routes.demo import set_seat
+
+  client = _demo_app(tmp_path, "demo-seat.db").test_client()
+  landing = client.get("/")
+  assert b"Sign in with a passkey" not in landing.data
+  assert "/workspace" in landing.headers["Location"]
+  assert "/home" in client.get("/login").headers["Location"]
+  assert "/home" in client.get("/enroll").headers["Location"]
+  home = client.get("/home")
+  assert home.status_code == 200
+  assert b'href="/workspace"' in home.data and b'href="/home"' in home.data
+  set_seat("client")
+  try:
+    assert "/requests" in client.get("/workspace").headers["Location"]
+  finally:
+    set_seat("staff")
+
+
+def test_the_environment_cannot_open_the_demo(monkeypatch, tmp_path):
+  monkeypatch.setenv("PWEDEPA_DEMO", "1")
+  client = create_app(
     {
-      "DATABASE": str(tmp_path / "demo2.db"),
+      "DATABASE": str(tmp_path / "env.db"),
       "WEBAUTHN_RP_ID": "example.com",
       "WEBAUTHN_RP_NAME": "PwedePa",
       "WEBAUTHN_ORIGIN": "https://example.com",
       "SESSION_COOKIE_SECURE": False,
-      "DEMO_MODE": True,
     }
-  )
-  client = demo_app.test_client()
+  ).test_client()
   landing = client.get("/")
-  assert b"Sign in with a passkey" not in landing.data
-  assert "/workspace" in landing.headers["Location"]
-  assert "/demo" in client.get("/login").headers["Location"]
-  assert "/demo" in client.get("/enroll").headers["Location"]
-  assert client.get("/workspace").status_code == 200
-  assert client.get("/demo").status_code == 302
-  assert client.get("/workspace").status_code == 200
-  assert client.get("/demo/switch/client").status_code == 302
-  home = client.get("/home")
-  assert home.status_code == 200
-  assert b"Staff" in home.data and b"Client" in home.data
-  assert client.get("/demo/switch/staff").status_code == 302
-  assert client.get("/workspace").status_code == 200
+  assert landing.status_code == 200
+  assert b"Sign in with a passkey" in landing.data
 
 
 def test_notifications_and_preferences(cast, db):

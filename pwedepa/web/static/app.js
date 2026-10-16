@@ -236,7 +236,7 @@ function ceremonyError(error) {
   const blocked = error.name === "NotAllowedError" || error.name === "SecurityError"
     || String(error.message).includes("publickey-credentials");
   if (blocked) {
-    return "Passkeys need a direct browser tab. Open this page outside the preview, or use the demo entry.";
+    return "Passkeys need a direct browser tab. Open this page outside the preview, or open the demo site.";
   }
   return error.message;
 }

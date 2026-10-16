@@ -21,7 +21,7 @@ def create_app(config: dict | None = None) -> Flask:
     WEBAUTHN_RP_NAME=os.environ.get("PWEDEPA_RP_NAME", "PwedePa"),
     WEBAUTHN_ORIGIN=os.environ.get("PWEDEPA_ORIGIN", "http://localhost:5000"),
     SESSION_COOKIE_SECURE=os.environ.get("PWEDEPA_COOKIE_SECURE", "1") == "1",
-    DEMO_MODE=os.environ.get("PWEDEPA_DEMO", "0") == "1",
+    DEMO_MODE=False,  # the frozen build asks for demo mode in code
   )
   if config:
     app.config.update(config)

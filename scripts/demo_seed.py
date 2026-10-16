@@ -1,7 +1,7 @@
 """Seed a demo database with people, records, activity, and notices.
 
-The demo seats keep the usernames the demo entry already uses. Seeding an
-app database first keeps the self-seed in the demo routes out of the way.
+The demo seats keep the usernames the demo seat module already uses. Seeding
+an app database first keeps its own seed out of the way.
 """
 
 from datetime import UTC, datetime, timedelta

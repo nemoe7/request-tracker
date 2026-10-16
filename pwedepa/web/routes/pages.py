@@ -47,9 +47,7 @@ def landing() -> str | Response:
 
 @bp.get("/login")
 def login() -> str | Response:
-  """Show the passkey sign-in page, or enter the demo when demo mode is on."""
-  if current_app.config.get("DEMO_MODE"):
-    return redirect(url_for("demo.demo"))
+  """Show the passkey sign-in page, or send a signed-in visitor to the home."""
   if current_user() is not None:
     return redirect(url_for("pages.home"))
   return render_template("login.html")
@@ -57,9 +55,7 @@ def login() -> str | Response:
 
 @bp.get("/enroll")
 def enroll() -> str | Response:
-  """Show the enrollment page, or enter the demo when demo mode is on."""
-  if current_app.config.get("DEMO_MODE"):
-    return redirect(url_for("demo.demo"))
+  """Show the enrollment page, or send a signed-in visitor to the home."""
   if current_user() is not None:
     return redirect(url_for("pages.home"))
   return render_template("enroll.html")

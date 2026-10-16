@@ -23,6 +23,7 @@ from pwedepa.data import db as data_db
 from pwedepa.data import issues as issues_data
 from pwedepa.data import requests as requests_data
 from pwedepa.web import create_app
+from pwedepa.web.routes.demo import set_seat
 
 STAFF_PAGES = (
   "workspace",
@@ -102,10 +103,6 @@ def _relative(
       if folder:
         return f"{prefix}{folder}/"
   path = target.split("?", 1)[0].split("#", 1)[0].strip("/")
-  if path == "demo/switch/staff":
-    return prefix
-  if path == "demo/switch/client":
-    return prefix + "home/"
   while path not in frozen:
     if "/" not in path:
       return prefix
@@ -183,7 +180,7 @@ def main() -> int:
     freeze(f"/{folder}", folder)
   for (key, value), folder in views.items():
     freeze(f"/workspace?{key}={value}", folder, source=f"{key}={value}")
-  client.get("/demo/switch/client")
+  set_seat("client")
   nav = {"requests": "home/requests", "issues": "home/issues"}
   client_pages = [("/home", "home")]
   for head, folder in nav.items():

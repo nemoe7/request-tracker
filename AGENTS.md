@@ -17,7 +17,7 @@ One root `AGENTS.md` only. Do not add nested `AGENTS.md` files unless a package 
 - The application package is `pwedepa/`. Split it into subpackages by job as features land.
 - The web shell lives in `pwedepa/web/`: Flask routes in `routes/`, Jinja templates in `templates/`, and PWA files in `static/`. Its tests live in `tests/web/`. Run it with `python -m pwedepa.web`.
 - Request and Issue pages live in `routes/records.py`. Every record write routes through `pwedepa.core`.
-- Sharing, notifications, settings, admin, and demo entry live in named modules under `routes/`.
+- Sharing, notifications, settings, admin, and the demo seat live in named modules under `routes/`.
 - Share access uses a share-scoped actor. A link never widens a signed-in user's ordinary record access.
 - Settled design decisions live in `docs/design.md`. Update it in the same change that changes a design pick.
 - Deployment ships one container from `Dockerfile` and `compose.yml`. Run notes live in `docs/deploy.md`.

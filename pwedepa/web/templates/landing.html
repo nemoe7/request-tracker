@@ -10,7 +10,7 @@
   <p class="lede">Ask for a fix, track who picked it up, and see it through. Requests stay requests until someone raises them into issues. No passwords, no email, no noise.</p>
   <div class="hero-actions">
     {% if demo_mode %}
-    <a class="btn primary big" href="{{ url_for('demo.demo') }}">Open the demo</a>
+    <a class="btn primary big" href="{{ url_for('records.workspace') }}">Open the demo</a>
     {% else %}
     <a class="btn primary big" href="{{ url_for('pages.login') }}">Sign in with a passkey</a>
     <a class="btn big" href="{{ url_for('pages.enroll') }}">I have an enrollment token</a>
