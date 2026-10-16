@@ -61,6 +61,17 @@ def _matched(actor: Actor, effect: Effect, action: str, object_id: int | None) -
   )
 
 
+def _object_matched(actor: Actor, action: str, object_id: int | None) -> bool:
+  if object_id is None:
+    return False
+  object_type, verb = action.split(".", 1)
+  object_action = f"{object_type}.{object_id}.{verb}"
+  return any(
+    grant.effect is Effect.ALLOW and grant.permission in ("*", object_action)
+    for grant in actor.grants
+  )
+
+
 def authorize(
   actor: Actor,
   action: str,
@@ -76,9 +87,12 @@ def authorize(
     return False
   if actor.is_admin:
     return True
-  if _matched(actor, Effect.ALLOW, action, object_id):
-    return True
   object_type, verb = action.split(".", 1)
+  if visibility is Visibility.PRIVATE and verb in ("view", "comment"):
+    if _object_matched(actor, action, object_id):
+      return True
+  elif _matched(actor, Effect.ALLOW, action, object_id):
+    return True
   if owner_id is not None and actor.id == owner_id:
     return verb in OWNER_VERBS.get(object_type, set())
   return False

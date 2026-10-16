@@ -41,6 +41,25 @@ def test_private_object_owner_and_admin_only_by_default():
   )
 
 
+def test_private_view_needs_an_object_grant_not_a_namespace_grant():
+  namespace_viewer = Actor(id=3, grants=(Grant("request.view"),))
+  assert not authorize(
+    namespace_viewer,
+    "request.view",
+    object_id=10,
+    owner_id=2,
+    visibility=Visibility.PRIVATE,
+  )
+  object_viewer = Actor(id=3, grants=(Grant("request.10.view"),))
+  assert authorize(
+    object_viewer,
+    "request.view",
+    object_id=10,
+    owner_id=2,
+    visibility=Visibility.PRIVATE,
+  )
+
+
 def test_public_view_still_needs_the_view_capability():
   other = Actor(id=3)
   assert not authorize(
