@@ -20,6 +20,18 @@ from ._helpers import db
 
 bp = Blueprint("demo", __name__)
 
+# The demo seat lives server-side. Preview frames can block the session
+# cookie, and the demo must still open with one click.
+_seat = {"username": "demo-admin"}
+
+
+def seat_user():
+  """Return the current demo seat user, seeding the demo on first use."""
+  if not current_app.config.get("DEMO_MODE"):
+    return None
+  _seed()
+  return get_user_by_username(db(), _seat["username"])
+
 
 def _ensure_user(username: str, display_name: str, role: Role):
   user = get_user_by_username(db(), username)
@@ -110,6 +122,7 @@ def demo() -> Response:
   if not current_app.config.get("DEMO_MODE"):
     abort(404)
   _seed()
+  _seat["username"] = "demo-admin"
   return _enter("demo-admin", "records.workspace")
 
 
@@ -120,5 +133,7 @@ def switch(role: str) -> Response:
     abort(404)
   _seed()
   if role == "client":
+    _seat["username"] = "demo-Mara"
     return _enter("demo-Mara", "pages.home")
+  _seat["username"] = "demo-admin"
   return _enter("demo-admin", "records.workspace")

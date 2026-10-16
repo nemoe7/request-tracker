@@ -22,11 +22,14 @@ def webauthn_config() -> WebAuthnConfig:
 
 
 def current_user():
-  """Return the signed-in user for the session cookie, or None."""
+  """Return the signed-in user, or the demo seat user in demo mode."""
   token = request.cookies.get(SESSION_COOKIE)
-  if not token:
-    return None
-  session = resolve_session(db(), token, at=now())
-  if session is None:
-    return None
-  return get_user(db(), session.user_id)
+  if token:
+    session = resolve_session(db(), token, at=now())
+    if session is not None:
+      return get_user(db(), session.user_id)
+  if current_app.config.get("DEMO_MODE"):
+    from .demo import seat_user
+
+    return seat_user()
+  return None

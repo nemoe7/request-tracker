@@ -161,7 +161,7 @@ def test_demo_mode_opens_seeded_workspace_without_credentials(tmp_path):
     }
   )
   client = demo_app.test_client()
-  assert b"Open the demo" in client.get("/").data
+  assert "/workspace" in client.get("/").headers["Location"]
   opened = client.get("/demo")
   assert opened.status_code == 302
   assert "/workspace" in opened.headers["Location"]
@@ -190,9 +190,10 @@ def test_demo_switch_swaps_between_staff_and_client(tmp_path):
   client = demo_app.test_client()
   landing = client.get("/")
   assert b"Sign in with a passkey" not in landing.data
-  assert b"Open the demo" in landing.data
+  assert "/workspace" in landing.headers["Location"]
   assert "/demo" in client.get("/login").headers["Location"]
   assert "/demo" in client.get("/enroll").headers["Location"]
+  assert client.get("/workspace").status_code == 200
   assert client.get("/demo").status_code == 302
   assert client.get("/workspace").status_code == 200
   assert client.get("/demo/switch/client").status_code == 302
