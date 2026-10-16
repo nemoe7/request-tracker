@@ -434,6 +434,30 @@ def test_the_share_rule_answers_the_page_and_the_endpoint(app, cast, db):
   assert b"share-panel" not in Sam.get("/issues/1").data
 
 
+def test_a_share_expiry_reads_a_number_the_field_allows(cast, db):
+  """A number field submits exponent forms, so the route must read them."""
+  from pwedepa.data import sharing as sharing_data
+
+  Mara, Mara_user = cast["Mara"]
+  _request(db, Mara_user.id)
+
+  exponent = Mara.post(
+    "/records/request/1/share", data={"permission": "VIEW", "expires_days": "1e3"}
+  )
+  assert exponent.status_code == 302
+  link = sharing_data.list_for_object(db, "request", 1)[-1]
+  assert link.expires_at is not None
+  assert link.expires_at > AT
+  assert link.expires_at <= AT.replace(year=AT.year + 10)
+
+  junk = Mara.post(
+    "/records/request/1/share", data={"permission": "VIEW", "expires_days": "soon"}
+  )
+  assert junk.status_code == 302
+  newest = sharing_data.list_for_object(db, "request", 1)[-1]
+  assert newest.expires_at is None
+
+
 def test_a_share_expiry_is_clamped(cast, db):
   """A wild number cannot overflow the clock or ship a dead link."""
   from pwedepa.data import sharing as sharing_data
