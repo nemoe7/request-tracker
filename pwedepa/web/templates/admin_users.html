@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Admin users — PwedePa{% endblock %}
 {% block content %}
+<div class="admin-page">
 <div class="page-head">
   <h1>Users</h1>
   <a class="btn" href="{{ url_for('admin.overview') }}">Admin home</a>
@@ -15,7 +16,7 @@
 
 <section class="panel admin-section">
   <h2>Create user</h2>
-  <form class="form inline-form" method="post" action="{{ url_for('admin.create_person') }}">
+  <form class="form inline-form create-user" method="post" action="{{ url_for('admin.create_person') }}">
     <div class="field"><label for="new-username">Username</label><input id="new-username" name="username" type="text" required></div>
     <div class="field"><label for="new-display">Display name</label><input id="new-display" name="display_name" type="text" required></div>
     <div class="field"><label for="new-role">Role</label><select id="new-role" name="role"><option value="">No role</option>{% for role in roles %}<option value="{{ role }}">{{ role | capitalize }}</option>{% endfor %}</select></div>
@@ -85,5 +86,6 @@
     {% else %}<p class="muted">No passkeys.</p>{% endif %}
   </article>
   {% endfor %}
+</div>
 </div>
 {% endblock %}

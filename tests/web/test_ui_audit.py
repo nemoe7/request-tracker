@@ -537,7 +537,7 @@ def test_notification_categories_keep_their_own_cards(app, db):
 
 
 def test_the_passkey_block_hides_an_empty_row(app, db):
-  """With no passkey, one row is left: the button that adds one."""
+  """An empty passkey list shows one row: the button that adds one."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   body = client.get("/settings").data
   assert b"No passkeys yet." not in body
@@ -557,3 +557,13 @@ def test_header_controls_live_in_the_user_menu(app, db):
   assert b"user-menu" in body
   assert b"theme-toggle" not in body
   assert b'aria-label="Notifications"' in body
+
+
+def test_the_admin_user_page_caps_its_width(app, db):
+  """The cards must not stretch the width of a wide desktop."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  body = client.get("/admin/users").data
+  assert b'class="admin-page"' in body
+  css = client.get("/static/app.css").data.decode()
+  rule = css[css.index(".admin-page {") :].split("}", 1)[0]
+  assert "max-width" in rule
