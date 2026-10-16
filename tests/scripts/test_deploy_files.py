@@ -54,18 +54,18 @@ def test_compose_runs_the_tailscale_sidecar_for_the_funnel():
   sidecar = _compose()["services"]["tailscale"]
   assert sidecar["image"].startswith("tailscale/tailscale")
   assert sidecar["environment"]["TS_HOSTNAME"] == "pwedepa"
-  assert sidecar["environment"]["TS_SERVE_CONFIG"] == "/config/tailscale-funnel.json"
+  assert sidecar["environment"]["TS_SERVE_CONFIG"] == "/config/serve.json"
   assert sidecar["environment"]["TS_STATE_DIR"] == "/var/lib/tailscale"
   assert "TS_CERT_DOMAIN" not in sidecar["environment"], (
     "the sidecar fills the cert domain placeholder itself"
   )
   mounts = [str(volume) for volume in sidecar["volumes"]]
-  assert "./tailscale-funnel.json:/config/tailscale-funnel.json:ro" in mounts
+  assert "./tailscale:/config:ro" in mounts
   assert "tailscale-state:/var/lib/tailscale" in mounts
 
 
 def test_tailscale_funnel_json_proxies_to_the_app_service():
-  document = json.loads((ROOT / "tailscale-funnel.json").read_text(encoding="utf-8"))
+  document = json.loads((ROOT / "tailscale" / "serve.json").read_text(encoding="utf-8"))
   web = document["Web"]
   assert web
   handlers = next(iter(web.values()))["Handlers"]

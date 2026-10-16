@@ -42,7 +42,7 @@ The dev file supplies a sample session secret, so a local build needs no `.env` 
 
 ## Tailscale Funnel
 
-The `tailscale` service joins your tailnet and serves the public HTTPS name with Funnel. It mounts `tailscale-funnel.json` at `/config` and reads that file as `TS_SERVE_CONFIG`. The config proxies the public name to `http://pwedepa:5000`.
+The `tailscale` service joins your tailnet and serves the public HTTPS name with Funnel. It mounts the `tailscale` folder at `/config` and reads `serve.json` from it as `TS_SERVE_CONFIG`. The config proxies the public name to `http://pwedepa:5000`.
 
 1. Mint a reusable, untagged auth key in the Tailscale admin console, then put it in `.env` as `TS_AUTHKEY`. Compose stops with an error when the value is missing. The node then carries no tags, so your tailnet treats it as one of your own devices. The sidecar calls its node `pwedepa`, so the public name is `pwedepa.your-tailnet.ts.net`. Read your own tailnet name from `docker compose logs tailscale` after the first start, then set `PWEDEPA_ORIGIN` to that name.
 
@@ -55,7 +55,7 @@ The `tailscale` service joins your tailnet and serves the public HTTPS name with
 
 3. Turn on HTTPS and Funnel for the node in the admin console when it asks.
 
-If Tailscale runs on the host instead, the same config works. Change the Proxy value to `http://127.0.0.1:5000`, then run `tailscale serve --config tailscale-funnel.json`.
+If Tailscale runs on the host instead, the same config works. Change the Proxy value to `http://127.0.0.1:5000`, then run `tailscale serve --config tailscale/serve.json`.
 
 ## Demo site
 
@@ -73,7 +73,7 @@ To run the preview demo on your own machine, ask for demo mode in code:
 
 - The app image builds as `pwedepa`. The sidecar uses the upstream `tailscale/tailscale` image.
 - Back up the `pwedepa-data` volume. It holds the only database copy.
-- The `tailscale-state` volume holds the node identity, so a rebuild keeps the device. Restart the sidecar after you edit `tailscale-funnel.json`, because it reads the file at startup.
+- The `tailscale-state` volume holds the node identity, so a rebuild keeps the device. Restart the sidecar after you edit `tailscale/serve.json`, because it reads the file at startup.
 - The starter Domains come from `domains.json`. Keep it at the project root. The image copies it to `/app/domains.json`, and a missing file fails the demo seed with a clear error.
 - Demo mode stays off in deployment. Code asks for it, and no environment variable sets it.
 - The container workflow scans each image build for high and critical findings.
