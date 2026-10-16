@@ -93,6 +93,36 @@ def test_the_phone_drops_a_single_stop_nav(app, db):
   assert '<body class="is-staff">' not in client.get("/requests").get_data(as_text=True)
 
 
+def test_the_stylesheet_holds_one_phone_block(app):
+  css = app.test_client().get("/static/app.css").data.decode()
+  assert len(re.findall(r"@media \(max-width: 899px\)", css)) == 1, (
+    "phones read in one place"
+  )
+
+
+def test_the_row_link_reaches_the_card_handler(app, db):
+  """The centre card opens in place, so a row link must match the handler."""
+  owner = users.create_user(db, "owner", "Owner", at=AT)
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title="A row",
+      description="",
+      requester_id=owner.id,
+      domains=("Gym",),
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+  client = _client(app, db, "Admin", "Admin", roles=(Role.ADMIN,))
+  page = client.get("/workspace").get_data(as_text=True)
+  assert re.search(r'href="[^"]*selected=1', page), "the row link carries the id"
+  js = client.get("/static/app.js").get_data(as_text=True)
+  assert "a[href*='selected='" in js, "the handler binds the live row link"
+  assert "a[href*='/record/']" in js, "the handler binds the frozen row link"
+
+
 def test_requesters_keep_their_own_tabs(app, db):
   client = _client(app, db, "Mara", "Mara Reyes", roles=(Role.REQUESTER,))
   tabs = _nav_tabs(client.get("/requests").get_data(as_text=True))

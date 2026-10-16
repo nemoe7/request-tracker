@@ -102,6 +102,13 @@ const workspaceGrid = document.querySelector(".workspace-grid");
 if (workspaceGrid) {
   const inspector = workspaceGrid.querySelector(".inspector");
   const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const baseHref = window.location.href;
+  const baseCard = inspector.innerHTML;
+  const rowLinks = [
+    ...workspaceGrid.querySelectorAll(".record-table tbody a[href*='selected=']"),
+    ...workspaceGrid.querySelectorAll(".record-table tbody a[href*='/record/']"),
+  ];
+  const cardHrefs = new Set(rowLinks.map((link) => link.href));
 
   const openCard = async (href, row, remember) => {
     try {
@@ -123,7 +130,13 @@ if (workspaceGrid) {
     }
   };
 
-  workspaceGrid.querySelectorAll(".record-table tbody a[href*='selected=']").forEach((link) => {
+  const closeCard = () => {
+    inspector.innerHTML = baseCard;
+    workspaceGrid.classList.remove("is-open");
+    workspaceGrid.querySelector("tr.is-selected")?.classList.remove("is-selected");
+  };
+
+  rowLinks.forEach((link) => {
     link.addEventListener("click", (event) => {
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
       event.preventDefault();
@@ -131,7 +144,16 @@ if (workspaceGrid) {
     });
   });
 
-  window.addEventListener("popstate", () => window.location.reload());
+  window.addEventListener("popstate", () => {
+    if (window.location.href === baseHref) {
+      closeCard();
+    } else if (cardHrefs.has(window.location.href)) {
+      const row = rowLinks.find((link) => link.href === window.location.href)?.closest("tr");
+      openCard(window.location.href, row, false);
+    } else {
+      window.location.reload();
+    }
+  });
 }
 
 /* WebAuthn helpers: the server speaks base64url JSON, the browser wants buffers. */
