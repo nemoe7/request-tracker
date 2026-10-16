@@ -78,6 +78,21 @@ def test_admins_see_the_workspace_alone(app, db):
   assert tabs == ["Workspace"]
 
 
+def test_the_phone_drops_a_single_stop_nav(app, db):
+  staff = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  staff_page = staff.get("/workspace").get_data(as_text=True)
+  assert '<body class="is-staff">' in staff_page
+  css = staff.get("/static/app.css").data.decode()
+  blocks = re.findall(r"@media \(max-width: 899px\) \{(.*?)\n\}", css, re.DOTALL)
+  assert blocks, "the phone blocks hold the bottom bar rules"
+  hidden = [re.search(r"body\.is-staff \.tabs \{([^}]*)\}", block) for block in blocks]
+  assert any(match and "display: none" in match.group(1) for match in hidden), (
+    "one stop needs no bar"
+  )
+  client = _client(app, db, "Mara", "Mara Reyes", roles=(Role.REQUESTER,))
+  assert '<body class="is-staff">' not in client.get("/requests").get_data(as_text=True)
+
+
 def test_requesters_keep_their_own_tabs(app, db):
   client = _client(app, db, "Mara", "Mara Reyes", roles=(Role.REQUESTER,))
   tabs = _nav_tabs(client.get("/requests").get_data(as_text=True))

@@ -363,6 +363,8 @@ form.ios-split { background: none; border: 0; overflow: visible; }
   .tabs a { flex-direction: column; gap: 2px; font-size: 10px; padding: 6px 10px; border-radius: 10px; }
   .topbar .tabs .icon { display: block; }
   body { padding-bottom: 76px; }
+  body.is-staff { padding-bottom: 0; }
+  body.is-staff .tabs { display: none; }
 }
 
 
