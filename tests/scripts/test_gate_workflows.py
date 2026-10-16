@@ -38,6 +38,7 @@ def test_required_file_set_is_exact():
     "codeql.yml",
     "container-scan.yml",
     "dependency-review.yml",
+    "docker.yml",
     "pages.yml",
     "pr-check.yml",
     "secret-scan.yml",

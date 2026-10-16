@@ -1,0 +1,70 @@
+name: Docker
+
+# The dev image follows main. The paths filter keeps the run off changes that
+# cannot reach the image, such as docs, tests, and the workflow set.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+      - ".dockerignore"
+      - "domains.json"
+      - "pwedepa/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/docker.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# The rolling dev tag moves, so a newer build replaces an older one.
+concurrency:
+  group: docker-dev
+  cancel-in-progress: true
+
+jobs:
+  dev:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # Publishing to GHCR needs more than read, so the job asks for it here.
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: dev
+        name: Resolve the dev version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          printf 'version=dev-%s\n' "$(git rev-parse --short=7 HEAD)" >>"$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v4.4.1
+      - uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v6.2.0
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/pwedepa
+          tags: |
+            type=raw,value=dev
+            type=raw,value=${{ steps.dev.outputs.version }}
+
+      # One linux/amd64 leg. An arm64 leg can join when a host needs it.
+      - uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

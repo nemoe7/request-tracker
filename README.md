@@ -34,6 +34,10 @@ uv run --no-sync python scripts/lint_prose.py
 
 Markdown gets one more check: `markdownlint-cli2`, with the rules in `.markdownlint-cli2.jsonc`.
 
+## Images
+
+The Docker workflow publishes the dev image from `main` as `ghcr.io/nemoe7/pwedepa:dev`, with a second tag that names the commit: `dev-<7-char sha>`.
+
 ## Docs
 
 - `docs/deploy.md` — how to run the app for real.
