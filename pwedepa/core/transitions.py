@@ -3,7 +3,7 @@
 from dataclasses import replace
 from datetime import datetime
 
-from .errors import DomainError, InvalidTransition, PermissionDenied
+from .errors import CoreError, InvalidTransition, PermissionDenied
 from .models import (
   Change,
   Event,
@@ -98,13 +98,13 @@ def transition_request(
   at: datetime,
   reason: str | None = None,
 ) -> Change:
-  """Move a Request, or raise the domain error that blocks the move."""
+  """Move a Request, or raise the core error that blocks the move."""
   if target not in REQUEST_TRANSITIONS[request.status]:
     raise InvalidTransition(
       f"request cannot move from {request.status.value} to {target.value}"
     )
   if target is RequestStatus.REVOKED and not reason:
-    raise DomainError("revocation needs a reason")
+    raise CoreError("revocation needs a reason")
   if not _can_move_request(actor, request, target):
     raise PermissionDenied(f"actor cannot move a request to {target.value}")
   moved = replace(request, status=target, updated_at=at)
@@ -122,7 +122,7 @@ def transition_issue(
   *,
   at: datetime,
 ) -> Change:
-  """Move an Issue, or raise the domain error that blocks the move."""
+  """Move an Issue, or raise the core error that blocks the move."""
   if target not in ISSUE_TRANSITIONS[issue.status]:
     raise InvalidTransition(
       f"issue cannot move from {issue.status.value} to {target.value}"

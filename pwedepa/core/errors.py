@@ -1,17 +1,17 @@
 """Domain errors. HTTP and UI layers translate these into responses."""
 
 
-class DomainError(Exception):
-  """A domain rule blocked the operation."""
+class CoreError(Exception):
+  """A core rule blocked the operation."""
 
 
-class InvalidTransition(DomainError):
+class InvalidTransition(CoreError):
   """The state machine has no move from the current state to the target."""
 
 
-class PermissionDenied(DomainError):
+class PermissionDenied(CoreError):
   """The actor lacks the capability for the operation."""
 
 
-class ConfirmationRequired(DomainError):
+class ConfirmationRequired(CoreError):
   """The operation needs an explicit confirmation first."""

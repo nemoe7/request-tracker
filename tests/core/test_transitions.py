@@ -2,9 +2,9 @@ from datetime import UTC, datetime
 
 import pytest
 
-from pwedepa.domain import (
+from pwedepa.core import (
   Actor,
-  DomainError,
+  CoreError,
   Grant,
   Issue,
   IssueStatus,
@@ -83,7 +83,7 @@ def test_request_graph_allows_only_listed_moves():
         and current is not RequestStatus.OPEN
       ):
         continue
-      with pytest.raises(DomainError):
+      with pytest.raises(CoreError):
         transition_request(make_request(current), target, ADMIN, at=NOW)
 
 
@@ -94,12 +94,12 @@ def test_terminal_request_states_have_no_moves():
     RequestStatus.FULFILLED,
     RequestStatus.REVOKED,
   ):
-    with pytest.raises(DomainError):
+    with pytest.raises(CoreError):
       transition_request(make_request(current), RequestStatus.OPEN, ADMIN, at=NOW)
 
 
 def test_revocation_needs_a_reason():
-  with pytest.raises(DomainError):
+  with pytest.raises(CoreError):
     transition_request(make_request(), RequestStatus.REVOKED, OWNER, at=NOW)
   result = transition_request(
     make_request(), RequestStatus.REVOKED, OWNER, at=NOW, reason="no longer needed"
@@ -110,7 +110,7 @@ def test_revocation_needs_a_reason():
 
 def test_requester_cannot_raise_but_admin_can():
   pending = make_request(RequestStatus.PENDING)
-  with pytest.raises(DomainError):
+  with pytest.raises(CoreError):
     transition_request(pending, RequestStatus.RAISED, OWNER, at=NOW)
   assert transition_request(pending, RequestStatus.RAISED, ADMIN, at=NOW)
 
@@ -142,12 +142,12 @@ def test_issue_graph_and_requester_close_reopen():
   assert closed.status is IssueStatus.CLOSED
   reopened = transition_issue(closed, IssueStatus.OPEN, OWNER, at=NOW).object
   assert reopened.status is IssueStatus.OPEN
-  with pytest.raises(DomainError):
+  with pytest.raises(CoreError):
     transition_issue(make_issue(), IssueStatus.CLOSED, ADMIN, at=NOW)
 
 
 def test_issue_block_cycle_needs_admin_or_assignee():
-  with pytest.raises(DomainError):
+  with pytest.raises(CoreError):
     transition_issue(make_issue(), IssueStatus.BLOCKED, OTHER, at=NOW)
   assignee = Actor(id=9)
   issue = make_issue(assignee_id=assignee.id)

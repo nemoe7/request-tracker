@@ -2,10 +2,10 @@ from datetime import UTC, datetime
 
 import pytest
 
-from pwedepa.domain import (
+from pwedepa.core import (
   Actor,
   ConfirmationRequired,
-  DomainError,
+  CoreError,
   Issue,
   IssueStatus,
   Request,
@@ -64,21 +64,21 @@ def test_pending_edit_needs_confirmation_and_returns_to_open():
 
 
 def test_other_user_cannot_edit_and_requester_id_never_changes():
-  with pytest.raises(DomainError):
+  with pytest.raises(CoreError):
     edit_request(make_request(), OTHER, at=LATER, title="New title")
-  with pytest.raises(DomainError):
+  with pytest.raises(CoreError):
     edit_request(make_request(), ADMIN, at=LATER, requester_id=99)
 
 
 def test_terminal_request_cannot_be_edited():
-  with pytest.raises(DomainError):
+  with pytest.raises(CoreError):
     edit_request(make_request(RequestStatus.REJECTED), ADMIN, at=LATER, title="New")
 
 
 def test_admin_assigns_an_issue_and_priority_change_is_an_event():
   result = edit_issue(make_issue(), ADMIN, at=LATER, assignee_id=7)
   assert result.object.assignee_id == 7
-  from pwedepa.domain import Priority
+  from pwedepa.core import Priority
 
   assigned = edit_issue(make_issue(), ADMIN, at=LATER, assignee_id=7).object
   changed = edit_issue(assigned, Actor(id=7), at=LATER, priority=Priority.URGENT)
@@ -87,18 +87,18 @@ def test_admin_assigns_an_issue_and_priority_change_is_an_event():
 
 
 def test_assignee_cannot_reassign():
-  with pytest.raises(DomainError):
+  with pytest.raises(CoreError):
     edit_issue(make_issue(), Actor(id=7), at=LATER, assignee_id=8)
 
 
 def test_empty_edit_fails():
-  with pytest.raises(DomainError):
+  with pytest.raises(CoreError):
     edit_request(make_request(), OWNER, at=LATER)
-  with pytest.raises(DomainError):
+  with pytest.raises(CoreError):
     edit_issue(make_issue(), ADMIN, at=LATER)
 
 
 def test_assignee_cannot_change_visibility():
   assigned = edit_issue(make_issue(), ADMIN, at=LATER, assignee_id=7).object
-  with pytest.raises(DomainError):
+  with pytest.raises(CoreError):
     edit_issue(assigned, Actor(id=7), at=LATER, visibility=Visibility.PUBLIC)

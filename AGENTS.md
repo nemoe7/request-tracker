@@ -26,7 +26,8 @@ One root `AGENTS.md` only. Do not add nested `AGENTS.md` files unless a package 
 - SOLID, KISS, YAGNI, and DRY all apply. Fewest files, deletion over addition, boring over clever.
 - Guard clauses and early returns. One reason to change per unit. Small interfaces.
 - Never simplify away trust-boundary validation, data-loss error handling, security, or accessibility.
-- State lives behind a persistence layer. Domain logic must not depend on SQLite-only behavior.
+- State lives behind a persistence layer. Core logic must not depend on SQLite-only behavior.
+- Name things by convention and by what they are. Package names follow PEP 8: short, lowercase, plain words.
 - After each completed feature, run a ponytail-review and publish it as a fielded report in the steering preview.
 
 ## Style

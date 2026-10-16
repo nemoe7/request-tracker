@@ -1,4 +1,4 @@
-from pwedepa.domain import Actor, Effect, Grant, Visibility, authorize, matches
+from pwedepa.core import Actor, Effect, Grant, Visibility, authorize, matches
 
 
 def test_matches_wildcards_and_object_grants():

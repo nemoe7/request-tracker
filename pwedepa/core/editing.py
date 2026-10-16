@@ -3,7 +3,7 @@
 from dataclasses import replace
 from datetime import datetime
 
-from .errors import ConfirmationRequired, DomainError, PermissionDenied
+from .errors import ConfirmationRequired, CoreError, PermissionDenied
 from .models import Change, Event, Issue, IssueStatus, Request, RequestStatus
 from .permissions import Actor, authorize
 
@@ -28,7 +28,7 @@ ISSUE_FIELDS = {
 def _check_fields(fields: dict, allowed: set) -> None:
   unknown = sorted(set(fields) - allowed)
   if unknown:
-    raise DomainError(f"fields cannot change here: {', '.join(unknown)}")
+    raise CoreError(f"fields cannot change here: {', '.join(unknown)}")
 
 
 def _is_editable(request: Request) -> bool:
@@ -50,12 +50,12 @@ def edit_request(
 ) -> Change:
   """Edit a Request. A requester edit of a pending Request returns it to OPEN."""
   if not fields:
-    raise DomainError("an edit needs at least one field")
+    raise CoreError("an edit needs at least one field")
   _check_fields(fields, REQUEST_FIELDS)
   if request.deleted_at is not None:
-    raise DomainError("a deleted request cannot be edited")
+    raise CoreError("a deleted request cannot be edited")
   if not REQUEST_TRANSITIONS_OPEN(request):
-    raise DomainError("a request in a terminal state cannot be edited")
+    raise CoreError("a request in a terminal state cannot be edited")
   if not authorize(
     actor,
     "request.edit",
@@ -93,12 +93,12 @@ def edit_issue(
 ) -> Change:
   """Edit an Issue. Only an admin reassigns. A priority change is its own event."""
   if not fields:
-    raise DomainError("an edit needs at least one field")
+    raise CoreError("an edit needs at least one field")
   _check_fields(fields, ISSUE_FIELDS)
   if issue.deleted_at is not None:
-    raise DomainError("a deleted issue cannot be edited")
+    raise CoreError("a deleted issue cannot be edited")
   if issue.status is IssueStatus.CLOSED:
-    raise DomainError("a closed issue cannot be edited")
+    raise CoreError("a closed issue cannot be edited")
   if (
     "assignee_id" in fields
     and not actor.is_admin

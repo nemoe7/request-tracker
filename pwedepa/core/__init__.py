@@ -1,7 +1,7 @@
-"""PwedePa domain core: state machines, permissions, and field edits."""
+"""PwedePa core: state machines, permissions, and field edits."""
 
 from .editing import edit_issue, edit_request
-from .errors import ConfirmationRequired, DomainError, PermissionDenied
+from .errors import ConfirmationRequired, CoreError, PermissionDenied
 from .models import (
   Change,
   Event,
@@ -19,7 +19,7 @@ __all__ = [
   "Actor",
   "Change",
   "ConfirmationRequired",
-  "DomainError",
+  "CoreError",
   "Effect",
   "Event",
   "Grant",

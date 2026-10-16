@@ -1,4 +1,4 @@
-"""Core domain values for Requests and Issues."""
+"""Core values for Requests and Issues."""
 
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -69,7 +69,7 @@ class Issue:
 
 @dataclass(frozen=True)
 class Event:
-  """One activity entry. The persistence layer stores these. The domain creates them."""
+  """One activity entry. The persistence layer stores these. The core creates them."""
 
   event_type: str
   actor_id: int | None
