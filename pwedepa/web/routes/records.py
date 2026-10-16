@@ -94,7 +94,7 @@ def _viewable_requests(actor, rows) -> list:
 
 
 def _can_view_issue(actor, record) -> bool:
-  # The core lets an assignee work an issue; seeing it comes with the job.
+  # The core lets an assignee work an issue. Seeing it comes with the job.
   if actor.id is not None and actor.id == record.assignee_id:
     return True
   return _can(actor, "issue.view", record)
