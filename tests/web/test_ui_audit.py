@@ -279,6 +279,19 @@ def test_every_control_keeps_a_keyboard_focus_ring(app):
   assert quiet < visible, "the quiet rule must come first, so the ring wins"
 
 
+def test_settings_rail_carries_icon_rows_and_a_phone_list(app, db):
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  body = client.get("/settings").data.decode()
+  rail = body[body.index("settings-rail") : body.index("settings-main")]
+  assert rail.count("ios-chip") >= 4
+  assert rail.count("chevron-right") >= 4
+  css = client.get("/static/app.css").data.decode()
+  assert ".settings-nav { display: none; }" not in css
+  phone = css[css.index("@media (max-width: 899px)") :]
+  assert ".settings-nav { background: var(--surface)" in phone
+  assert ".settings-nav .chev { display: block; }" in phone
+
+
 def test_wide_screens_stretch_the_shell(app):
   css = app.test_client().get("/static/app.css").data.decode()
   block = css[css.index("@media (min-width: 1200px)") :]

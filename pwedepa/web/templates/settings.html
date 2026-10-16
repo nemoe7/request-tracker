@@ -11,11 +11,15 @@
       </div>
     </div>
     <nav class="settings-nav">
-      <a href="#profile">Profile</a>
-      <a href="#appearance">Appearance</a>
-      <a href="#notifications">Notifications</a>
-      <a href="#passkeys">Passkeys</a>
-      {% if is_admin %}<a href="#admin">Admin</a>{% endif %}
+      {% for anchor, label, icon, tint in [("#profile", "Profile", "settings", "chip-blue"), ("#appearance", "Appearance", "contrast", "chip-indigo"), ("#notifications", "Notifications", "bell", "chip-red"), ("#passkeys", "Passkeys", "key-round", "chip-gray"), ("#admin", "Admin", "clipboard-list", "chip-amber")] %}
+      {% if anchor != "#admin" or is_admin %}
+      <a href="{{ anchor }}">
+        <span class="ios-chip {{ tint }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#{{ icon }}"/></svg></span>
+        {{ label }}
+        <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
+      </a>
+      {% endif %}
+      {% endfor %}
     </nav>
   </aside>
 
