@@ -171,3 +171,21 @@ def test_a_saved_issue_takes_the_id_sqlite_assigns(db):
   assert first.id != second.id
   assert issues.get(db, first.id).title == "First"
   assert issues.get(db, second.id).title == "Second"
+
+
+def test_a_database_file_prepares_its_schema_once(tmp_path, monkeypatch):
+  """The schema must run when a file first opens, not on every request."""
+  calls = []
+  real_initialize = data_db.initialize
+
+  def count(connection):
+    calls.append(connection)
+    real_initialize(connection)
+
+  monkeypatch.setattr(data_db, "initialize", count)
+  path = tmp_path / "once.db"
+
+  data_db.connect(path).close()
+  data_db.connect(path).close()
+
+  assert len(calls) == 1

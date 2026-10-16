@@ -16,9 +16,17 @@ SCHEMA = files(__package__).joinpath("schema.sql").read_text(encoding="utf-8")
 
 _engines: dict[str, Engine] = {}
 
+# A file keeps its schema for the life of the process, so the schema runs once
+# per path and not once per request.
+_prepared: set[str] = set()
+
+
+def _key(path: str | Path) -> str:
+  return str(Path(path).resolve())
+
 
 def _engine(path: str | Path) -> Engine:
-  key = str(Path(path).resolve())
+  key = _key(path)
   if key not in _engines:
     engine = create_engine(f"sqlite:///{key}")
 
@@ -34,9 +42,12 @@ def _engine(path: str | Path) -> Engine:
 
 
 def connect(path: str | Path) -> Connection:
-  """Open the database at path, creating its schema when needed."""
-  connection = _engine(path).connect()
-  initialize(connection)
+  """Open the database at path, creating its schema when the path is new."""
+  key = _key(path)
+  connection = _engine(key).connect()
+  if key not in _prepared:
+    initialize(connection)
+    _prepared.add(key)
   return connection
 
 
