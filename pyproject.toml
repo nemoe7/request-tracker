@@ -10,6 +10,7 @@ dependencies = [
 [dependency-groups]
 dev = [
   "pytest>=9.1",
+  "pytest-xdist>=3.8.0",
   "PyYAML>=6.0",
   "ruff==0.16.6",
 ]
@@ -23,3 +24,4 @@ packages = ["pwedepa", "pwedepa.core", "pwedepa.data", "pwedepa.auth"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-n auto"

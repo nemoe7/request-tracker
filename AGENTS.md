@@ -40,6 +40,7 @@ One root `AGENTS.md` only. Do not add nested `AGENTS.md` files unless a package 
 ## Testing
 
 - The pull request gate is `.github/workflows/ci.yml`. Run the same steps locally before every push.
+- Tests run in parallel by default (`pytest-xdist`, `-n auto` in `pyproject.toml`). Pass `-n 0` to run serially while debugging. Keep tests parallel-safe: no shared files, ports, or global state.
 - New non-trivial logic (a branch, a loop, a parser, a money or security path) leaves one small runnable test. Reuse pytest and the repo fixtures.
 - Ported gates keep their tests. Do not weaken or drop a test to make a run pass.
 - UI changes need a screenshot check in a real browser before they count as landed.
