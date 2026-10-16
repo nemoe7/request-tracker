@@ -1,12 +1,12 @@
 """Share links for Requests and Issues. The database stores token hashes."""
 
-import hashlib
 import json
-import secrets
 from dataclasses import dataclass
 from datetime import datetime
 
 from sqlalchemy.engine import Connection, Row
+
+from pwedepa._tokens import hash_token, new_token
 
 from ._rows import pack_time, unpack_time
 
@@ -32,10 +32,6 @@ class IssuedShareLink:
   token: str
 
 
-def _hash(token: str) -> str:
-  return hashlib.sha256(token.encode("utf-8")).hexdigest()
-
-
 def create(
   db: Connection,
   object_type: str,
@@ -53,14 +49,14 @@ def create(
   if unknown:
     raise ValueError(f"unknown share permissions: {', '.join(unknown)}")
   ordered = tuple(value for value in PERMISSIONS if value in picked)
-  token = secrets.token_urlsafe(32)
+  token = new_token()
   cursor = db.exec_driver_sql(
     "INSERT INTO share_links (object_type, object_id, token_hash, permissions, "
     "created_by_id, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
     (
       object_type,
       object_id,
-      _hash(token),
+      hash_token(token),
       json.dumps(list(ordered)),
       created_by_id,
       pack_time(at),
@@ -80,7 +76,7 @@ def get(db: Connection, link_id: int) -> ShareLink | None:
 
 def find_by_token(db: Connection, token: str) -> ShareLink | None:
   row = db.exec_driver_sql(
-    "SELECT * FROM share_links WHERE token_hash = ?", (_hash(token),)
+    "SELECT * FROM share_links WHERE token_hash = ?", (hash_token(token),)
   ).fetchone()
   return None if row is None else _from_row(row)
 

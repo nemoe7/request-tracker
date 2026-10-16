@@ -5,9 +5,9 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.engine import Connection, Row
 
+from pwedepa._tokens import hash_token, new_token
 from pwedepa.data._rows import pack_time, unpack_time
 
-from ._tokens import hash_token, new_token
 from .audit import record_audit
 from .errors import AuthenticationFailed, InvalidToken
 from .users import UserStatus
