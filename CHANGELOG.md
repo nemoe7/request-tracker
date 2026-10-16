@@ -25,3 +25,16 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
 
 - `compose.yml` runs the published image, and `compose.dev.yml` builds the checkout for local runs.
+
+### Fixed
+
+- The share rule lives in one place, so the page and the endpoint answer the same.
+- One guard runs before every admin route.
+- The service worker keeps only its own origin in the cache.
+- The database prepares its schema once for each file.
+- A session stamps its use at most once an hour.
+- The workspace reads its three preference rows in one query.
+
+### Removed
+
+- The unused Alembic dependency, and a helper for terminal states with no caller.
