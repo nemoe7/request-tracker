@@ -1,0 +1,129 @@
+"""Roles, direct permission grants, and actor construction."""
+
+import sqlite3
+from datetime import datetime
+from enum import Enum
+
+from pwedepa.core import Actor, Effect, Grant
+from pwedepa.data._rows import pack_time
+
+from .errors import AuthenticationFailed
+from .users import UserStatus, get_user
+
+
+class Role(str, Enum):
+  ADMIN = "ADMIN"
+  REQUESTER = "REQUESTER"
+  ASSIGNEE = "ASSIGNEE"
+
+
+ROLE_GRANTS = {
+  Role.ADMIN: (Grant("*"),),
+  Role.REQUESTER: (
+    Grant("request.create"),
+    Grant("request.view"),
+    Grant("request.comment"),
+    Grant("issue.view"),
+    Grant("issue.comment"),
+  ),
+  Role.ASSIGNEE: (
+    Grant("issue.view"),
+    Grant("issue.comment"),
+  ),
+}
+
+
+def assign_role(
+  db: sqlite3.Connection, user_id: int, role: Role, *, at: datetime
+) -> None:
+  _require_user(db, user_id)
+  db.execute(
+    "INSERT OR IGNORE INTO user_roles (user_id, role, created_at) VALUES (?, ?, ?)",
+    (user_id, role.value, pack_time(at)),
+  )
+  db.commit()
+
+
+def revoke_role(
+  db: sqlite3.Connection, user_id: int, role: Role, *, at: datetime
+) -> bool:
+  _require_user(db, user_id)
+  cursor = db.execute(
+    "DELETE FROM user_roles WHERE user_id = ? AND role = ?", (user_id, role.value)
+  )
+  db.commit()
+  return cursor.rowcount == 1
+
+
+def list_roles(db: sqlite3.Connection, user_id: int) -> tuple[Role, ...]:
+  _require_user(db, user_id)
+  rows = db.execute(
+    "SELECT role FROM user_roles WHERE user_id = ? ORDER BY role", (user_id,)
+  )
+  return tuple(Role(row["role"]) for row in rows)
+
+
+def grant_permission(
+  db: sqlite3.Connection, user_id: int, grant: Grant, *, at: datetime
+) -> None:
+  _require_user(db, user_id)
+  if not grant.permission.strip():
+    raise ValueError("a grant needs a permission")
+  db.execute(
+    "INSERT INTO permission_grants (user_id, permission, effect, created_at) "
+    "VALUES (?, ?, ?, ?) "
+    "ON CONFLICT(user_id, permission, effect) DO UPDATE SET revoked_at = NULL",
+    (user_id, grant.permission, grant.effect.value, pack_time(at)),
+  )
+  db.commit()
+
+
+def revoke_permission(
+  db: sqlite3.Connection,
+  user_id: int,
+  permission: str,
+  effect: Effect,
+  *,
+  at: datetime,
+) -> bool:
+  _require_user(db, user_id)
+  cursor = db.execute(
+    "UPDATE permission_grants SET revoked_at = ? "
+    "WHERE user_id = ? AND permission = ? AND effect = ? AND revoked_at IS NULL",
+    (pack_time(at), user_id, permission, effect.value),
+  )
+  db.commit()
+  return cursor.rowcount == 1
+
+
+def grants_for_user(db: sqlite3.Connection, user_id: int) -> tuple[Grant, ...]:
+  grants: list[Grant] = []
+  for role in list_roles(db, user_id):
+    grants.extend(ROLE_GRANTS[role])
+  rows = db.execute(
+    "SELECT permission, effect FROM permission_grants "
+    "WHERE user_id = ? AND revoked_at IS NULL ORDER BY id",
+    (user_id,),
+  )
+  grants.extend(Grant(row["permission"], Effect(row["effect"])) for row in rows)
+  return tuple(dict.fromkeys(grants))
+
+
+def actor_for_user(db: sqlite3.Connection, user_id: int) -> Actor:
+  """Build the core actor for an active user."""
+  user = get_user(db, user_id)
+  if user is None:
+    raise AuthenticationFailed("the user does not exist")
+  if user.status is UserStatus.ARCHIVED:
+    raise AuthenticationFailed("archived users cannot authenticate")
+  roles = list_roles(db, user_id)
+  return Actor(
+    id=user.id,
+    is_admin=Role.ADMIN in roles,
+    grants=grants_for_user(db, user_id),
+  )
+
+
+def _require_user(db: sqlite3.Connection, user_id: int) -> None:
+  if get_user(db, user_id) is None:
+    raise AuthenticationFailed("the user does not exist")
