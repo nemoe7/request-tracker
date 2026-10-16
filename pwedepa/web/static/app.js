@@ -1,15 +1,6 @@
 "use strict";
 
 /* Theme: System (default), Light, Dark, persisted per device. */
-const THEMES = ["system", "light", "dark"];
-const themeLabel = document.querySelector("#theme-label");
-
-function applyThemeLabel() {
-  if (!themeLabel) return;
-  const theme = document.documentElement.dataset.theme || "system";
-  themeLabel.textContent = theme[0].toUpperCase() + theme.slice(1);
-}
-
 const themeButtons = document.querySelectorAll("[data-theme-set]");
 
 function markThemeButtons() {
@@ -22,19 +13,34 @@ function markThemeButtons() {
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
   localStorage.setItem("pwedepa-theme", theme);
-  applyThemeLabel();
   markThemeButtons();
 }
 
-document.querySelector("#theme-toggle")?.addEventListener("click", () => {
-  const theme = document.documentElement.dataset.theme || "system";
-  setTheme(THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length]);
-});
 themeButtons.forEach((button) => {
   button.addEventListener("click", () => setTheme(button.dataset.themeSet));
 });
-applyThemeLabel();
 markThemeButtons();
+
+/* Account menu behind the avatar. */
+const userMenuButton = document.querySelector("#user-menu-button");
+const userMenu = document.querySelector("#user-menu");
+if (userMenuButton && userMenu) {
+  const closeMenu = () => {
+    userMenu.hidden = true;
+    userMenuButton.setAttribute("aria-expanded", "false");
+  };
+  userMenuButton.addEventListener("click", () => {
+    const opening = userMenu.hidden;
+    userMenu.hidden = !opening;
+    userMenuButton.setAttribute("aria-expanded", String(opening));
+  });
+  document.addEventListener("click", (event) => {
+    if (!userMenu.hidden && !event.target.closest(".user-menu-wrap")) closeMenu();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeMenu();
+  });
+}
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js").catch(() => {});

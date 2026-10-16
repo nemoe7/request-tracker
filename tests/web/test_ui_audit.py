@@ -84,3 +84,25 @@ def test_demo_responses_forbid_storage(demo_app):
 def test_normal_service_worker_keeps_its_cache(app):
   body = app.test_client().get("/sw.js").data
   assert b"pwedepa-v3" in body
+
+
+def test_workspace_centers_the_inspector(app, db):
+  client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  body = client.get("/workspace").data
+  assert body.index(b"panel inspector") < body.index(b"panel records")
+  assert b"<th>Requester</th>" not in body
+  assert b"<th>Domain</th>" not in body
+  assert b"Open the board" not in body
+
+
+def test_settings_rows_share_grouped_lists(app, db):
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  body = client.get("/settings").data
+  assert body.count(b'class="ios-list"') >= 3
+
+
+def test_header_controls_live_in_the_user_menu(app, db):
+  client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  body = client.get("/workspace").data
+  assert b"user-menu" in body
+  assert b"theme-toggle" not in body

@@ -36,16 +36,21 @@
     </nav>
     {% endif %}
     <div class="top-actions">
-      <button class="chip-btn" id="theme-toggle" type="button"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg><span id="theme-label">System</span></button>
       {% if user %}
-      {% if demo_mode %}
-      <nav class="demo-switch" aria-label="Demo seat">
-        <a href="{{ url_for('demo.switch', role='staff') }}"{% if is_staff %} class="on"{% endif %}>Staff</a>
-        <a href="{{ url_for('demo.switch', role='client') }}"{% if not is_staff %} class="on"{% endif %}>Client</a>
-      </nav>
-      {% endif %}
-      <button class="chip-btn" id="logout-button" type="button"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#log-out"/></svg>Sign out</button>
-      <span class="avatar" aria-hidden="true">{{ user.display_name[0] }}</span>
+      <div class="user-menu-wrap">
+        <button class="avatar avatar-btn" id="user-menu-button" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Account menu">{{ user.display_name[0] }}</button>
+        <div class="user-menu" id="user-menu" hidden>
+          <p class="user-menu-id"><strong>{{ user.display_name }}</strong><span>@{{ user.username }}</span></p>
+          {% if demo_mode %}
+          <nav class="demo-switch" aria-label="Demo seat">
+            <a href="{{ url_for('demo.switch', role='staff') }}"{% if is_staff %} class="on"{% endif %}>Staff</a>
+            <a href="{{ url_for('demo.switch', role='client') }}"{% if not is_staff %} class="on"{% endif %}>Client</a>
+          </nav>
+          {% endif %}
+          <a class="user-menu-item" href="{{ url_for('settings.settings') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg>Settings</a>
+          <button class="user-menu-item" id="logout-button" type="button"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#log-out"/></svg>Sign out</button>
+        </div>
+      </div>
       {% elif not demo_mode %}
       <a class="btn primary" href="{{ url_for('pages.login') }}">Sign in</a>
       {% endif %}
