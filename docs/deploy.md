@@ -1,6 +1,6 @@
 # Deploy PwedePa
 
-One container serves the app. SQLite lives on the named volume in `compose.yml`, so a rebuild keeps the data.
+Two containers run the site. `pwedepa-app` serves the app, and `pwedepa-tailscale` is the Tailscale node in front of it. SQLite lives on the named volume in `compose.yml`, so a rebuild keeps the data.
 
 ## Run it
 
@@ -24,21 +24,31 @@ One container serves the app. SQLite lives on the named volume in `compose.yml`,
      --database /data/pwedepa.db --username admin --display-name "Admin"
    ```
 
-The app listens on `127.0.0.1:5000` on the host. A reverse proxy or Tailscale Funnel terminates TLS in front of it.
+The app listens on `127.0.0.1:5000` on the host, and the sidecar reaches it at `http://pwedepa:5000` on the compose network.
 
 ## Tailscale Funnel
 
-`tailscale-funnel.json` is a serve config template. It proxies the public HTTPS name to the app on port 5000.
+The `tailscale` service joins your tailnet and serves the public HTTPS name with Funnel. It mounts `tailscale-funnel.json` at `/config` and reads that file as `TS_SERVE_CONFIG`. The config proxies the public name to `http://pwedepa:5000`.
 
-1. Replace `${TS_CERT_DOMAIN}` with the device DNS name from `tailscale status`.
-2. Set the config, then turn Funnel on.
+1. Mint a reusable auth key in the Tailscale admin console, then set the sidecar names. `TS_CERT_DOMAIN` is the node name, in the form `pwedepa.your-tailnet.ts.net`.
 
    ```sh
-   tailscale serve --config tailscale-funnel.json
-   tailscale funnel status
+   export TS_AUTHKEY=tskey-auth-...
+   export TS_CERT_DOMAIN=pwedepa.your-tailnet.ts.net
+   export PWEDEPA_RP_ID="$TS_CERT_DOMAIN"
+   export PWEDEPA_ORIGIN="https://$TS_CERT_DOMAIN"
    ```
 
-3. Point `PWEDEPA_RP_ID` and `PWEDEPA_ORIGIN` at the same public name, then restart the service.
+2. Start both services, then read the Funnel status.
+
+   ```sh
+   docker compose up -d --build
+   docker compose exec tailscale tailscale funnel status
+   ```
+
+3. Turn on HTTPS and Funnel for the node in the admin console when it asks.
+
+If Tailscale runs on the host instead, the same config works. Change the Proxy value to `http://127.0.0.1:5000`, then run `tailscale serve --config tailscale-funnel.json`.
 
 ## Demo site
 
@@ -55,6 +65,7 @@ To run the preview demo on your own machine, ask for demo mode in code:
 ## Notes
 
 - Back up the `pwedepa-data` volume. It holds the only database copy.
+- The `tailscale-state` volume holds the node identity, so a rebuild keeps the device.
 - The starter Domains come from `domains.json`. Keep it at the project root. The image copies it to `/app/domains.json`, and a missing file fails the demo seed with a clear error.
 - Demo mode stays off in deployment. Code asks for it, and no environment variable sets it.
 - The container workflow scans each image build for high and critical findings.
