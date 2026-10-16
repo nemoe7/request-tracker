@@ -31,7 +31,7 @@ def test_tracked_scope_uses_exclusions_and_keeps_new_folders(monkeypatch):
   ]
 
 
-def test_python_extraction_keeps_locations_and_marks_string_candidates(tmp_path):
+def test_python_extraction_keeps_locations_and_skips_runtime_strings(tmp_path):
   source = tmp_path / "sample.py"
   source.write_text(
     '# A comment.\n"""A module description."""\n'
@@ -44,12 +44,8 @@ def test_python_extraction_keeps_locations_and_marks_string_candidates(tmp_path)
     (1, "comment"),
     (2, "docstring"),
     (4, "docstring"),
-    (5, "candidate"),
   }
-  assert len(manual) == 1
-  assert (
-    next(text for _, kind, text in parts if kind == "candidate") == "Hello {value}."
-  )
+  assert manual == []
 
 
 def test_scan_keeps_advisories_and_reports_unsupported_or_broken_files(tmp_path):

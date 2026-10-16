@@ -1,4 +1,8 @@
-"""Collect first-party prose with source anchors and explicit manual-review limits."""
+"""Collect first-party prose with source anchors and explicit manual-review limits.
+
+Scope is Python comments and docstrings, plus Markdown files. Runtime
+strings stay out: they are code, not prose.
+"""
 
 import argparse
 import ast
@@ -54,9 +58,7 @@ def tracked_files(excludes: list[str] | tuple[str, ...] = ()) -> list[Path]:
   ]
 
 
-def extract(
-  path: Path, *, strings: bool = True
-) -> tuple[list[tuple[int, str, str]], list[str]]:
+def extract(path: Path) -> tuple[list[tuple[int, str, str]], list[str]]:
   """Extract text without execution, with source anchors and coverage limits."""
   if path.is_symlink():
     return [], ["Symbolic link. Review its target manually."]
@@ -67,7 +69,6 @@ def extract(
     return [(1, "markdown", source)], []
   tree = ast.parse(source, filename=str(path))
   parts = []
-  seen = set()
   for node in ast.walk(tree):
     if isinstance(
       node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)
@@ -79,37 +80,15 @@ def extract(
         and isinstance(first.value.value, str)
       ):
         parts.append((first.lineno, "docstring", first.value.value))
-        seen.add(id(first.value))
   for token in tokenize.generate_tokens(io.StringIO(source).readline):
     if token.type == tokenize.COMMENT:
       parts.append((token.start[0], "comment", token.string.lstrip("# ")))
-  if strings:
-    for node in ast.walk(tree):
-      if isinstance(node, ast.JoinedStr) and id(node) not in seen:
-        text = "".join(
-          part.value if isinstance(part, ast.Constant) else "{value}"
-          for part in node.values
-        )
-        parts.append((node.lineno, "candidate", text))
-        seen.update(id(part) for part in ast.walk(node))
-    for node in ast.walk(tree):
-      if (
-        isinstance(node, ast.Constant)
-        and isinstance(node.value, str)
-        and id(node) not in seen
-      ):
-        parts.append((node.lineno, "candidate", node.value))
-  manual = (
-    ["Runtime string candidates need context review."]
-    if any(kind == "candidate" for _, kind, _ in parts)
-    else []
-  )
-  return sorted(parts), manual
+  return sorted(parts), []
 
 
 def prose(path: Path) -> str:
   """Collect Python comments and docstrings for the existing structural check."""
-  return "\n".join(text for _, _, text in extract(path, strings=False)[0])
+  return "\n".join(text for _, _, text in extract(path)[0])
 
 
 def page_files() -> list[Path]:

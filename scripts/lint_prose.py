@@ -1,4 +1,4 @@
-"""Check first-party prose, with --scan for string candidates and coverage limits."""
+"""Check first-party prose, with --scan for a full inventory and coverage limits."""
 
 import argparse
 import json
@@ -183,12 +183,12 @@ def long_sentences(paths: list[Path] | None = None) -> int:
 
 
 def main() -> int:
-  """Check comments and Markdown, or scan string candidates with --scan."""
+  """Check comments, docstrings, and Markdown, or inventory them with --scan."""
   parser = argparse.ArgumentParser(description=__doc__)
   parser.add_argument(
     "--scan",
     action="store_true",
-    help="Scan prose and string candidates. List coverage limits.",
+    help="Inventory comments, docstrings, and Markdown. List coverage limits.",
   )
   parser.add_argument(
     "--exclude",
@@ -223,7 +223,7 @@ def main() -> int:
   if failures:
     print(f"Structural check failures: {failures}.")
     return 1
-  print("Default checks passed. Use --scan for string candidates and coverage limits.")
+  print("Default checks passed. Use --scan for the full inventory and coverage limits.")
   return 0
 
 
