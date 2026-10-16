@@ -9,6 +9,8 @@ WORKDIR /app
 COPY pyproject.toml ./
 COPY pwedepa ./pwedepa
 RUN pip install --no-cache-dir . \
+    && pip install --no-cache-dir --upgrade pip setuptools \
+    && rm -rf /usr/local/lib/python3.13/ensurepip \
     && useradd --system pwedepa \
     && mkdir -p /data \
     && chown pwedepa /data
