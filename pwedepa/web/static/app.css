@@ -302,7 +302,6 @@ select:focus-visible, textarea:focus-visible {
 .ios-fieldset { border: 0; margin: 0 0 14px; padding: 0; background: transparent; }
 form.ios-split { background: none; border: 0; overflow: visible; }
 .ios-split .ios-fieldset { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
-.ios-split > .ios-action { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
 .ios-fieldset > legend { float: left; width: 100%; box-sizing: border-box; padding-top: 12px; }
 .ios-row { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 16px; border-bottom: 1px solid var(--line); color: var(--text); font-size: 15px; text-decoration: none; box-sizing: border-box; background: var(--surface); }
 .ios-row:last-child { border-bottom: 0; }

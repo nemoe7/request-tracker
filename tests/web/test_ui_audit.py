@@ -521,14 +521,27 @@ def test_settings_rows_share_grouped_lists(app, db):
 
 
 def test_notification_categories_keep_their_own_cards(app, db):
+  """Each category is a card. The save row belongs to the card it saves."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   body = client.get("/settings").data
   assert b'class="ios-split"' in body
+  assert body.count(b"<fieldset") == body.count(b"</fieldset>") >= 2
+  card = body[body.rindex(b"<fieldset") : body.rindex(b"</fieldset>")]
+  assert b"<legend>" in card
+  assert b"Save notifications" in card, "a stray card for the button is the bug"
   css = client.get("/static/app.css").data
   split = css[css.index(b".ios-split") :]
   assert b".ios-split .ios-fieldset {" in split
   assert b"border-radius: 16px" in split[:400]
-  assert b".ios-split > .ios-action {" in split
+  assert b".ios-split > .ios-action {" not in css, "the button needs no card of its own"
+
+
+def test_the_passkey_block_hides_an_empty_row(app, db):
+  """With no passkey, one row is left: the button that adds one."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  body = client.get("/settings").data
+  assert b"No passkeys yet." not in body
+  assert b"Add a passkey" in body
 
 
 def test_the_switch_takes_its_on_color_from_a_token(app):
