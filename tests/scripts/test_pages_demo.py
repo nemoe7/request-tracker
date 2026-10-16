@@ -104,6 +104,56 @@ def test_the_client_tabs_lead_to_client_shaped_pages(tmp_path):
   )
 
 
+def test_the_frozen_switch_links_stay_in_the_frozen_sets(tmp_path):
+  out = tmp_path / "site"
+  env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
+  result = subprocess.run(
+    [sys.executable, str(ROOT / "scripts" / "build_pages_demo.py")],
+    cwd=ROOT,
+    env=env,
+    capture_output=True,
+    text=True,
+    timeout=120,
+    check=False,
+  )
+  assert result.returncode == 0, result.stderr
+  staff = (out / "workspace" / "index.html").read_text(encoding="utf-8")
+  client = (out / "home" / "index.html").read_text(encoding="utf-8")
+  assert re.search(r'<a href="[^"]*workspace/" class="on">Staff</a>', staff)
+  assert re.search(r'<a href="[^"]*home/">Client</a>', staff)
+  assert re.search(r'<a href="[^"]*home/" class="on">Client</a>', client)
+  assert re.search(r'<a href="[^"]*workspace/">Staff</a>', client)
+
+
+def test_a_client_copy_keeps_her_controls_in_the_client_pages(tmp_path):
+  out = tmp_path / "site"
+  env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
+  result = subprocess.run(
+    [sys.executable, str(ROOT / "scripts" / "build_pages_demo.py")],
+    cwd=ROOT,
+    env=env,
+    capture_output=True,
+    text=True,
+    timeout=120,
+    check=False,
+  )
+  assert result.returncode == 0, result.stderr
+  client = (out / "home").resolve()
+  copies = sorted((out / "home" / "requests").glob("*/index.html"))
+  assert copies, "a client record copy exists"
+  controls = (
+    r'<a class="btn" href="([^"]+)">Edit</a>',
+    r'<form class="(?:actions|share-form|comment-form)"[^>]*action="([^"]+)"',
+  )
+  for page in copies:
+    html = page.read_text(encoding="utf-8")
+    found = [target for pattern in controls for target in re.findall(pattern, html)]
+    assert found, f"{page} carries the record controls"
+    for target in found:
+      path = (page.parent / target.split("?")[0]).resolve()
+      assert path == client or client in path.parents, (page, target)
+
+
 def test_frozen_demo_ships_no_writes_and_no_dead_links(tmp_path):
   out = tmp_path / "site"
   env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}

@@ -150,7 +150,7 @@ def test_authenticated_share_grants_only_the_picked_access(cast, db):
   assert Sam.get(f"/share/{edit_token}").status_code == 404
 
 
-def _demo_app(tmp_path, name: str = "demo.db"):
+def _demo_app(tmp_path, name: str = "demo.db", switch: bool = False):
   return create_app(
     {
       "DATABASE": str(tmp_path / name),
@@ -159,6 +159,7 @@ def _demo_app(tmp_path, name: str = "demo.db"):
       "WEBAUTHN_ORIGIN": "https://example.com",
       "SESSION_COOKIE_SECURE": False,
       "DEMO_MODE": True,
+      "DEMO_SWITCH": switch,
     }
   )
 
@@ -191,12 +192,26 @@ def test_the_demo_seat_swaps_in_code(tmp_path):
   assert "/home" in client.get("/enroll").headers["Location"]
   home = client.get("/home")
   assert home.status_code == 200
-  assert b'href="/workspace"' in home.data and b'href="/home"' in home.data
+  assert b"Demo Admin" in home.data, "the seat user holds the page"
   set_seat("client")
   try:
     assert "/requests" in client.get("/workspace").headers["Location"]
+    assert b"Demo Requester" in client.get("/home").data, (
+      "the swapped seat holds the page"
+    )
   finally:
     set_seat("staff")
+
+
+def test_the_demo_switch_shows_only_when_the_build_asks(tmp_path):
+  """The live preview holds one seat, so only the frozen build shows the switch."""
+  live = _demo_app(tmp_path, "demo-live.db").test_client()
+  home = live.get("/home").get_data(as_text=True)
+  assert "demo-switch" not in home, "one seat needs no switch"
+  frozen = _demo_app(tmp_path, "demo-frozen.db", switch=True).test_client()
+  page = frozen.get("/home").get_data(as_text=True)
+  assert re.search(r'<a href="/workspace" class="on">Staff</a>', page)
+  assert re.search(r'<a href="/home">Client</a>', page)
 
 
 def test_the_environment_cannot_open_the_demo(monkeypatch, tmp_path):

@@ -22,6 +22,7 @@ def create_app(config: dict | None = None) -> Flask:
     WEBAUTHN_ORIGIN=os.environ.get("PWEDEPA_ORIGIN", "http://localhost:5000"),
     SESSION_COOKIE_SECURE=os.environ.get("PWEDEPA_COOKIE_SECURE", "1") == "1",
     DEMO_MODE=False,  # the frozen build asks for demo mode in code
+    DEMO_SWITCH=False,  # the frozen build holds both page sets, so it shows the switch
   )
   if config:
     app.config.update(config)
@@ -71,6 +72,7 @@ def create_app(config: dict | None = None) -> Flask:
       "notification_count": count,
       "clock": clock,
       "demo_mode": bool(app.config.get("DEMO_MODE")),
+      "demo_switch": bool(app.config.get("DEMO_SWITCH")),
     }
 
   @app.errorhandler(403)

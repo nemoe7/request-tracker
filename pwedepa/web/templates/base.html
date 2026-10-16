@@ -40,7 +40,7 @@
         <button class="avatar avatar-btn" id="user-menu-button" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Account menu">{{ user.display_name[0] }}</button>
         <div class="user-menu" id="user-menu" hidden>
           <p class="user-menu-id"><strong>{{ user.display_name }}</strong><span>@{{ user.username }}</span></p>
-          {% if demo_mode %}
+          {% if demo_switch %}
           <nav class="demo-switch" aria-label="Demo seat">
             <a href="{{ url_for('records.workspace') }}"{% if is_staff %} class="on"{% endif %}>Staff</a>
             <a href="{{ url_for('pages.home') }}"{% if not is_staff %} class="on"{% endif %}>Client</a>

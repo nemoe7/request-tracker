@@ -86,6 +86,7 @@ def _relative(
   source: str,
   views: dict[tuple[str, str], str],
   nav: dict[str, str] | None = None,
+  page: str = "",
 ) -> str:
   """Point one link at the nearest frozen page, relative to the page depth."""
   prefix = "./" if depth == 0 else "../" * depth
@@ -94,6 +95,8 @@ def _relative(
     for head, folder in nav.items():
       if path == head or path.startswith(f"{head}/"):
         tail = folder + path[len(head) :]
+        while tail not in frozen and "/" in tail:
+          tail = tail.rsplit("/", 1)[0]
         if tail in frozen:
           return f"{prefix}{tail}/"
   if "?" in target:
@@ -105,13 +108,13 @@ def _relative(
   path = target.split("?", 1)[0].split("#", 1)[0].strip("/")
   while path not in frozen:
     if "/" not in path:
-      return prefix
+      return f"{prefix}{page}/" if page else prefix
     path = path.rsplit("/", 1)[0]
   return prefix if not path else f"{prefix}{path}/"
 
 
 def rewrite(
-  html: str, depth: int, frozen: set[str], source: str, views, nav=None
+  html: str, depth: int, frozen: set[str], source: str, views, nav=None, page=""
 ) -> str:
   """Make root-absolute links relative, inside the frozen set, and read-only."""
   prefix = "./" if depth == 0 else "../" * depth
@@ -119,7 +122,7 @@ def rewrite(
   html = html.replace('method="post"', 'method="get"')
   return LINK_RE.sub(
     lambda match: (
-      f'{match.group(1)}="{_relative(match.group(2), depth, frozen, source, views, nav)}"'
+      f'{match.group(1)}="{_relative(match.group(2), depth, frozen, source, views, nav, page)}"'
     ),
     html,
   )
@@ -148,6 +151,7 @@ def main() -> int:
     {
       "DATABASE": str(database),
       "DEMO_MODE": True,
+      "DEMO_SWITCH": True,
       "SESSION_COOKIE_SECURE": False,
       "WEBAUTHN_RP_ID": "nemoe7.github.io",
       "WEBAUTHN_RP_NAME": "PwedePa",
@@ -171,8 +175,10 @@ def main() -> int:
     depth = 0 if not folder else folder.count("/") + 1
     target = out / folder / "index.html" if folder else out / "index.html"
     target.parent.mkdir(parents=True, exist_ok=True)
-    page = rewrite(response.get_data(as_text=True), depth, frozen, source, views, nav)
-    target.write_text(page, encoding="utf-8")
+    html = rewrite(
+      response.get_data(as_text=True), depth, frozen, source, views, nav, folder
+    )
+    target.write_text(html, encoding="utf-8")
     print(f"froze {route} -> {target.relative_to(out)}")
 
   freeze("/workspace", "")

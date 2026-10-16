@@ -46,6 +46,12 @@ The `pages.yml` workflow publishes a frozen demo to GitHub Pages. It seeds a thr
 
 Pages serves files only, so forms and passkey buttons stay inert in the frozen copy. The deployed site needs one repository setting: Settings, Pages, source **GitHub Actions**.
 
+To run the preview demo on your own machine, ask for demo mode in code:
+
+```sh
+.venv/bin/python -c "from pwedepa.web import create_app; create_app({'DEMO_MODE': True, 'SESSION_COOKIE_SECURE': False}).run()"
+```
+
 ## Notes
 
 - Back up the `pwedepa-data` volume. It holds the only database copy.
