@@ -1,6 +1,7 @@
 """Pages demo: one workflow freezes the seeded demo into static pages."""
 
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -9,6 +10,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "pages.yml"
+LINK_RE = re.compile(r'(?:href|action|src)="([^"]+)"')
 
 
 def test_pages_workflow_builds_and_deploys():
@@ -44,3 +46,29 @@ def test_frozen_demo_keeps_pages_and_assets_relative(tmp_path):
   assert (out / "static" / "app.css").exists()
   assert (out / "settings" / "index.html").exists()
   assert (out / "home" / "index.html").exists()
+
+
+def test_frozen_demo_ships_no_writes_and_no_dead_links(tmp_path):
+  out = tmp_path / "site"
+  env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
+  result = subprocess.run(
+    [sys.executable, str(ROOT / "scripts" / "build_pages_demo.py")],
+    cwd=ROOT,
+    env=env,
+    capture_output=True,
+    text=True,
+    timeout=120,
+    check=False,
+  )
+  assert result.returncode == 0, result.stderr
+  pages = sorted(out.rglob("index.html"))
+  assert pages
+  for page in pages:
+    html = page.read_text(encoding="utf-8")
+    assert 'method="post"' not in html, page
+    for target in LINK_RE.findall(html):
+      if target.startswith(("#", "http", "mailto:", "data:")):
+        continue
+      assert not target.startswith("/"), (page, target)
+      path = (page.parent / target.split("?")[0].split("#")[0]).resolve()
+      assert path.exists(), (page, target)
