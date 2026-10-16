@@ -28,7 +28,7 @@ Two containers run the site. `pwedepa-app` serves the app, and `pwedepa-tailscal
      --database /data/pwedepa.db --username admin --display-name "Admin"
    ```
 
-The app listens on `127.0.0.1:5000` on the host, and the sidecar reaches it at `http://pwedepa:5000` on the compose network.
+The app listens on `127.0.0.1:5000` on the host, and the sidecar reaches it at `http://pwedepa:5000` on the compose network. It reports its own health at `http://127.0.0.1:5000/health`. That route opens the database, so `docker compose ps` shows when the app can serve. The probe runs `python`, because the app image carries no `wget`.
 
 ## Local build
 

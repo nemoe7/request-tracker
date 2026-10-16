@@ -273,3 +273,10 @@ def test_a_real_secret_or_a_local_run_passes_the_check():
 
   check_secret("a-real-secret", "https://pwedepa.example.ts.net")
   check_secret("pwedepa-dev-secret", "http://localhost:5000")
+
+
+def test_the_health_route_answers_from_the_database(app):
+  """A deploy waits on this route, so it must prove the database opens."""
+  response = app.test_client().get("/health")
+  assert response.status_code == 200
+  assert response.data.strip() == b"ok"

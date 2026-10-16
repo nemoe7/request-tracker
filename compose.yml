@@ -7,6 +7,14 @@ services:
     container_name: pwedepa-app
     ports:
       - "127.0.0.1:5000:5000"
+    # The app answers this itself, and it opens the database to do it.
+    # The app image carries no wget, so the probe runs python.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ.get('PWEDEPA_PORT', '5000') + '/health', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     environment:
       PWEDEPA_SECRET_KEY: ${PWEDEPA_SECRET_KEY:?set PWEDEPA_SECRET_KEY in .env}
       PWEDEPA_ORIGIN: ${PWEDEPA_ORIGIN:-http://localhost:5000}

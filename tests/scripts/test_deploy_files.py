@@ -115,3 +115,14 @@ def test_the_sidecar_reports_its_own_health():
   assert "9002/healthz" in " ".join(probe["test"]), "the node answers here"
   assert int(str(probe["interval"]).rstrip("s")) >= 10
   assert int(str(probe["retries"]).rstrip("s")) >= 3
+
+
+def test_the_app_container_reports_its_own_health():
+  """Compose waits on the app, so a wait must see the app answer."""
+  service = _compose()["services"]["pwedepa"]
+  probe = service["healthcheck"]
+  assert probe["test"][0] == "CMD"
+  command = " ".join(probe["test"])
+  assert "urllib.request" in command, "the app image carries python, not wget"
+  assert "'/health'" in command, "the probe must read the route the app serves"
+  assert "wget" not in command

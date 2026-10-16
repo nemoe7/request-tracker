@@ -32,6 +32,13 @@ self.addEventListener("activate", (event) => {
 """
 
 
+@bp.get("/health")
+def health() -> Response:
+  """Answer the container probe. The database must open for a plain ok."""
+  db().exec_driver_sql("SELECT 1").fetchone()
+  return Response("ok\n", mimetype="text/plain")
+
+
 @bp.get("/")
 def landing() -> str | Response:
   """Show the public landing page, or jump to the role home when signed in."""
