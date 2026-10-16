@@ -279,6 +279,14 @@ def test_every_control_keeps_a_keyboard_focus_ring(app):
   assert quiet < visible, "the quiet rule must come first, so the ring wins"
 
 
+def test_wide_screens_stretch_the_shell(app):
+  css = app.test_client().get("/static/app.css").data.decode()
+  block = css[css.index("@media (min-width: 1200px)") :]
+  block = block[: block.index("}") + 1]
+  assert ".wrap { max-width:" in block
+  assert "1100px" not in block
+
+
 def test_workspace_centers_the_inspector(app, db):
   client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   body = client.get("/workspace").data
