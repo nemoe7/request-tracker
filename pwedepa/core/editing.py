@@ -31,15 +31,6 @@ def _check_fields(fields: dict, allowed: set) -> None:
     raise CoreError(f"fields cannot change here: {', '.join(unknown)}")
 
 
-def _is_editable(request: Request) -> bool:
-  return request.status not in (
-    RequestStatus.RAISED,
-    RequestStatus.REJECTED,
-    RequestStatus.FULFILLED,
-    RequestStatus.REVOKED,
-  )
-
-
 def edit_request(
   request: Request,
   actor: Actor,
