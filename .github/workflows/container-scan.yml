@@ -7,6 +7,8 @@ on:
       - "compose.yml"
       - "pwedepa/**"
       - "pyproject.toml"
+      - "uv.lock"
+      - ".dockerignore"
       - ".github/workflows/container-scan.yml"
   push:
     branches: [main]
@@ -15,6 +17,8 @@ on:
       - "compose.yml"
       - "pwedepa/**"
       - "pyproject.toml"
+      - "uv.lock"
+      - ".dockerignore"
       - ".github/workflows/container-scan.yml"
   workflow_dispatch:
 

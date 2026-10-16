@@ -38,7 +38,7 @@ To run this checkout in a container, build it locally. This path starts the app 
 docker compose -f compose.dev.yml up -d --build
 ```
 
-The dev file supplies a sample session secret, so a local build needs no `.env` file.
+The dev file supplies a sample session secret and a localhost origin, so a local build needs no `.env` file. Set `PWEDEPA_ORIGIN` to open the app from another device, such as a phone on the same network.
 
 ## Tailscale Funnel
 

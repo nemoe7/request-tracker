@@ -10,9 +10,12 @@ ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS = ROOT / ".github" / "workflows"
 
 
+def _document(name: str) -> dict:
+  return yaml.safe_load((WORKFLOWS / name).read_text(encoding="utf-8"))
+
+
 def _docker() -> dict:
-  text = (WORKFLOWS / "docker.yml").read_text(encoding="utf-8")
-  return yaml.safe_load(text)
+  return _document("docker.yml")
 
 
 def _docker_text() -> str:
@@ -82,3 +85,19 @@ def test_the_evidence_policy_keeps_the_deployment_files():
     assert noise in policy["exclude"]
   for kept in ("Dockerfile", "compose.yml", "domains.json"):
     assert kept not in policy["exclude"]
+
+
+def test_the_container_scan_watches_the_dependency_inputs():
+  """uv.lock and .dockerignore change the image, so the scan watches both."""
+  scan = gate_workflows.triggers_of(_document("container-scan.yml"))
+  for event in ("push", "pull_request"):
+    paths = scan[event]["paths"]
+    for path in ("uv.lock", ".dockerignore"):
+      assert path in paths, f"the {event} scan misses {path}"
+
+
+def test_the_dev_commit_tag_comes_from_the_metadata_action():
+  """The action makes the commit tag, so the tag and the build arg agree."""
+  text = _docker_text()
+  assert text.count("type=sha,prefix=dev-") == 2, "both dev jobs tag the commit"
+  assert "type=raw,value=${{ steps.dev.outputs.version }}" not in text

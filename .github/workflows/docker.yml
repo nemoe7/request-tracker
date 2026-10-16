@@ -85,7 +85,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          short="$(git rev-parse --short "$SHA")"
+          short="$(git rev-parse --short=7 "$SHA")"
           printf 'short=%s\n' "$short" >>"$GITHUB_OUTPUT"
           printf 'version=dev-%s\n' "$short" >>"$GITHUB_OUTPUT"
 
@@ -101,7 +101,7 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/pwedepa
           tags: |
             type=raw,value=dev
-            type=raw,value=${{ steps.dev.outputs.version }}
+            type=sha,prefix=dev-
       # A digest only: the merge job puts the dev tags on the manifest list.
       - id: build
         uses: docker/build-push-action@v7.4.0
@@ -150,18 +150,6 @@ jobs:
           persist-credentials: false
           ref: main
 
-      - id: dev
-        name: Resolve Dev Version
-        env:
-          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          short="$(git rev-parse --short "$SHA")"
-          printf 'short=%s\n' "$short" >>"$GITHUB_OUTPUT"
-          printf 'version=dev-%s\n' "$short" >>"$GITHUB_OUTPUT"
-
       - uses: actions/download-artifact@v7
         with:
           pattern: digests-dev-*
@@ -179,7 +167,7 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/pwedepa
           tags: |
             type=raw,value=dev
-            type=raw,value=${{ steps.dev.outputs.version }}
+            type=sha,prefix=dev-
       - name: Create the Manifest
         working-directory: /tmp/digests
         env:

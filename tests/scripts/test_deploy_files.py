@@ -97,3 +97,11 @@ def test_the_sidecar_mounts_the_config_folder():
   text = (ROOT / "compose.yml").read_text(encoding="utf-8")
   assert "./tailscale:/config:ro" in text, "a single-file mount hides config edits"
   assert (ROOT / "tailscale" / "serve.json").is_file()
+
+
+def test_the_dev_compose_takes_the_origin_from_the_environment():
+  document = _compose("compose.dev.yml")
+  origin = document["services"]["pwedepa"]["environment"]["PWEDEPA_ORIGIN"]
+  assert origin.startswith("${PWEDEPA_ORIGIN:-"), (
+    "a local build must accept its own origin, for a phone on the LAN"
+  )
