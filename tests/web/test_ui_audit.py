@@ -121,6 +121,19 @@ def test_the_stylesheet_holds_one_phone_block(app):
   )
 
 
+def test_the_brand_tile_holds_the_bare_face(app):
+  """The owner dropped the chip, so the face fills its tile on the bar."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  tile = re.search(r"\.app-icon \{(.*?)\}", css, re.DOTALL)
+  assert tile is not None, "the brand tile has a rule"
+  assert "background" not in tile.group(1), "no chip behind the face"
+  assert "border" not in tile.group(1), "no border around the face"
+  image = re.search(r"\.app-icon img \{(.*?)\}", css, re.DOTALL)
+  assert image is not None, "the face image has a rule"
+  assert "inset: 0" in image.group(1), "the face fills the tile"
+  assert "calc(" not in image.group(1), "nothing shrinks the face"
+
+
 def test_the_row_link_reaches_the_card_handler(app, db):
   """The centre card opens in place, so a row link must match the handler."""
   owner = users.create_user(db, "owner", "Owner", at=AT)

@@ -39,7 +39,7 @@ Scheme 2, Slate and blue. Components use tokens from `pwedepa/web/static/tokens.
 ## Icons
 
 - UI icons come from Lucide, as one self-hosted SVG sprite at 18 px in the current text color. The ISC license ships beside the sprite. Add an icon to the sprite instead of drawing one.
-- The app icon is a stub: the Google Noto Emoji pleading face (U+1F97A). The static image resources carry Apache 2.0. The animated assets carry CC BY 4.0 with attribution. The icon files and their `NOTICE.md` live in `pwedepa/web/static/icons/`. The static face shows by default, and the animated face plays on hover. The face sits inside the 72 percent maskable safe zone on a solid background.
+- The app icon is a stub: the Google Noto Emoji pleading face (U+1F97A). The static image resources carry Apache 2.0. The animated assets carry CC BY 4.0 with attribution. The icon files and their `NOTICE.md` live in `pwedepa/web/static/icons/`. The static face shows by default, and the animated face plays on hover. The brand shows the bare face, with no chip behind it. The two maskable files hold the face inside the 72 percent safe zone on a solid background, for the OS install icon alone.
 
 ## Layout
 
