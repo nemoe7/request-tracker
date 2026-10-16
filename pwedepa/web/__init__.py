@@ -41,21 +41,32 @@ def create_app(config: dict | None = None) -> Flask:
     origin=app.config["WEBAUTHN_ORIGIN"],
   )
 
+  @app.template_filter("stamp")
+  def stamp(value: datetime | None, clock: str = "12") -> str:
+    from .stamps import format_stamp
+
+    return format_stamp(value, clock, now())
+
   @app.context_processor
   def inject_actor() -> dict:
     from pwedepa.data import notifications as notifications_data
+    from pwedepa.data import preferences as preferences_data
 
     from .routes._helpers import current_user, db
     from .routes.records import is_staff
 
     user = current_user()
     count = 0
-    if user is not None and notifications_data.pip_visible(db(), user.id):
-      count = notifications_data.count_for_user(db(), user.id)
+    clock = preferences_data.DEFAULT_CLOCK
+    if user is not None:
+      clock = preferences_data.get_clock(db(), user.id)
+      if notifications_data.pip_visible(db(), user.id):
+        count = notifications_data.count_for_user(db(), user.id)
     return {
       "user": user,
       "is_staff": user is not None and is_staff(user),
       "notification_count": count,
+      "clock": clock,
       "demo_mode": bool(app.config.get("DEMO_MODE")),
     }
 

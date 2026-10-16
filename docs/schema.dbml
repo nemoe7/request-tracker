@@ -169,6 +169,11 @@ Table notification_preferences {
   }
 }
 
+Table user_preferences {
+  user_id integer [pk]
+  clock text [not null, default: '12']
+}
+
 Table site_messages {
   id integer [pk, increment]
   message text [not null]
@@ -193,4 +198,5 @@ Ref: sessions.replaced_by_id > sessions.id
 Ref: share_links.created_by_id > users.id
 Ref: notifications.user_id > users.id
 Ref: notification_preferences.user_id > users.id
+Ref: user_preferences.user_id > users.id
 Ref: site_messages.created_by_id > users.id

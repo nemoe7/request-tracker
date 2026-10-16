@@ -136,6 +136,10 @@ CREATE TABLE IF NOT EXISTS notification_preferences (
   pip_enabled INTEGER NOT NULL DEFAULT 1,
   PRIMARY KEY (user_id, category)
 );
+CREATE TABLE IF NOT EXISTS user_preferences (
+  user_id INTEGER PRIMARY KEY REFERENCES users(id),
+  clock TEXT NOT NULL DEFAULT '12'
+);
 CREATE TABLE IF NOT EXISTS site_messages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   message TEXT NOT NULL,

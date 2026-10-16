@@ -21,6 +21,6 @@
     {{ event.event_type }}
     {%- endif -%}
   </span>
-  <span class="event-meta">{{ names.get(event.actor_id, "Someone") }} · {{ event.at.strftime("%b %-d, %H:%M") if event.at else "" }}</span>
+  <span class="event-meta">{{ names.get(event.actor_id, "Someone") }} · {{ event.at | stamp(clock) }}</span>
 </li>
 {%- endmacro %}

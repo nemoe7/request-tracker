@@ -11,7 +11,7 @@
     <div><dt>Assignee</dt><dd>{{ names.get(record.assignee_id, "Unassigned") }}</dd></div>
     <div><dt>Domains</dt><dd>{{ record.domains | join(", ") or "—" }}</dd></div>
     <div><dt>Source request</dt><dd>{% if record.source_request_id %}<a href="{{ url_for('records.request_detail', request_id=record.source_request_id) }}">Request #{{ record.source_request_id }}</a>{% else %}—{% endif %}</dd></div>
-    <div><dt>Updated</dt><dd>{{ record.updated_at.strftime("%b %-d, %H:%M") if record.updated_at else "—" }}</dd></div>
+    <div><dt>Updated</dt><dd>{{ (record.updated_at | stamp(clock)) if record.updated_at else "—" }}</dd></div>
   </dl>
 
   {% if actions or can_edit %}
@@ -52,7 +52,7 @@
     {% for event in comments %}
     <li class="comment">
       <p>{{ event.data.get("text", "") }}</p>
-      <p class="event-meta">{{ names.get(event.actor_id, "Someone") }} · {{ event.at.strftime("%b %-d, %H:%M") if event.at else "" }}</p>
+      <p class="event-meta">{{ names.get(event.actor_id, "Someone") }} · {{ event.at | stamp(clock) }}</p>
     </li>
     {% endfor %}
   </ul>
