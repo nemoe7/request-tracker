@@ -24,6 +24,7 @@ REQUIRED_FILES = (
   "codeql.yml",
   "container-scan.yml",
   "dependency-review.yml",
+  "pages.yml",
   "pr-check.yml",
   "secret-scan.yml",
   "workflow-security.yml",
