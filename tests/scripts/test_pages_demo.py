@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
+import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -281,6 +282,30 @@ def test_the_frozen_site_ships_no_service_worker(tmp_path):
   assert "serviceWorker" not in script
   assert not (out / "sw.js").exists()
   assert not (out / "static" / "sw.js").exists()
+
+
+def test_the_worker_check_covers_every_copied_script(tmp_path):
+  """A second script must not carry a worker into the frozen site."""
+  sys.path.insert(0, str(ROOT / "scripts"))
+  import build_pages_demo
+
+  scripts = tmp_path / "static"
+  scripts.mkdir()
+  (scripts / "app.js").write_text(
+    'if ("serviceWorker" in navigator) {\n'
+    '  navigator.serviceWorker.register("/sw.js").catch(() => {});\n'
+    "}\n",
+    encoding="utf-8",
+  )
+  (scripts / "extra.js").write_text(
+    'navigator.serviceWorker.register("/sw.js");\n', encoding="utf-8"
+  )
+
+  with pytest.raises(SystemExit, match="extra.js"):
+    build_pages_demo.keep_workers_out(scripts)
+
+  assert "serviceWorker" not in (scripts / "app.js").read_text(encoding="utf-8")
+  assert "serviceWorker" in (scripts / "extra.js").read_text(encoding="utf-8")
 
 
 def test_the_frozen_app_script_stays_valid(tmp_path):

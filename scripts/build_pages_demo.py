@@ -159,15 +159,17 @@ def rewrite(
   )
 
 
-def _drop_worker(script: Path) -> None:
-  """Take the worker block out of the frozen copy of the app script."""
-  source = script.read_text(encoding="utf-8")
-  kept = WORKER_BLOCK_RE.sub("", source, count=1)
-  script.write_text(kept, encoding="utf-8")
-  if "serviceWorker" in kept:
-    raise SystemExit(f"{script.name} still names a service worker")
-  if kept.count("{") != kept.count("}"):
-    raise SystemExit(f"{script.name} lost a brace with the worker block")
+def keep_workers_out(static: Path) -> None:
+  """Take the worker out of every copied script, and refuse a leftover."""
+  for script in sorted(static.rglob("*.js")):
+    source = script.read_text(encoding="utf-8")
+    kept = WORKER_BLOCK_RE.sub("", source, count=1)
+    if kept != source:
+      script.write_text(kept, encoding="utf-8")
+    if "serviceWorker" in kept:
+      raise SystemExit(f"{script.name} still names a service worker")
+    if kept.count("{") != kept.count("}"):
+      raise SystemExit(f"{script.name} lost a brace with the worker block")
 
 
 def seeded_records(database: Path) -> tuple[list[int], list[int]]:
@@ -247,7 +249,7 @@ def main() -> int:
   )
   if (static / "sw.js").exists():
     raise SystemExit("the frozen site still carries a worker")
-  _drop_worker(static / "app.js")
+  keep_workers_out(static)
   (out / ".nojekyll").write_text("", encoding="utf-8")
   for leftover in out.glob("demo.db*"):
     leftover.unlink()
