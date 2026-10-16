@@ -40,7 +40,7 @@ from pwedepa.data import sharing as sharing_data
 from pwedepa.data.db import transaction
 
 from .. import now
-from ._helpers import current_user, db
+from ._helpers import can_share, current_user, db
 
 bp = Blueprint("records", __name__)
 
@@ -446,7 +446,7 @@ def request_detail(request_id: int) -> str | Response:
     events=events,
     comments=[e for e in events if e.event_type == "request.comment"],
     share_links=sharing_data.list_for_object(db(), "request", record.id),
-    can_share=actor.is_admin or user.id == record.requester_id,
+    can_share=can_share(user, record),
     object_type="request",
     issued_token=_issued_token("request", record.id),
     names=_names(),
@@ -599,7 +599,7 @@ def issue_detail(issue_id: int) -> str | Response:
     events=events,
     comments=[e for e in events if e.event_type == "issue.comment"],
     share_links=sharing_data.list_for_object(db(), "issue", record.id),
-    can_share=actor.is_admin or user.id == record.requester_id,
+    can_share=can_share(user, record),
     object_type="issue",
     issued_token=_issued_token("issue", record.id),
     names=_names(),

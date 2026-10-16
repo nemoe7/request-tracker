@@ -3,7 +3,7 @@
 from flask import current_app, g, request
 from sqlalchemy.engine import Connection
 
-from pwedepa.auth import WebAuthnConfig, get_user, resolve_session
+from pwedepa.auth import WebAuthnConfig, actor_for_user, get_user, resolve_session
 from pwedepa.data import db as data_db
 
 from .. import SESSION_COOKIE, now
@@ -45,3 +45,10 @@ def expiry_days() -> int | None:
   if submitted is None or not request.form.get("expires_days", "").strip():
     return None
   return max(1, min(MAX_EXPIRY_DAYS, submitted))
+
+
+def can_share(user, record) -> bool:
+  """Return whether this user may share this record. An admin, or its requester."""
+  if user is None or record is None:
+    return False
+  return actor_for_user(db(), user.id).is_admin or user.id == record.requester_id

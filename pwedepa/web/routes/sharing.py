@@ -23,7 +23,7 @@ from pwedepa.data import requests as requests_data
 from pwedepa.data import sharing as sharing_data
 
 from .. import now
-from ._helpers import current_user, db, expiry_days
+from ._helpers import can_share, current_user, db, expiry_days
 
 bp = Blueprint("sharing", __name__)
 
@@ -40,12 +40,6 @@ def _detail_url(object_type: str, object_id: int) -> str:
   if object_type == "request":
     return url_for("records.request_detail", request_id=object_id)
   return url_for("records.issue_detail", issue_id=object_id)
-
-
-def _can_share(user, record) -> bool:
-  if user is None or record is None:
-    return False
-  return actor_for_user(db(), user.id).is_admin or user.id == record.requester_id
 
 
 def _notify_share(record, object_type: str, actor_id: int, message: str) -> None:
@@ -70,7 +64,7 @@ def create(object_type: str, object_id: int) -> Response:
   if user is None:
     return redirect(url_for("pages.login"))
   record = _record(object_type, object_id)
-  if record is None or not _can_share(user, record):
+  if record is None or not can_share(user, record):
     abort(404)
   days = expiry_days()
   expires_at = now() + timedelta(days=days) if days else None
@@ -119,7 +113,7 @@ def revoke(link_id: int) -> Response:
     abort(404)
   record = _record(link.object_type, link.object_id)
   is_admin = actor_for_user(db(), user.id).is_admin
-  if not (is_admin or user.id == link.created_by_id or _can_share(user, record)):
+  if not (is_admin or user.id == link.created_by_id or can_share(user, record)):
     abort(404)
   sharing_data.revoke(db(), link_id, at=now())
   if record is not None:

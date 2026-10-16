@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from pwedepa.auth import Role, assign_role, sessions, users
-from pwedepa.core import IssueStatus, Priority, Request
+from pwedepa.core import Issue, IssueStatus, Priority, Request, Visibility
 from pwedepa.data import db as data_db
 from pwedepa.data import issues as issues_data
 from pwedepa.data import notifications as notifications_data
@@ -371,6 +371,45 @@ def test_admin_site_message_and_direct_issue(app, cast, db):
   assert issue.status is IssueStatus.OPEN
   assert issue.priority is Priority.LOW
   assert issue.assignee_id == Sam_user.id
+
+
+def test_the_share_rule_answers_the_page_and_the_endpoint(app, cast, db):
+  """One rule decides both, so the panel hides wherever the endpoint refuses."""
+  Mara, Mara_user = cast["Mara"]
+  Sam, _sam_user = cast["Sam"]
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title="Broken projector",
+      description="Room 4",
+      requester_id=Mara_user.id,
+      visibility=Visibility.PUBLIC,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+  issues_data.save(
+    db,
+    Issue(
+      id=1,
+      title="Dead cable",
+      description="Room 4",
+      requester_id=Mara_user.id,
+      visibility=Visibility.PUBLIC,
+    ),
+  )
+
+  assert b"share-panel" in Mara.get("/requests/1").data
+  assert b"share-panel" in Mara.get("/issues/1").data
+  assert (
+    Sam.post("/records/request/1/share", data={"permission": "VIEW"}).status_code == 404
+  )
+  assert (
+    Sam.post("/records/issue/1/share", data={"permission": "VIEW"}).status_code == 404
+  )
+  assert b"share-panel" not in Sam.get("/requests/1").data
+  assert b"share-panel" not in Sam.get("/issues/1").data
 
 
 def test_a_share_expiry_is_clamped(cast, db):
