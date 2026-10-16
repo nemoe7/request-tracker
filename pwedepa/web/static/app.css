@@ -30,8 +30,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 .app-icon img { position: absolute; inset: 3px; width: calc(100% - 6px); height: calc(100% - 6px); object-fit: contain; transition: opacity 220ms var(--ease); }
 .app-icon .icon-animated { opacity: 0; }
-.app-icon:hover .icon-static { opacity: 0; }
-.app-icon:hover .icon-animated { opacity: 1; }
+.app-icon:hover.is-ready .icon-static { opacity: 0; }
+.app-icon:hover.is-ready .icon-animated { opacity: 1; }
 .icon {
   width: 18px; height: 18px; flex: 0 0 auto;
   fill: none; stroke: currentColor; stroke-width: 2;
@@ -249,10 +249,12 @@ select:focus-visible, textarea:focus-visible {
 .demo-switch a { padding: 4px 12px; border-radius: 999px; color: var(--muted); font-weight: 600; font-size: 13px; }
 .demo-switch a.on { background: var(--accent); color: #fff; }
 
-/* Motion: one fluid curve, state changes only, reduced-motion safe. */
+/* Motion: one fluid curve, state changes only, reduced-motion safe. Page
+   switches keep the top bar steady; the whole page never cross-fades. */
 @view-transition { navigation: auto; }
 .topbar { view-transition-name: topbar; }
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: 220ms; animation-timing-function: var(--ease); }
+::view-transition-old(root), ::view-transition-new(root),
+::view-transition-old(topbar), ::view-transition-new(topbar) { animation: none; }
 .btn, .queue-item, .card, .mini, .seg a, .tabs a, .ios-row.link-row, .queue a {
   transition: background-color 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease), transform 180ms var(--ease);
 }

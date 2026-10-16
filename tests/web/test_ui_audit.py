@@ -82,6 +82,41 @@ def test_demo_responses_forbid_storage(demo_app):
   assert "no-store" in response.headers.get("Cache-Control", "")
 
 
+def test_demo_keeps_pages_fresh_and_lets_assets_revalidate(demo_app):
+  client = demo_app.test_client()
+  page = client.get("/login")
+  assert "no-store" in page.headers.get("Cache-Control", "")
+  asset = client.get("/static/app.css")
+  assert "no-store" not in asset.headers.get("Cache-Control", "")
+  assert "no-cache" in asset.headers.get("Cache-Control", "")
+
+
+def test_the_header_defers_the_animated_icon(app):
+  client = app.test_client()
+  body = client.get("/").data
+  assert b'class="icon-animated" data-src="/static/icons/icon-animated.webp"' in body
+  assert b'class="icon-animated" src=' not in body
+  assert b"dataset.src" in client.get("/static/app.js").data
+
+
+def test_page_switches_do_not_animate_the_whole_page(app):
+  css = app.test_client().get("/static/app.css").data.decode()
+  rules = {sel.strip(): body for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)}
+  groups = [
+    selectors
+    for selectors in rules
+    if "::view-transition-old(root)" in selectors
+    or "::view-transition-new(root)" in selectors
+    or "::view-transition-old(topbar)" in selectors
+    or "::view-transition-new(topbar)" in selectors
+  ]
+  assert groups, "each transition group needs a rule"
+  for selectors in groups:
+    assert "animation: none" in rules[selectors], (
+      f"{selectors} still animates the switch"
+    )
+
+
 def test_normal_service_worker_keeps_its_cache(app):
   body = app.test_client().get("/sw.js").data
   assert b"pwedepa-v3" in body

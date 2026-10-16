@@ -3,7 +3,7 @@
 import os
 from datetime import UTC, datetime
 
-from flask import Flask, g
+from flask import Flask, g, request
 
 from pwedepa.auth import WebAuthnConfig
 from pwedepa.data import db as data_db
@@ -30,8 +30,11 @@ def create_app(config: dict | None = None) -> Flask:
 
     @app.after_request
     def preview_no_store(response):
-      # Previews change often. Forbid storage so no copy can go stale.
-      response.headers["Cache-Control"] = "no-store"
+      # Previews change often. Forbid storage so no page can go stale. Assets
+      # keep the revalidating headers the static route already sends, so a
+      # page switch reads them from the browser cache instead of refetching.
+      if not request.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-store"
       return response
 
   data_db.connect(app.config["DATABASE"]).close()

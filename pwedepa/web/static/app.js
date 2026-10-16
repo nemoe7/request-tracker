@@ -21,6 +21,21 @@ themeButtons.forEach((button) => {
 });
 markThemeButtons();
 
+/* The animated icon is 1.2 MB. Fetch it on the first sign of intent, never
+   while a page is still loading, and only swap it in once it can paint. */
+const appIcon = document.querySelector(".app-icon");
+const animatedIcon = appIcon?.querySelector(".icon-animated[data-src]");
+if (appIcon && animatedIcon) {
+  const loadAnimatedIcon = () => {
+    animatedIcon.addEventListener("load", () => appIcon.classList.add("is-ready"));
+    animatedIcon.src = animatedIcon.dataset.src;
+    delete animatedIcon.dataset.src;
+  };
+  ["pointerenter", "focusin", "touchstart"].forEach((type) => {
+    appIcon.addEventListener(type, loadAnimatedIcon, { once: true });
+  });
+}
+
 /* Account menu behind the avatar. */
 const userMenuButton = document.querySelector("#user-menu-button");
 const userMenu = document.querySelector("#user-menu");
