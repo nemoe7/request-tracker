@@ -346,6 +346,28 @@ def test_settings_profile_and_admin_pages(cast, db):
   assert b"user.created" in admin.get("/admin/audit").data
 
 
+def test_every_admin_route_stands_behind_the_gate(app, cast, db):
+  """A route that misses the guard would answer a stranger with admin data."""
+  Sam, _ = cast["Sam"]
+  bind = app.url_map.bind("example.com")
+  routes = sorted(
+    {
+      (bind.build(rule.endpoint, {name: 1 for name in rule.arguments}), method)
+      for rule in app.url_map.iter_rules()
+      if rule.endpoint.startswith("admin.")
+      for method in rule.methods - {"HEAD", "OPTIONS"}
+    }
+  )
+  assert len({path for path, _ in routes}) >= 10, routes
+  anonymous = app.test_client()
+  for path, method in routes:
+    answer = getattr(anonymous, method.lower())(path)
+    assert answer.status_code == 302, (method, path, answer.status_code)
+    assert "/login" in answer.headers["Location"], (method, path)
+    answer = getattr(Sam, method.lower())(path)
+    assert answer.status_code == 403, (method, path, answer.status_code)
+
+
 def test_admin_site_message_and_direct_issue(app, cast, db):
   admin, _ = cast["admin"]
   _, Sam_user = cast["Sam"]

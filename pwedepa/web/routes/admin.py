@@ -6,6 +6,7 @@ from flask import (
   Blueprint,
   abort,
   flash,
+  g,
   redirect,
   render_template,
   request,
@@ -48,13 +49,16 @@ from ._helpers import current_user, db, expiry_days
 bp = Blueprint("admin", __name__)
 
 
-def _admin():
+@bp.before_request
+def _require_admin() -> Response | None:
+  """Keep every admin route behind one guard."""
   user = current_user()
   if user is None:
-    return None
+    return redirect(url_for("pages.login"))
   if not actor_for_user(db(), user.id).is_admin:
     abort(403)
-  return user
+  g.admin_user = user
+  return None
 
 
 def _names() -> dict[int, str]:
@@ -66,9 +70,6 @@ def _names() -> dict[int, str]:
 @bp.get("/admin")
 def overview() -> str | Response:
   """Show admin sections and site controls."""
-  user = _admin()
-  if user is None:
-    return redirect(url_for("pages.login"))
   return render_template(
     "admin.html",
     users=list_users(db(), include_archived=True),
@@ -81,9 +82,6 @@ def overview() -> str | Response:
 @bp.get("/admin/users")
 def users() -> str | Response:
   """List users with roles, grants, passkeys, and lifecycle actions."""
-  user = _admin()
-  if user is None:
-    return redirect(url_for("pages.login"))
   people = list_users(db(), include_archived=True)
   details = {
     person.id: {
@@ -106,20 +104,17 @@ def users() -> str | Response:
 @bp.post("/admin/users")
 def create_person() -> Response:
   """Create a user from the admin page."""
-  user = _admin()
-  if user is None:
-    return redirect(url_for("pages.login"))
   try:
     person = create_user(
       db(),
       request.form.get("username", ""),
       request.form.get("display_name", ""),
       at=now(),
-      actor_id=user.id,
+      actor_id=g.admin_user.id,
     )
     role = request.form.get("role", "")
     if role:
-      assign_role(db(), person.id, Role(role), at=now(), actor_id=user.id)
+      assign_role(db(), person.id, Role(role), at=now(), actor_id=g.admin_user.id)
     flash(f"User {person.username} created.")
   except (AuthError, ValueError) as error:
     flash(str(error))
@@ -129,10 +124,7 @@ def create_person() -> Response:
 @bp.post("/admin/users/<int:user_id>/archive")
 def archive(user_id: int) -> Response:
   """Archive one user."""
-  user = _admin()
-  if user is None:
-    return redirect(url_for("pages.login"))
-  archive_user(db(), user_id, at=now(), actor_id=user.id)
+  archive_user(db(), user_id, at=now(), actor_id=g.admin_user.id)
   flash("User archived.")
   return redirect(url_for("admin.users"))
 
@@ -140,10 +132,7 @@ def archive(user_id: int) -> Response:
 @bp.post("/admin/users/<int:user_id>/reactivate")
 def reactivate(user_id: int) -> Response:
   """Reactivate one user."""
-  user = _admin()
-  if user is None:
-    return redirect(url_for("pages.login"))
-  reactivate_user(db(), user_id, at=now(), actor_id=user.id)
+  reactivate_user(db(), user_id, at=now(), actor_id=g.admin_user.id)
   flash("User reactivated.")
   return redirect(url_for("admin.users"))
 
@@ -151,30 +140,26 @@ def reactivate(user_id: int) -> Response:
 @bp.post("/admin/users/<int:user_id>/roles")
 def change_role(user_id: int) -> Response:
   """Assign or revoke one role."""
-  user = _admin()
-  if user is None:
-    return redirect(url_for("pages.login"))
   role = Role(request.form["role"])
   if request.form.get("action") == "revoke":
-    revoke_role(db(), user_id, role, at=now(), actor_id=user.id)
+    revoke_role(db(), user_id, role, at=now(), actor_id=g.admin_user.id)
   else:
-    assign_role(db(), user_id, role, at=now(), actor_id=user.id)
+    assign_role(db(), user_id, role, at=now(), actor_id=g.admin_user.id)
   return redirect(url_for("admin.users"))
 
 
 @bp.post("/admin/users/<int:user_id>/grants")
 def change_grant(user_id: int) -> Response:
   """Add or revoke one direct permission grant."""
-  user = _admin()
-  if user is None:
-    return redirect(url_for("pages.login"))
   permission = request.form.get("permission", "").strip()
   effect = Effect(request.form.get("effect", "ALLOW"))
   if request.form.get("action") == "revoke":
-    revoke_permission(db(), user_id, permission, effect, at=now(), actor_id=user.id)
+    revoke_permission(
+      db(), user_id, permission, effect, at=now(), actor_id=g.admin_user.id
+    )
   elif permission:
     grant_permission(
-      db(), user_id, Grant(permission, effect), at=now(), actor_id=user.id
+      db(), user_id, Grant(permission, effect), at=now(), actor_id=g.admin_user.id
     )
   return redirect(url_for("admin.users"))
 
@@ -182,11 +167,8 @@ def change_grant(user_id: int) -> Response:
 @bp.post("/admin/users/<int:user_id>/enrollment-token")
 def enrollment_token(user_id: int) -> Response:
   """Issue an enrollment token and show it once."""
-  user = _admin()
-  if user is None:
-    return redirect(url_for("pages.login"))
   try:
-    issued = issue_enrollment_token(db(), user_id, at=now(), actor_id=user.id)
+    issued = issue_enrollment_token(db(), user_id, at=now(), actor_id=g.admin_user.id)
     session["issued_enrollment"] = {"token": issued.token}
     flash("Enrollment token created. Copy it now.")
   except AuthError as error:
@@ -197,11 +179,8 @@ def enrollment_token(user_id: int) -> Response:
 @bp.post("/admin/passkeys/<int:passkey_id>/revoke")
 def passkey_revoke(passkey_id: int) -> Response:
   """Revoke any user's passkey."""
-  user = _admin()
-  if user is None:
-    return redirect(url_for("pages.login"))
   try:
-    revoke_passkey(db(), passkey_id, at=now(), actor_id=user.id)
+    revoke_passkey(db(), passkey_id, at=now(), actor_id=g.admin_user.id)
     flash("Passkey revoked.")
   except AuthError as error:
     flash(str(error))
@@ -211,9 +190,6 @@ def passkey_revoke(passkey_id: int) -> Response:
 @bp.get("/admin/audit")
 def audit() -> str | Response:
   """Show the latest audit events."""
-  user = _admin()
-  if user is None:
-    return redirect(url_for("pages.login"))
   events = list_audit_events(db())[-200:]
   return render_template(
     "admin_audit.html", events=list(reversed(events)), names=_names()
@@ -223,9 +199,6 @@ def audit() -> str | Response:
 @bp.get("/admin/shares")
 def shares() -> str | Response:
   """List every share link for admin review."""
-  user = _admin()
-  if user is None:
-    return redirect(url_for("pages.login"))
   return render_template(
     "admin_shares.html", share_links=sharing_data.list_all(db()), names=_names()
   )
@@ -234,15 +207,12 @@ def shares() -> str | Response:
 @bp.post("/admin/site-message")
 def site_message() -> Response:
   """Save the one landing-page message."""
-  user = _admin()
-  if user is None:
-    return redirect(url_for("pages.login"))
   days = expiry_days()
   site_data.save_message(
     db(),
     request.form.get("message", "").strip(),
     at=now(),
-    created_by_id=user.id,
+    created_by_id=g.admin_user.id,
     enabled="enabled" in request.form,
     expires_at=now() + timedelta(days=days) if days else None,
   )
@@ -250,7 +220,7 @@ def site_message() -> Response:
     db(),
     "site_message.saved",
     at=now(),
-    actor_id=user.id,
+    actor_id=g.admin_user.id,
     object_type="site",
     object_id=None,
   )
@@ -261,9 +231,6 @@ def site_message() -> Response:
 @bp.post("/admin/issues")
 def create_issue() -> Response:
   """Create an Issue directly as an admin."""
-  user = _admin()
-  if user is None:
-    return redirect(url_for("pages.login"))
   title = request.form.get("title", "").strip()
   if not title:
     flash("An issue needs a title.")
@@ -288,10 +255,10 @@ def create_issue() -> Response:
   )
   with transaction(db()):
     record = issues_data.save(db(), record, commit=False)
-    event = Event("issue.created", user.id, at, {})
+    event = Event("issue.created", g.admin_user.id, at, {})
     events_data.append(db(), "issue", record.id, event, commit=False)
     for recipient in {record.requester_id, record.assignee_id}:
-      if recipient is not None and recipient != user.id:
+      if recipient is not None and recipient != g.admin_user.id:
         notifications_data.notify(
           db(),
           recipient,
@@ -300,14 +267,14 @@ def create_issue() -> Response:
           at=at,
           object_type="issue",
           object_id=record.id,
-          actor_id=user.id,
+          actor_id=g.admin_user.id,
           commit=False,
         )
   record_audit(
     db(),
     "issue.created_directly",
     at=at,
-    actor_id=user.id,
+    actor_id=g.admin_user.id,
     object_type="issue",
     object_id=record.id,
   )
