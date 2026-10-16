@@ -26,6 +26,8 @@ def create_app(config: dict | None = None) -> Flask:
     WEBAUTHN_RP_NAME=os.environ.get("PWEDEPA_RP_NAME", "PwedePa"),
     WEBAUTHN_ORIGIN=origin,
     SESSION_COOKIE_SECURE=os.environ.get("PWEDEPA_COOKIE_SECURE", "1") == "1",
+    # Lax stops a form on another site from riding on the session cookie.
+    SESSION_COOKIE_SAMESITE="Lax",
     DEMO_MODE=False,  # the frozen build asks for demo mode in code
     DEMO_SWITCH=False,  # the frozen build holds both page sets, so it shows the switch
   )

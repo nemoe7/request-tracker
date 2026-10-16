@@ -331,3 +331,8 @@ def test_a_failed_create_leaves_no_record(cast, db, monkeypatch):
   )
   assert response.status_code == 500
   assert requests_data.list_requests(db) == []
+
+
+def test_the_session_cookie_names_a_same_site_value(app):
+  """A cross-site form post cannot ride on the session cookie."""
+  assert app.config["SESSION_COOKIE_SAMESITE"] == "Lax"
