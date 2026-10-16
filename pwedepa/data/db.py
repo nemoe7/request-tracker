@@ -1,68 +1,132 @@
-"""SQLite opening and schema migrations for the data layer."""
+"""SQLite opening and schema for the data layer."""
 
 import sqlite3
 from pathlib import Path
 
-# One entry per schema version, in order. Migration N moves user_version N to N+1.
-MIGRATIONS = (
-  """
-  CREATE TABLE requests (
-    id INTEGER PRIMARY KEY,
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    status TEXT NOT NULL,
-    requester_id INTEGER,
-    priority_suggestion TEXT,
-    priority_unsure INTEGER NOT NULL DEFAULT 0,
-    visibility TEXT NOT NULL,
-    domains TEXT NOT NULL DEFAULT '[]',
-    created_at TEXT,
-    updated_at TEXT,
-    deleted_at TEXT
-  );
-  CREATE TABLE issues (
-    id INTEGER PRIMARY KEY,
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    status TEXT NOT NULL,
-    source_request_id INTEGER,
-    requester_id INTEGER,
-    assignee_id INTEGER,
-    priority TEXT NOT NULL,
-    visibility TEXT NOT NULL,
-    domains TEXT NOT NULL DEFAULT '[]',
-    created_at TEXT,
-    updated_at TEXT,
-    deleted_at TEXT
-  );
-  CREATE TABLE events (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    object_type TEXT NOT NULL,
-    object_id INTEGER NOT NULL,
-    event_type TEXT NOT NULL,
-    actor_id INTEGER,
-    at TEXT,
-    data TEXT NOT NULL DEFAULT '{}'
-  );
-  """,
-)
+# Hard-dev schema: recreate the database instead of migrating it.
+SCHEMA = """
+CREATE TABLE IF NOT EXISTS requests (
+  id INTEGER PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  status TEXT NOT NULL,
+  requester_id INTEGER,
+  priority_suggestion TEXT,
+  priority_unsure INTEGER NOT NULL DEFAULT 0,
+  visibility TEXT NOT NULL,
+  domains TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT,
+  updated_at TEXT,
+  deleted_at TEXT
+);
+CREATE TABLE IF NOT EXISTS issues (
+  id INTEGER PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  status TEXT NOT NULL,
+  source_request_id INTEGER,
+  requester_id INTEGER,
+  assignee_id INTEGER,
+  priority TEXT NOT NULL,
+  visibility TEXT NOT NULL,
+  domains TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT,
+  updated_at TEXT,
+  deleted_at TEXT
+);
+CREATE TABLE IF NOT EXISTS events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  object_type TEXT NOT NULL,
+  object_id INTEGER NOT NULL,
+  event_type TEXT NOT NULL,
+  actor_id INTEGER,
+  at TEXT,
+  data TEXT NOT NULL DEFAULT '{}'
+);
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+  display_name TEXT NOT NULL,
+  status TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  archived_at TEXT
+);
+CREATE TABLE IF NOT EXISTS user_roles (
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  role TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (user_id, role)
+);
+CREATE TABLE IF NOT EXISTS permission_grants (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  permission TEXT NOT NULL,
+  effect TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  revoked_at TEXT,
+  UNIQUE (user_id, permission, effect)
+);
+CREATE TABLE IF NOT EXISTS passkeys (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  credential_id BLOB NOT NULL UNIQUE,
+  public_key BLOB NOT NULL,
+  sign_count INTEGER NOT NULL,
+  created_at TEXT NOT NULL,
+  last_used_at TEXT,
+  revoked_at TEXT
+);
+CREATE TABLE IF NOT EXISTS webauthn_challenges (
+  id TEXT PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  ceremony TEXT NOT NULL,
+  challenge BLOB NOT NULL,
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  used_at TEXT
+);
+CREATE TABLE IF NOT EXISTS enrollment_tokens (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  token_hash TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  used_at TEXT
+);
+CREATE TABLE IF NOT EXISTS sessions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  token_hash TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  last_used_at TEXT,
+  revoked_at TEXT,
+  replaced_by_id INTEGER REFERENCES sessions(id)
+);
+CREATE TABLE IF NOT EXISTS audit_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  actor_id INTEGER,
+  event_type TEXT NOT NULL,
+  object_type TEXT,
+  object_id INTEGER,
+  data TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL
+);
+"""
 
 
 def connect(path: str | Path) -> sqlite3.Connection:
-  """Open the database at path, creating and migrating it when needed."""
+  """Open the database at path, creating its schema when needed."""
   db = sqlite3.connect(path)
   db.row_factory = sqlite3.Row
   db.execute("PRAGMA journal_mode = WAL")
   db.execute("PRAGMA foreign_keys = ON")
-  migrate(db)
+  initialize(db)
   return db
 
 
-def migrate(db: sqlite3.Connection) -> None:
-  """Apply every pending migration once, tracked by PRAGMA user_version."""
-  version = db.execute("PRAGMA user_version").fetchone()[0]
-  for step in MIGRATIONS[version:]:
-    db.executescript(step)
-    version += 1
-    db.execute(f"PRAGMA user_version = {version}")
+def initialize(db: sqlite3.Connection) -> None:
+  """Create every table when it is missing."""
+  db.executescript(SCHEMA)
   db.commit()

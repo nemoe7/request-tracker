@@ -131,8 +131,21 @@ def test_events_round_trip(db):
   assert events.list_for(db, "issue", 1) == [first]
 
 
-def test_migrate_is_idempotent(db):
-  data_db.migrate(db)
-  data_db.migrate(db)
+def test_initialize_is_idempotent(db):
+  data_db.initialize(db)
+  data_db.initialize(db)
+  tables = {
+    row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+  }
+  assert {
+    "users",
+    "user_roles",
+    "permission_grants",
+    "passkeys",
+    "webauthn_challenges",
+    "enrollment_tokens",
+    "sessions",
+    "audit_events",
+  } <= tables
   requests.save(db, make_request())
   assert requests.get(db, 1).title == "Fix the sink"
