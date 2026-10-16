@@ -105,3 +105,13 @@ def test_the_dev_compose_takes_the_origin_from_the_environment():
   assert origin.startswith("${PWEDEPA_ORIGIN:-"), (
     "a local build must accept its own origin, for a phone on the LAN"
   )
+
+
+def test_the_sidecar_reports_its_own_health():
+  """A wait for the sidecar must see the node, not only a live process."""
+  sidecar = _compose()["services"]["tailscale"]
+  probe = sidecar["healthcheck"]
+  assert probe["test"][0] == "CMD"
+  assert "9002/healthz" in " ".join(probe["test"]), "the node answers here"
+  assert int(str(probe["interval"]).rstrip("s")) >= 10
+  assert int(str(probe["retries"]).rstrip("s")) >= 3

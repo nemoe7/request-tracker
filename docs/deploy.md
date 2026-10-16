@@ -42,7 +42,7 @@ The dev file supplies a sample session secret and a localhost origin, so a local
 
 ## Tailscale Funnel
 
-The `tailscale` service joins your tailnet and serves the public HTTPS name with Funnel. It mounts the `tailscale` folder at `/config` and reads `serve.json` from it as `TS_SERVE_CONFIG`. The config proxies the public name to `http://pwedepa:5000`.
+The `tailscale` service joins your tailnet and serves the public HTTPS name with Funnel. It reports its own health at `http://127.0.0.1:9002/healthz`, so `docker compose ps` shows when the node is ready. It mounts the `tailscale` folder at `/config` and reads `serve.json` from it as `TS_SERVE_CONFIG`. The config proxies the public name to `http://pwedepa:5000`.
 
 1. Mint a reusable, untagged auth key in the Tailscale admin console, then put it in `.env` as `TS_AUTHKEY`. Compose stops with an error when the value is missing. The node then carries no tags, so your tailnet treats it as one of your own devices. The sidecar calls its node `pwedepa`, so the public name is `pwedepa.your-tailnet.ts.net`. Read your own tailnet name from `docker compose logs tailscale` after the first start, then set `PWEDEPA_ORIGIN` to that name.
 
