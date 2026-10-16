@@ -101,6 +101,24 @@ def test_the_header_defers_the_animated_icon(app):
   assert b"dataset.src" in client.get("/static/app.js").data
 
 
+def test_the_header_leaves_the_scrolled_layer(app):
+  """A sticky bar snaps to the device grid while the page scrolls, so its text jitters."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  pairs = re.findall(r"([^{}]+)\{([^{}]*)\}", css)
+  bar_rules = [body for sel, body in pairs if sel.strip() == ".topbar"]
+  assert bar_rules, "the top bar keeps its own rule"
+  assert any("position: fixed" in body for body in bar_rules), (
+    "the bar must not sit in the scrolled layer"
+  )
+  assert all("position: sticky" not in body for body in bar_rules), (
+    "a sticky bar repaints off the device grid while scrolling"
+  )
+  body_rules = [body for sel, body in pairs if sel.strip() == "body"]
+  assert any("padding-top: 56px" in body for body in body_rules), (
+    "the page must keep the room the fixed bar used to hold"
+  )
+
+
 def test_page_switches_do_not_animate_the_whole_page(app):
   css = app.test_client().get("/static/app.css").data.decode()
   rules = {sel.strip(): body for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)}
