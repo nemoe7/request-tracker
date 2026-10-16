@@ -97,6 +97,43 @@ document.querySelectorAll('a[href^="/"]').forEach((link) => {
   }, { once: true });
 });
 
+/* Workspace: a row opens the centre card in place, and its link stays real. */
+const workspaceGrid = document.querySelector(".workspace-grid");
+if (workspaceGrid) {
+  const inspector = workspaceGrid.querySelector(".inspector");
+  const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  const openCard = async (href, row, remember) => {
+    try {
+      const response = await fetch(href);
+      if (!response.ok) throw new Error(`card ${response.status}`);
+      const page = new DOMParser().parseFromString(await response.text(), "text/html");
+      const card = page.querySelector(".workspace-grid .inspector");
+      if (!card || !inspector) throw new Error("no card");
+      inspector.innerHTML = card.innerHTML;
+      workspaceGrid.classList.add("is-open");
+      workspaceGrid.querySelector("tr.is-selected")?.classList.remove("is-selected");
+      row?.classList.add("is-selected");
+      if (remember) history.pushState(null, "", href);
+      if (window.innerWidth < 900) {
+        inspector.scrollIntoView({ behavior: calm.matches ? "auto" : "smooth", block: "start" });
+      }
+    } catch {
+      window.location.assign(href);
+    }
+  };
+
+  workspaceGrid.querySelectorAll(".record-table tbody a[href*='selected=']").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+      event.preventDefault();
+      openCard(link.href, link.closest("tr"), true);
+    });
+  });
+
+  window.addEventListener("popstate", () => window.location.reload());
+}
+
 /* WebAuthn helpers: the server speaks base64url JSON, the browser wants buffers. */
 function toBuffer(value) {
   const base64 = value.replace(/-/g, "+").replace(/_/g, "/");

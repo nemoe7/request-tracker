@@ -309,6 +309,49 @@ def test_workspace_centers_the_inspector(app, db):
   assert b"Open the board" not in body
 
 
+def test_workspace_opens_two_cards_then_swaps_the_centre_one(app, db):
+  client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  record = Request(
+    id=1,
+    title="Broken projector",
+    description="The projector in Room 4 is dead.",
+    requester_id=users.get_user_by_username(db, "sam").id,
+    created_at=AT,
+    updated_at=AT,
+  )
+  requests_data.save(db, record)
+
+  closed = client.get("/workspace").data.decode()
+  assert 'class="workspace-grid"' in closed, "the list opens alone, with no card"
+  assert 'class="workspace-grid is-open"' not in closed
+  assert f"selected={record.id}" in closed, "a row keeps a real link to its card"
+
+  opened = client.get(f"/workspace?selected={record.id}").data.decode()
+  assert 'class="workspace-grid is-open"' in opened
+
+  css = app.test_client().get("/static/app.css").data.decode()
+  grid = css[css.index(".workspace-grid {") :].split("}", 1)[0]
+  assert "240px 0" in grid, "the closed grid collapses the centre track"
+  assert "transition: grid-template-columns" in grid
+  assert ".workspace-grid:not(.is-open) .inspector {" in css, (
+    "the closed card leaves the row"
+  )
+  wide = css[css.index("@media (min-width: 1200px)") :]
+  assert re.search(r"\.workspace-grid\.is-open \{[^}]*240px 360px", wide), (
+    "the design doc holds the inspector at 360px"
+  )
+
+  assert ".workspace-grid .inspector { scroll-margin-top" in css, (
+    "on a phone the card must land below the top bar"
+  )
+
+  js = app.test_client().get("/static/app.js").data.decode()
+  assert "history.pushState" in js, "an opened card keeps a shareable url"
+  assert "prefers-reduced-motion" in js, (
+    "the card reveal respects the motion preference"
+  )
+
+
 def test_settings_rows_share_grouped_lists(app, db):
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   body = client.get("/settings").data

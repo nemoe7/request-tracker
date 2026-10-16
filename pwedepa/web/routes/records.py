@@ -325,8 +325,8 @@ def workspace() -> str | Response:
 
   selected = None
   selected_id = request.args.get("selected", type=int)
-  if row_kind == "request" and rows:
-    selected = next((r for r in rows if r.id == selected_id), rows[0])
+  if row_kind == "request" and selected_id:
+    selected = next((r for r in rows if r.id == selected_id), None)
   board = {
     status: [i for i in all_issues if i.status is status and in_domain(i)]
     for status in (
