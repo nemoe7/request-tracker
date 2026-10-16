@@ -61,6 +61,7 @@ To run the preview demo on your own machine, ask for demo mode in code:
 
 ## Notes
 
+- The app image builds as `pwedepa`. The sidecar uses the upstream `tailscale/tailscale` image.
 - Back up the `pwedepa-data` volume. It holds the only database copy.
 - The `tailscale-state` volume holds the node identity, so a rebuild keeps the device. Restart the sidecar after you edit `tailscale-funnel.json`, because it reads the file at startup.
 - The starter Domains come from `domains.json`. Keep it at the project root. The image copies it to `/app/domains.json`, and a missing file fails the demo seed with a clear error.

@@ -35,6 +35,7 @@ def test_compose_names_every_container():
 def test_compose_keeps_the_app_data_on_a_volume():
   service = _compose()["services"]["pwedepa"]
   assert service["build"] == "."
+  assert service["image"] == "pwedepa"
   assert any(
     str(volume).startswith("pwedepa-data:/data") for volume in service["volumes"]
   )

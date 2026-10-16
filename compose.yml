@@ -1,6 +1,7 @@
 services:
   pwedepa:
     build: .
+    image: pwedepa
     container_name: pwedepa-app
     ports:
       - "127.0.0.1:5000:5000"
