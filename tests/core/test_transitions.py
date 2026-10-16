@@ -122,7 +122,7 @@ def test_raise_copies_requester_visibility_and_domains():
     domains=("hardware", "gate"),
     priority_suggestion=Priority.LOW,
   )
-  raised, result = raise_request(pending, 99, ADMIN, at=NOW)
+  raised, result = raise_request(pending, ADMIN, at=NOW)
   assert raised.source_request_id == pending.id
   assert raised.requester_id == pending.requester_id
   assert raised.visibility is pending.visibility
@@ -132,7 +132,7 @@ def test_raise_copies_requester_visibility_and_domains():
 
 
 def test_raise_without_suggestion_uses_default_priority():
-  raised, _ = raise_request(make_request(RequestStatus.PENDING), 99, ADMIN, at=NOW)
+  raised, _ = raise_request(make_request(RequestStatus.PENDING), ADMIN, at=NOW)
   assert raised.priority is Priority.HIGH
 
 

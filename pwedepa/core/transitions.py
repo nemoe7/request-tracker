@@ -141,15 +141,18 @@ def transition_issue(
 
 def raise_request(
   request: Request,
-  new_issue_id: int,
   actor: Actor,
   *,
   at: datetime,
 ) -> tuple[Issue, Change]:
-  """Raise a Request into a new Issue. The Request stays as a separate record."""
+  """Raise a Request into a new Issue. The Request stays as a separate record.
+
+  The Issue carries no id yet. The store assigns it, so the caller writes the
+  event that names the new issue.
+  """
   change = transition_request(request, RequestStatus.RAISED, actor, at=at)
   issue = Issue(
-    id=new_issue_id,
+    id=0,
     title=request.title,
     description=request.description,
     source_request_id=request.id,
@@ -160,5 +163,4 @@ def raise_request(
     created_at=at,
     updated_at=at,
   )
-  raised = Event("issue.raised_from_request", actor.id, at, {"issue_id": new_issue_id})
-  return issue, Change(change.object, change.events + (raised,))
+  return issue, change

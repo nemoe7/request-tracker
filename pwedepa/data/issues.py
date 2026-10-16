@@ -1,5 +1,7 @@
 """Save, load, and list Issues in SQLite."""
 
+from dataclasses import replace
+
 from sqlalchemy.engine import Connection, Row
 
 from pwedepa.core import Issue, IssueStatus, Priority, Visibility
@@ -12,8 +14,9 @@ COLUMNS = (
 )
 
 
-def save(db: Connection, issue: Issue) -> None:
-  db.exec_driver_sql(
+def save(db: Connection, issue: Issue) -> Issue:
+  """Store the issue. An unsaved issue takes the id SQLite assigns."""
+  cursor = db.exec_driver_sql(
     f"INSERT INTO issues ({COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
     "ON CONFLICT(id) DO UPDATE SET title = excluded.title, "
     "description = excluded.description, status = excluded.status, "
@@ -23,7 +26,7 @@ def save(db: Connection, issue: Issue) -> None:
     "domains = excluded.domains, created_at = excluded.created_at, "
     "updated_at = excluded.updated_at, deleted_at = excluded.deleted_at",
     (
-      issue.id,
+      issue.id or None,
       issue.title,
       issue.description,
       issue.status.value,
@@ -39,6 +42,7 @@ def save(db: Connection, issue: Issue) -> None:
     ),
   )
   db.commit()
+  return issue if issue.id else replace(issue, id=cursor.lastrowid)
 
 
 def get(db: Connection, issue_id: int) -> Issue | None:

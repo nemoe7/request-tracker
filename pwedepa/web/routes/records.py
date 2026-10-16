@@ -79,15 +79,6 @@ def _names() -> dict[int, str]:
   }
 
 
-def _next_id(table: str) -> int:
-  row = (
-    db()
-    .exec_driver_sql(f"SELECT COALESCE(MAX(id), 0) + 1 AS next FROM {table}")
-    .fetchone()
-  )
-  return row._mapping["next"]
-
-
 def _can(actor, action: str, record) -> bool:
   return authorize(
     actor,
@@ -408,23 +399,25 @@ def request_create() -> Response:
     return redirect(url_for("records.request_new"))
   at = now()
   priority = request.form.get("priority_suggestion", "")
-  record = Request(
-    id=_next_id("requests"),
-    title=title,
-    description=request.form.get("description", "").strip(),
-    requester_id=user.id,
-    priority_suggestion=Priority(priority) if priority else None,
-    priority_unsure="priority_unsure" in request.form,
-    visibility=Visibility(request.form.get("visibility", "PRIVATE")),
-    domains=tuple(
-      part.strip()
-      for part in request.form.get("domains", "").split(",")
-      if part.strip()
+  record = requests_data.save(
+    db(),
+    Request(
+      id=0,
+      title=title,
+      description=request.form.get("description", "").strip(),
+      requester_id=user.id,
+      priority_suggestion=Priority(priority) if priority else None,
+      priority_unsure="priority_unsure" in request.form,
+      visibility=Visibility(request.form.get("visibility", "PRIVATE")),
+      domains=tuple(
+        part.strip()
+        for part in request.form.get("domains", "").split(",")
+        if part.strip()
+      ),
+      created_at=at,
+      updated_at=at,
     ),
-    created_at=at,
-    updated_at=at,
   )
-  requests_data.save(db(), record)
   created = Event("request.created", user.id, at)
   events_data.append(db(), "request", record.id, created)
   _notify_event("request", record, created)
@@ -468,10 +461,12 @@ def request_transition(request_id: int) -> Response:
   at = now()
   try:
     if target is RequestStatus.RAISED:
-      issue, change = raise_request(record, _next_id("issues"), actor, at=at)
-      issues_data.save(db(), issue)
+      issue, change = raise_request(record, actor, at=at)
+      issue = issues_data.save(db(), issue)
       requests_data.save(db(), change.object)
       _append_all("request", record, change)
+      raised = Event("issue.raised_from_request", user.id, at, {"issue_id": issue.id})
+      events_data.append(db(), "request", record.id, raised)
       created = Event("issue.created", user.id, at, {})
       events_data.append(db(), "issue", issue.id, created)
       _notify_event("issue", issue, created)

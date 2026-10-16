@@ -150,3 +150,24 @@ def test_initialize_is_idempotent(db):
   } <= tables
   requests.save(db, make_request())
   assert requests.get(db, 1).title == "Fix the sink"
+
+
+def test_a_saved_request_takes_the_id_sqlite_assigns(db):
+  """Two records saved as new keep their own rows, even at the same moment."""
+  first = requests.save(db, make_request(id=0, title="First"))
+  second = requests.save(db, make_request(id=0, title="Second"))
+
+  assert first.id and second.id
+  assert first.id != second.id
+  assert requests.get(db, first.id).title == "First"
+  assert requests.get(db, second.id).title == "Second"
+
+
+def test_a_saved_issue_takes_the_id_sqlite_assigns(db):
+  first = issues.save(db, Issue(id=0, title="First", description=""))
+  second = issues.save(db, Issue(id=0, title="Second", description=""))
+
+  assert first.id and second.id
+  assert first.id != second.id
+  assert issues.get(db, first.id).title == "First"
+  assert issues.get(db, second.id).title == "Second"

@@ -295,3 +295,22 @@ def test_workspace_queues_counts_and_inspector(cast, db):
 
   pending = admin.get("/workspace?queue=triage&status=PENDING")
   assert b"Broken projector" not in pending.data
+
+
+def test_two_new_requests_keep_their_own_numbers(cast, db):
+  """The form writes the row SQLite numbered, so no request replaces another."""
+  Mara, _ = cast["Mara"]
+  first = Mara.post(
+    "/requests",
+    data={"title": "First chairs", "description": "Two chairs are broken."},
+  )
+  second = Mara.post(
+    "/requests",
+    data={"title": "Second chairs", "description": "One table is broken."},
+  )
+  assert first.status_code == 302 and second.status_code == 302
+  assert first.headers["Location"] != second.headers["Location"]
+
+  listed = Mara.get("/requests").data
+  assert b"First chairs" in listed
+  assert b"Second chairs" in listed

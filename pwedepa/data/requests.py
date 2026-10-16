@@ -1,5 +1,7 @@
 """Save, load, and list Requests in SQLite."""
 
+from dataclasses import replace
+
 from sqlalchemy.engine import Connection, Row
 
 from pwedepa.core import Priority, Request, RequestStatus, Visibility
@@ -12,8 +14,9 @@ COLUMNS = (
 )
 
 
-def save(db: Connection, request: Request) -> None:
-  db.exec_driver_sql(
+def save(db: Connection, request: Request) -> Request:
+  """Store the request. An unsaved request takes the id SQLite assigns."""
+  cursor = db.exec_driver_sql(
     f"INSERT INTO requests ({COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
     "ON CONFLICT(id) DO UPDATE SET title = excluded.title, "
     "description = excluded.description, status = excluded.status, "
@@ -23,7 +26,7 @@ def save(db: Connection, request: Request) -> None:
     "domains = excluded.domains, created_at = excluded.created_at, "
     "updated_at = excluded.updated_at, deleted_at = excluded.deleted_at",
     (
-      request.id,
+      request.id or None,
       request.title,
       request.description,
       request.status.value,
@@ -40,6 +43,7 @@ def save(db: Connection, request: Request) -> None:
     ),
   )
   db.commit()
+  return request if request.id else replace(request, id=cursor.lastrowid)
 
 
 def get(db: Connection, request_id: int) -> Request | None:

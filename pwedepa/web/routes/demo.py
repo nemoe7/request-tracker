@@ -45,15 +45,6 @@ def _ensure_user(username: str, display_name: str, role: Role):
   return user
 
 
-def _next_id(table: str) -> int:
-  row = (
-    db()
-    .exec_driver_sql(f"SELECT COALESCE(MAX(id), 0) + 1 AS next FROM {table}")
-    .fetchone()
-  )
-  return row._mapping["next"]
-
-
 def _seed() -> None:
   names = domains_data.starter_domains()
   admin = _ensure_user("demo-admin", "Demo Admin", Role.ADMIN)
@@ -63,7 +54,7 @@ def _seed() -> None:
     requests_data.save(
       db(),
       Request(
-        id=_next_id("requests"),
+        id=0,
         title="Broken projector in Room 4",
         description="The projector powers on, then drops the image after two minutes.",
         requester_id=Mara.id,
@@ -76,7 +67,7 @@ def _seed() -> None:
     requests_data.save(
       db(),
       Request(
-        id=_next_id("requests"),
+        id=0,
         title="Ideas for the next community day",
         description="Collect activity ideas for the next community day.",
         requester_id=admin.id,
@@ -91,7 +82,7 @@ def _seed() -> None:
     issues_data.save(
       db(),
       Issue(
-        id=_next_id("issues"),
+        id=0,
         title="Projector repair plan",
         description="Check the lamp hours, swap the cable, then test with a class laptop.",
         requester_id=Mara.id,

@@ -268,14 +268,9 @@ def create_issue() -> Response:
     flash("An issue needs a title.")
     return redirect(url_for("admin.overview"))
   at = now()
-  row = (
-    db()
-    .exec_driver_sql("SELECT COALESCE(MAX(id), 0) + 1 AS next FROM issues")
-    .fetchone()
-  )
   assignee = request.form.get("assignee_id", type=int)
   record = Issue(
-    id=row._mapping["next"],
+    id=0,
     title=title,
     description=request.form.get("description", "").strip(),
     requester_id=request.form.get("requester_id", type=int),
@@ -290,7 +285,7 @@ def create_issue() -> Response:
     created_at=at,
     updated_at=at,
   )
-  issues_data.save(db(), record)
+  record = issues_data.save(db(), record)
   event = Event("issue.created", user.id, at, {})
   events_data.append(db(), "issue", record.id, event)
   for recipient in {record.requester_id, record.assignee_id}:
