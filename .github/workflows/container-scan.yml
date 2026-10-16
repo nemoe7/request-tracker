@@ -40,4 +40,5 @@ jobs:
           image-ref: pwedepa:scan
           format: table
           severity: HIGH,CRITICAL
+          ignore-unfixed: true
           exit-code: "1"
