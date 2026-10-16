@@ -44,6 +44,9 @@ STAFF_PAGES = (
 
 LINK_RE = re.compile(r'(href|action)="(/(?:[^"]*))"')
 
+# A card swap pushes a deeper address, so the page holds its base at the site root.
+BASE_PIN = 'document.querySelector("base").href = document.baseURI;'
+
 
 VIEW_KEYS = ("selected", "queue", "domain", "visibility")
 
@@ -81,15 +84,13 @@ def _view(query: str, source: str, views: dict[tuple[str, str], str]) -> str | N
 
 def _relative(
   target: str,
-  depth: int,
   frozen: set[str],
   source: str,
   views: dict[tuple[str, str], str],
   nav: dict[str, str] | None = None,
   page: str = "",
 ) -> str:
-  """Point one link at the nearest frozen page, relative to the page depth."""
-  prefix = "./" if depth == 0 else "../" * depth
+  """Point one link at the nearest frozen page, from the site root."""
   if nav:
     path = target.split("?", 1)[0].split("#", 1)[0].strip("/")
     for head, folder in nav.items():
@@ -98,31 +99,39 @@ def _relative(
         while tail not in frozen and "/" in tail:
           tail = tail.rsplit("/", 1)[0]
         if tail in frozen:
-          return f"{prefix}{tail}/"
+          return f"{tail}/"
   if "?" in target:
     head, query = target.split("?", 1)
     if head.strip("/") == "workspace":
       folder = _view(query, source, views)
       if folder:
-        return f"{prefix}{folder}/"
+        return f"{folder}/"
   path = target.split("?", 1)[0].split("#", 1)[0].strip("/")
   while path not in frozen:
     if "/" not in path:
-      return f"{prefix}{page}/" if page else prefix
+      return f"{page}/" if page else "./"
     path = path.rsplit("/", 1)[0]
-  return prefix if not path else f"{prefix}{path}/"
+  return "./" if not path else f"{path}/"
 
 
 def rewrite(
-  html: str, depth: int, frozen: set[str], source: str, views, nav=None, page=""
+  html: str, prefix: str, frozen: set[str], source: str, views, nav=None, page=""
 ) -> str:
-  """Make root-absolute links relative, inside the frozen set, and read-only."""
-  prefix = "./" if depth == 0 else "../" * depth
-  html = html.replace('"/static/', f'"{prefix}static/')
+  """Point every link at the frozen site root, and open the demo read-only."""
+  own = f"{page}/" if page else "./"
+  html = html.replace('"/static/', '"static/')
   html = html.replace('method="post"', 'method="get"')
+  html = html.replace(
+    '<meta charset="utf-8">',
+    f'<meta charset="utf-8">\n  <base href="{prefix}">\n  <script>{BASE_PIN}</script>',
+    1,
+  )
+  html = re.sub(
+    r'href="#([^"]*)"', lambda match: f'href="{own}#{match.group(1)}"', html
+  )
   return LINK_RE.sub(
     lambda match: (
-      f'{match.group(1)}="{_relative(match.group(2), depth, frozen, source, views, nav, page)}"'
+      f'{match.group(1)}="{_relative(match.group(2), frozen, source, views, nav, page)}"'
     ),
     html,
   )
@@ -172,11 +181,11 @@ def main() -> int:
     response = client.get(route)
     if response.status_code != 200:
       raise SystemExit(f"{route} answered {response.status_code}")
-    depth = 0 if not folder else folder.count("/") + 1
+    prefix = "./" if not folder else "../" * (folder.count("/") + 1)
     target = out / folder / "index.html" if folder else out / "index.html"
     target.parent.mkdir(parents=True, exist_ok=True)
     html = rewrite(
-      response.get_data(as_text=True), depth, frozen, source, views, nav, folder
+      response.get_data(as_text=True), prefix, frozen, source, views, nav, folder
     )
     target.write_text(html, encoding="utf-8")
     print(f"froze {route} -> {target.relative_to(out)}")

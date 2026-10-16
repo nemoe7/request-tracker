@@ -5,12 +5,15 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from urllib.parse import urljoin, urlparse
 
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "pages.yml"
 LINK_RE = re.compile(r'(?:href|action|src)="([^"]+)"')
+SITE = "https://example.test/demo/"
+DEMO_RE = re.compile(r'(?:href|action|src|data-src)="([^"]+)"')
 
 
 def test_pages_workflow_builds_and_deploys():
@@ -62,11 +65,11 @@ def test_frozen_demo_opens_rail_filters_and_selected_records(tmp_path):
   )
   assert result.returncode == 0, result.stderr
   index = (out / "index.html").read_text(encoding="utf-8")
-  queue = re.search(r'href="\./(workspace/queue/mine)/"[^>]*>My requests', index)
+  queue = re.search(r'href="(workspace/queue/mine)/"[^>]*>My requests', index)
   assert queue, "a queue link should open its own frozen page"
   page = (out / queue.group(1) / "index.html").read_text(encoding="utf-8")
   assert re.search(r'class="queue-item is-active"[^>]*>My requests', page)
-  record = re.search(r'href="\./(workspace/record/\d+)/"[^>]*>[^<]+</a>', index)
+  record = re.search(r'href="(workspace/record/\d+)/"[^>]*>[^<]+</a>', index)
   assert record, "a record row should open its own frozen page"
   page = (out / record.group(1) / "index.html").read_text(encoding="utf-8")
   assert '<tr class="is-selected">' in page
@@ -87,7 +90,7 @@ def test_the_client_tabs_lead_to_client_shaped_pages(tmp_path):
   assert result.returncode == 0, result.stderr
   home = (out / "home" / "index.html").read_text(encoding="utf-8")
   for head, folder in (("requests", "home/requests"), ("issues", "home/issues")):
-    assert f'href="../{folder}/"' in home, f"the {head} tab opens the client copy"
+    assert f'href="{folder}/"' in home, f"the {head} tab opens the client copy"
     page = (out / folder / "index.html").read_text(encoding="utf-8")
     block = re.search(r'<nav class="tabs".*?</nav>', page, re.DOTALL)
     assert block, f"{folder} carries the tab strip"
@@ -99,7 +102,7 @@ def test_the_client_tabs_lead_to_client_shaped_pages(tmp_path):
   block = re.search(r'<nav class="tabs".*?</nav>', record, re.DOTALL)
   labels = re.findall(r"</svg>([^<]+)</a>", block.group(0)) if block else []
   assert labels == ["Requests", "Issues"], "the record copy keeps the client nav"
-  assert re.search(r'href="(\.\./)+home/requests/"', record), (
+  assert re.search(r'href="home/requests/"', record), (
     "the copy points inside the client pages"
   )
 
@@ -150,7 +153,7 @@ def test_a_client_copy_keeps_her_controls_in_the_client_pages(tmp_path):
     found = [target for pattern in controls for target in re.findall(pattern, html)]
     assert found, f"{page} carries the record controls"
     for target in found:
-      path = (page.parent / target.split("?")[0]).resolve()
+      path = (out / target.split("?")[0]).resolve()
       assert path == client or client in path.parents, (page, target)
 
 
@@ -172,9 +175,68 @@ def test_frozen_demo_ships_no_writes_and_no_dead_links(tmp_path):
   for page in pages:
     html = page.read_text(encoding="utf-8")
     assert 'method="post"' not in html, page
-    for target in LINK_RE.findall(html):
+    assert len(re.findall(r"<base href=", html)) == 1, page
+    for target in LINK_RE.findall(re.sub(r"<base[^>]*>", "", html)):
       if target.startswith(("#", "http", "mailto:", "data:")):
         continue
       assert not target.startswith("/"), (page, target)
-      path = (page.parent / target.split("?")[0].split("#")[0]).resolve()
+      path = out / target.split("?")[0].split("#")[0]
       assert path.exists(), (page, target)
+
+
+def _frozen_site(tmp_path):
+  out = tmp_path / "site"
+  env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
+  result = subprocess.run(
+    [sys.executable, str(ROOT / "scripts" / "build_pages_demo.py")],
+    cwd=ROOT,
+    env=env,
+    capture_output=True,
+    text=True,
+    timeout=120,
+    check=False,
+  )
+  assert result.returncode == 0, result.stderr
+  return out
+
+
+def _page_url(out, page):
+  """The address the demo serves one frozen page from, under a subpath."""
+  rel = page.parent.relative_to(out).as_posix()
+  return SITE + ("" if rel == "." else f"{rel}/")
+
+
+def test_a_swapped_card_leaves_every_link_on_a_real_page(tmp_path):
+  """A card swap leaves the address on a deeper path. No link may depend on that."""
+  out = _frozen_site(tmp_path)
+  pages = sorted(out.rglob("index.html"))
+  urls = [_page_url(out, page) for page in pages]
+  prefix = urlparse(SITE).path
+  seen = {}
+
+  def exists(path):
+    key = path.as_posix()
+    if key not in seen:
+      seen[key] = path.exists()
+    return seen[key]
+
+  for page in pages:
+    html = page.read_text(encoding="utf-8")
+    base = re.search(r'<base href="([^"]+)"', html)
+    pinned = urljoin(_page_url(out, page), base.group(1)) if base else ""
+    targets = [
+      target
+      for target in DEMO_RE.findall(re.sub(r"<base[^>]*>", "", html))
+      if not target.startswith(("#", "http", "mailto:", "data:"))
+    ]
+    for pushed in urls:
+      for target in targets:
+        landed = urljoin(pinned or pushed, target)
+        assert landed.startswith(SITE), (page, pushed, target, landed)
+        assert exists(out / urlparse(landed).path[len(prefix) :]), (
+          page,
+          pushed,
+          target,
+        )
+    assert base, f"{page} answers no base element"
+    assert "document.baseURI" in html, f"{page} leaves its base free to drift"
