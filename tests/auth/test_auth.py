@@ -54,6 +54,8 @@ def user(db):
 def test_user_lifecycle_and_actor_block(db, user):
   assert users.get_user_by_username(db, "ADA") == user
   assert users.list_users(db) == [user]
+  audit = list_audit_events(db, object_type="user", object_id=user.id)
+  assert [event.event_type for event in audit] == ["user.created"]
   with pytest.raises(AuthError):
     users.create_user(db, "Ada", "Another Ada", at=AT)
 
@@ -76,6 +78,8 @@ def test_roles_and_direct_grants_make_an_actor(db, user):
   assert grants.ROLE_GRANTS[Role.ADMIN] == (Grant("*"),)
 
   grants.assign_role(db, user.id, Role.REQUESTER, at=AT)
+  audit = list_audit_events(db, object_type="user", object_id=user.id)
+  assert audit[-1].event_type == "role.assigned"
   grants.grant_permission(db, user.id, Grant("issue.12.view"), at=AT)
   grants.grant_permission(db, user.id, Grant("issue.comment", Effect.DENY), at=AT)
   actor = grants.actor_for_user(db, user.id)

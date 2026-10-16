@@ -7,6 +7,7 @@ from enum import Enum
 
 from pwedepa.data._rows import pack_time, unpack_time
 
+from .audit import record_audit
 from .errors import AuthError
 
 
@@ -32,6 +33,7 @@ def create_user(
   display_name: str,
   *,
   at: datetime,
+  actor_id: int | None = None,
 ) -> User:
   """Create an active user with a case-insensitively unique username."""
   username = username.strip()
@@ -47,6 +49,16 @@ def create_user(
   except sqlite3.IntegrityError as exc:
     db.rollback()
     raise AuthError("the username is already in use") from exc
+  record_audit(
+    db,
+    "user.created",
+    at=at,
+    actor_id=actor_id,
+    object_type="user",
+    object_id=cursor.lastrowid,
+    data={"username": username},
+    commit=False,
+  )
   db.commit()
   return get_user(db, cursor.lastrowid)
 
@@ -71,7 +83,9 @@ def list_users(db: sqlite3.Connection, *, include_archived: bool = False) -> lis
   return [_from_row(row) for row in db.execute(query)]
 
 
-def archive_user(db: sqlite3.Connection, user_id: int, *, at: datetime) -> User:
+def archive_user(
+  db: sqlite3.Connection, user_id: int, *, at: datetime, actor_id: int | None = None
+) -> User:
   """Archive a user. Historical records keep pointing at the user."""
   user = _require_user(db, user_id)
   if user.status is UserStatus.ARCHIVED:
@@ -80,15 +94,35 @@ def archive_user(db: sqlite3.Connection, user_id: int, *, at: datetime) -> User:
     "UPDATE users SET status = ?, archived_at = ?, updated_at = ? WHERE id = ?",
     (UserStatus.ARCHIVED.value, pack_time(at), pack_time(at), user_id),
   )
+  record_audit(
+    db,
+    "user.archived",
+    at=at,
+    actor_id=actor_id,
+    object_type="user",
+    object_id=user_id,
+    commit=False,
+  )
   db.commit()
   return get_user(db, user_id)
 
 
-def reactivate_user(db: sqlite3.Connection, user_id: int, *, at: datetime) -> User:
+def reactivate_user(
+  db: sqlite3.Connection, user_id: int, *, at: datetime, actor_id: int | None = None
+) -> User:
   _require_user(db, user_id)
   db.execute(
     "UPDATE users SET status = ?, archived_at = NULL, updated_at = ? WHERE id = ?",
     (UserStatus.ACTIVE.value, pack_time(at), user_id),
+  )
+  record_audit(
+    db,
+    "user.reactivated",
+    at=at,
+    actor_id=actor_id,
+    object_type="user",
+    object_id=user_id,
+    commit=False,
   )
   db.commit()
   return get_user(db, user_id)

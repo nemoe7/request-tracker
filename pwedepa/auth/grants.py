@@ -7,6 +7,7 @@ from enum import Enum
 from pwedepa.core import Actor, Effect, Grant
 from pwedepa.data._rows import pack_time
 
+from .audit import record_audit
 from .errors import AuthenticationFailed
 from .users import UserStatus, get_user
 
@@ -34,23 +35,55 @@ ROLE_GRANTS = {
 
 
 def assign_role(
-  db: sqlite3.Connection, user_id: int, role: Role, *, at: datetime
+  db: sqlite3.Connection,
+  user_id: int,
+  role: Role,
+  *,
+  at: datetime,
+  actor_id: int | None = None,
 ) -> None:
   _require_user(db, user_id)
-  db.execute(
+  cursor = db.execute(
     "INSERT OR IGNORE INTO user_roles (user_id, role, created_at) VALUES (?, ?, ?)",
     (user_id, role.value, pack_time(at)),
   )
+  if cursor.rowcount:
+    record_audit(
+      db,
+      "role.assigned",
+      at=at,
+      actor_id=actor_id,
+      object_type="user",
+      object_id=user_id,
+      data={"role": role.value},
+      commit=False,
+    )
   db.commit()
 
 
 def revoke_role(
-  db: sqlite3.Connection, user_id: int, role: Role, *, at: datetime
+  db: sqlite3.Connection,
+  user_id: int,
+  role: Role,
+  *,
+  at: datetime,
+  actor_id: int | None = None,
 ) -> bool:
   _require_user(db, user_id)
   cursor = db.execute(
     "DELETE FROM user_roles WHERE user_id = ? AND role = ?", (user_id, role.value)
   )
+  if cursor.rowcount:
+    record_audit(
+      db,
+      "role.revoked",
+      at=at,
+      actor_id=actor_id,
+      object_type="user",
+      object_id=user_id,
+      data={"role": role.value},
+      commit=False,
+    )
   db.commit()
   return cursor.rowcount == 1
 
@@ -64,7 +97,12 @@ def list_roles(db: sqlite3.Connection, user_id: int) -> tuple[Role, ...]:
 
 
 def grant_permission(
-  db: sqlite3.Connection, user_id: int, grant: Grant, *, at: datetime
+  db: sqlite3.Connection,
+  user_id: int,
+  grant: Grant,
+  *,
+  at: datetime,
+  actor_id: int | None = None,
 ) -> None:
   _require_user(db, user_id)
   if not grant.permission.strip():
@@ -74,6 +112,16 @@ def grant_permission(
     "VALUES (?, ?, ?, ?) "
     "ON CONFLICT(user_id, permission, effect) DO UPDATE SET revoked_at = NULL",
     (user_id, grant.permission, grant.effect.value, pack_time(at)),
+  )
+  record_audit(
+    db,
+    "permission.granted",
+    at=at,
+    actor_id=actor_id,
+    object_type="user",
+    object_id=user_id,
+    data={"permission": grant.permission, "effect": grant.effect.value},
+    commit=False,
   )
   db.commit()
 
@@ -85,6 +133,7 @@ def revoke_permission(
   effect: Effect,
   *,
   at: datetime,
+  actor_id: int | None = None,
 ) -> bool:
   _require_user(db, user_id)
   cursor = db.execute(
@@ -92,6 +141,17 @@ def revoke_permission(
     "WHERE user_id = ? AND permission = ? AND effect = ? AND revoked_at IS NULL",
     (pack_time(at), user_id, permission, effect.value),
   )
+  if cursor.rowcount:
+    record_audit(
+      db,
+      "permission.revoked",
+      at=at,
+      actor_id=actor_id,
+      object_type="user",
+      object_id=user_id,
+      data={"permission": permission, "effect": effect.value},
+      commit=False,
+    )
   db.commit()
   return cursor.rowcount == 1
 
