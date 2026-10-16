@@ -186,6 +186,43 @@ def test_a_value_the_page_cannot_send_gets_a_sentence(cast, db):
   assert requests_data.get(db, 1).visibility is Visibility.PRIVATE
 
 
+def test_an_edit_keeps_the_fields_a_value_cannot_change(cast, db):
+  """Text the page cannot send leaves a field alone. An empty priority still clears it."""
+  admin, _ = cast["admin"]
+  _, Mara_user = cast["Mara"]
+  _save_request(
+    db, 1, Mara_user.id, visibility=Visibility.PUBLIC, priority_suggestion=Priority.HIGH
+  )
+
+  junk = admin.post(
+    "/requests/1/edit",
+    data={
+      "title": "Broken projector",
+      "description": "The projector in Room 4 is dead.",
+      "visibility": "BOGUS",
+      "domains": "",
+      "priority_suggestion": "BOGUS",
+    },
+  )
+  assert junk.status_code == 302
+  kept = requests_data.get(db, 1)
+  assert kept.visibility is Visibility.PUBLIC
+  assert kept.priority_suggestion is Priority.HIGH
+
+  cleared = admin.post(
+    "/requests/1/edit",
+    data={
+      "title": "Broken projector",
+      "description": "The projector in Room 4 is dead.",
+      "visibility": "PUBLIC",
+      "domains": "",
+      "priority_suggestion": "",
+    },
+  )
+  assert cleared.status_code == 302
+  assert requests_data.get(db, 1).priority_suggestion is None
+
+
 def test_raise_creates_a_linked_issue(cast, db):
   admin, _ = cast["admin"]
   _, Mara_user = cast["Mara"]

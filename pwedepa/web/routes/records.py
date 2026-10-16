@@ -536,14 +536,16 @@ def request_edit_save(request_id: int) -> str | Response:
     "title": request.form.get("title", "").strip(),
     "description": request.form.get("description", "").strip(),
     "visibility": choice(
-      Visibility, request.form.get("visibility", "PRIVATE"), Visibility.PRIVATE
+      Visibility, request.form.get("visibility", ""), record.visibility
     ),
     "domains": tuple(
       part.strip()
       for part in request.form.get("domains", "").split(",")
       if part.strip()
     ),
-    "priority_suggestion": choice(Priority, priority, None),
+    "priority_suggestion": (
+      choice(Priority, priority, record.priority_suggestion) if priority else None
+    ),
     "priority_unsure": "priority_unsure" in request.form,
   }
   fields = {
@@ -703,14 +705,14 @@ def issue_edit_save(issue_id: int) -> Response:
     "title": request.form.get("title", "").strip(),
     "description": request.form.get("description", "").strip(),
     "visibility": choice(
-      Visibility, request.form.get("visibility", "PRIVATE"), Visibility.PRIVATE
+      Visibility, request.form.get("visibility", ""), record.visibility
     ),
     "domains": tuple(
       part.strip()
       for part in request.form.get("domains", "").split(",")
       if part.strip()
     ),
-    "priority": choice(Priority, request.form.get("priority", "HIGH"), Priority.HIGH),
+    "priority": choice(Priority, request.form.get("priority", ""), record.priority),
     "assignee_id": int(assignee) if assignee else None,
   }
   fields = {

@@ -1,5 +1,7 @@
 """Shared request helpers for the web routes."""
 
+import math
+
 from flask import current_app, g, request
 from sqlalchemy.engine import Connection
 
@@ -46,13 +48,16 @@ def expiry_days() -> int | None:
     return None
   # A number field submits exponent forms such as "1e3", so read a float first.
   try:
-    days = int(float(submitted))
-  except (ValueError, OverflowError):
+    days = float(submitted)
+  except ValueError:
     return None
-  return max(1, min(MAX_EXPIRY_DAYS, days))
+  # A number too large to read is still a number, so it takes the far end.
+  if not math.isfinite(days):
+    return MAX_EXPIRY_DAYS
+  return max(1, min(MAX_EXPIRY_DAYS, int(days)))
 
 
-def choice(enum_type, raw, default=None):
+def choice(enum_type, raw: str | None, default=None):
   """Read a submitted value into an enum, or hand back the default."""
   try:
     return enum_type(raw)
