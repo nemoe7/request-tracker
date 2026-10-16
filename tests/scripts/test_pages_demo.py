@@ -75,6 +75,27 @@ def test_frozen_demo_opens_rail_filters_and_selected_records(tmp_path):
   assert '<tr class="is-selected">' in page
 
 
+def test_the_frozen_rail_offers_one_link_per_status(tmp_path):
+  """A file host ignores a form query, so every status needs a page and a link."""
+  out = _frozen_site(tmp_path)
+  page = (out / "workspace" / "index.html").read_text(encoding="utf-8")
+
+  assert "<select" not in page, "the rail still offers a select"
+  links = {
+    label: target
+    for target, label in re.findall(
+      r'<a class="queue-item[^"]*" href="([^"]+)">([^<]+)</a>', page
+    )
+  }
+  for label in ("Open", "Pending", "Blocked", "Closed"):
+    assert label in links, f"the rail answers no {label} link"
+    assert (out / links[label] / "index.html").exists(), links[label]
+  opened = (out / "workspace" / "status" / "open" / "index.html").read_text(
+    encoding="utf-8"
+  )
+  assert re.search(r'<a class="queue-item is-active" href="[^"]*">Open</a>', opened)
+
+
 def test_the_client_tabs_lead_to_client_shaped_pages(tmp_path):
   out = tmp_path / "site"
   env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}

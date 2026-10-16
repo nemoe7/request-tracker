@@ -47,8 +47,11 @@ LINK_RE = re.compile(r'(href|action)="(/(?:[^"]*))"')
 # A card swap pushes a deeper address, so the page holds its base at the site root.
 BASE_PIN = 'document.querySelector("base").href = document.baseURI;'
 
+STATUS_FORM_RE = re.compile(r'<form class="filter-form".*?</form>', re.DOTALL)
+STATUS_OPTION_RE = re.compile(r'<option value="([^"]*)"( selected)?>([^<]*)</option>')
 
-VIEW_KEYS = ("selected", "queue", "domain", "visibility")
+
+VIEW_KEYS = ("selected", "queue", "domain", "visibility", "status")
 
 
 def _slug(value: str) -> str:
@@ -65,6 +68,8 @@ def filter_views(html: str, request_ids: list[int]) -> dict[tuple[str, str], str
       value = dict(parse_qsl(query.replace("&amp;", "&"))).get(key, "")
       if value:
         views[(key, value)] = f"workspace/{key}/{_slug(value)}"
+  for value in re.findall(r'<option value="([A-Z]+)"', html):
+    views[("status", value)] = f"workspace/status/{_slug(value)}"
   return views
 
 
@@ -114,6 +119,20 @@ def _relative(
   return "./" if not path else f"{path}/"
 
 
+def _status_list(html: str, frozen, source: str, views, page: str) -> str:
+  """Swap the status form for one link per status, so a file host serves it."""
+  form = STATUS_FORM_RE.search(html)
+  if not form:
+    return html
+  links = []
+  for value, selected, label in STATUS_OPTION_RE.findall(form.group(0)):
+    target = _relative(f"/workspace?status={value}", frozen, source, views, None, page)
+    mark = " is-active" if selected else ""
+    links.append(f'<a class="queue-item{mark}" href="{target}">{label}</a>')
+  replacement = f'<div class="status-list">{"".join(links)}</div>'
+  return f"{html[: form.start()]}{replacement}{html[form.end() :]}"
+
+
 def rewrite(
   html: str, prefix: str, frozen: set[str], source: str, views, nav=None, page=""
 ) -> str:
@@ -129,6 +148,7 @@ def rewrite(
   html = re.sub(
     r'href="#([^"]*)"', lambda match: f'href="{own}#{match.group(1)}"', html
   )
+  html = _status_list(html, frozen, source, views, page)
   return LINK_RE.sub(
     lambda match: (
       f'{match.group(1)}="{_relative(match.group(2), frozen, source, views, nav, page)}"'
