@@ -174,6 +174,8 @@ def main() -> int:
   for (key, value), folder in views.items():
     freeze(f"/workspace?{key}={value}", folder, source=f"{key}={value}")
   client.get("/demo/switch/client")
+  freeze("/requests", "requests")  # the client tabs need the client shape
+  freeze("/issues", "issues")
   freeze("/home", "home")
   shutil.copytree(ROOT / "pwedepa" / "web" / "static", out / "static")
   (out / ".nojekyll").write_text("", encoding="utf-8")

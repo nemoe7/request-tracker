@@ -72,6 +72,27 @@ def test_frozen_demo_opens_rail_filters_and_selected_records(tmp_path):
   assert '<tr class="is-selected">' in page
 
 
+def test_the_client_tabs_lead_to_client_shaped_pages(tmp_path):
+  out = tmp_path / "site"
+  env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
+  result = subprocess.run(
+    [sys.executable, str(ROOT / "scripts" / "build_pages_demo.py")],
+    cwd=ROOT,
+    env=env,
+    capture_output=True,
+    text=True,
+    timeout=120,
+    check=False,
+  )
+  assert result.returncode == 0, result.stderr
+  for folder in ("home", "requests", "issues"):
+    page = (out / folder / "index.html").read_text(encoding="utf-8")
+    block = re.search(r'<nav class="tabs".*?</nav>', page, re.DOTALL)
+    assert block, f"{folder} carries the tab strip"
+    labels = re.findall(r"</svg>([^<]+)</a>", block.group(0))
+    assert labels == ["Requests", "Issues"], f"{folder} keeps the client tabs"
+
+
 def test_frozen_demo_ships_no_writes_and_no_dead_links(tmp_path):
   out = tmp_path / "site"
   env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
