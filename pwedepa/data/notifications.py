@@ -30,11 +30,8 @@ class Preference:
   pip_enabled: bool = True
 
 
-def preference(db: Connection, user_id: int, category: str) -> Preference:
-  row = db.exec_driver_sql(
-    "SELECT * FROM notification_preferences WHERE user_id = ? AND category = ?",
-    (user_id, category),
-  ).fetchone()
+def _row_to_preference(category: str, row: Row | None) -> Preference:
+  """Turn one stored row into a Preference, or hand back the defaults."""
   if row is None:
     return Preference(category)
   return Preference(
@@ -45,8 +42,23 @@ def preference(db: Connection, user_id: int, category: str) -> Preference:
   )
 
 
+def preference(db: Connection, user_id: int, category: str) -> Preference:
+  row = db.exec_driver_sql(
+    "SELECT * FROM notification_preferences WHERE user_id = ? AND category = ?",
+    (user_id, category),
+  ).fetchone()
+  return _row_to_preference(category, row)
+
+
 def preferences(db: Connection, user_id: int) -> list[Preference]:
-  return [preference(db, user_id, category) for category in CATEGORIES]
+  marks = ", ".join("?" for _ in CATEGORIES)
+  rows = db.exec_driver_sql(
+    "SELECT * FROM notification_preferences "
+    f"WHERE user_id = ? AND category IN ({marks})",
+    (user_id, *CATEGORIES),
+  ).fetchall()
+  found = {row._mapping["category"]: row for row in rows}
+  return [_row_to_preference(category, found.get(category)) for category in CATEGORIES]
 
 
 def set_preference(

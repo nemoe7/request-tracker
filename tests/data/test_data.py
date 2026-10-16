@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
 import pytest
+from sqlalchemy import event
 
 from pwedepa.core import (
   Event,
@@ -171,6 +172,22 @@ def test_a_saved_issue_takes_the_id_sqlite_assigns(db):
   assert first.id != second.id
   assert issues.get(db, first.id).title == "First"
   assert issues.get(db, second.id).title == "Second"
+
+
+def test_the_three_preference_rows_read_in_one_query(db):
+  """The top bar reads one row per category on every page."""
+  from pwedepa.data import notifications
+
+  statements = []
+  event.listen(
+    db,
+    "before_cursor_execute",
+    lambda conn, cursor, statement, *rest: statements.append(statement),
+  )
+  rows = notifications.preferences(db, 7)
+
+  assert [row.category for row in rows] == list(notifications.CATEGORIES)
+  assert len(statements) == 1, statements
 
 
 def test_a_database_file_prepares_its_schema_once(tmp_path, monkeypatch):
