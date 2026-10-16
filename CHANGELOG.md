@@ -25,9 +25,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
 
 - `compose.yml` runs the published image, and `compose.dev.yml` builds the checkout for local runs.
+- The frozen demo opens every rail filter, its status filter included, from a link and a page of its own.
 
 ### Fixed
 
+- A card swap keeps every link in the frozen demo on a real page.
 - The share rule lives in one place, so the page and the endpoint answer the same.
 - One guard runs before every admin route.
 - The service worker keeps only its own origin in the cache.
@@ -38,3 +40,4 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 
 - The unused Alembic dependency, and a helper for terminal states with no caller.
+- The worker file from the frozen demo, because a worker at the host root cannot install.
