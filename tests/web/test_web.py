@@ -244,3 +244,17 @@ def test_pwa_assets_are_served(client):
   assert sprite.status_code == 200
   assert b'id="contrast"' in sprite.data
   assert b'id="log-out"' in sprite.data
+
+
+def test_the_passkey_id_follows_the_public_origin(monkeypatch, tmp_path):
+  monkeypatch.setenv("PWEDEPA_ORIGIN", "https://pwedepa.tail1234.ts.net")
+  monkeypatch.delenv("PWEDEPA_RP_ID", raising=False)
+  app = create_app({"DATABASE": str(tmp_path / "origin.db")})
+  assert app.config["WEBAUTHN_RP_ID"] == "pwedepa.tail1234.ts.net"
+
+
+def test_the_passkey_id_keeps_its_own_value(monkeypatch, tmp_path):
+  monkeypatch.setenv("PWEDEPA_ORIGIN", "https://pwedepa.tail1234.ts.net")
+  monkeypatch.setenv("PWEDEPA_RP_ID", "example.com")
+  app = create_app({"DATABASE": str(tmp_path / "explicit.db")})
+  assert app.config["WEBAUTHN_RP_ID"] == "example.com"

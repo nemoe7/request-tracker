@@ -13,6 +13,8 @@ Two containers run the site. `pwedepa-app` serves the app, and `pwedepa-tailscal
 
    Put that secret in `PWEDEPA_SECRET_KEY`. Compose stops with an error when the value is missing, so no deploy signs cookies with the sample secret.
 
+   `PWEDEPA_ORIGIN` also names the passkey. Set `PWEDEPA_RP_ID` only when that ID must differ from the origin host.
+
 2. Build and start the service.
 
    ```sh
@@ -32,7 +34,7 @@ The app listens on `127.0.0.1:5000` on the host, and the sidecar reaches it at `
 
 The `tailscale` service joins your tailnet and serves the public HTTPS name with Funnel. It mounts `tailscale-funnel.json` at `/config` and reads that file as `TS_SERVE_CONFIG`. The config proxies the public name to `http://pwedepa:5000`.
 
-1. Mint a reusable, untagged auth key in the Tailscale admin console, then put it in `.env` as `TS_AUTHKEY`. The node then carries no tags, so your tailnet treats it as one of your own devices. The sidecar calls its node `pwedepa`, so the public name is `pwedepa.your-tailnet.ts.net`. Read your own tailnet name from `docker compose logs tailscale` after the first start, then set `PWEDEPA_RP_ID` and `PWEDEPA_ORIGIN` to that name.
+1. Mint a reusable, untagged auth key in the Tailscale admin console, then put it in `.env` as `TS_AUTHKEY`. The node then carries no tags, so your tailnet treats it as one of your own devices. The sidecar calls its node `pwedepa`, so the public name is `pwedepa.your-tailnet.ts.net`. Read your own tailnet name from `docker compose logs tailscale` after the first start, then set `PWEDEPA_ORIGIN` to that name.
 
 2. Start both services, then read the Funnel status.
 

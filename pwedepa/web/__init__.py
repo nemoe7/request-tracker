@@ -2,6 +2,7 @@
 
 import os
 from datetime import UTC, datetime
+from urllib.parse import urlparse
 
 from flask import Flask, g, request
 
@@ -15,11 +16,15 @@ def create_app(config: dict | None = None) -> Flask:
   """Build the app from environment defaults plus explicit overrides."""
   app = Flask(__name__)
   app.secret_key = os.environ.get("PWEDEPA_SECRET_KEY", "pwedepa-dev-secret")
+  # The public origin names the passkey, so the ID follows it unless the deploy
+  # asks for a different one.
+  origin = os.environ.get("PWEDEPA_ORIGIN", "http://localhost:5000")
+  rp_id = os.environ.get("PWEDEPA_RP_ID") or urlparse(origin).hostname or "localhost"
   app.config.update(
     DATABASE=os.environ.get("PWEDEPA_DB", "pwedepa.db"),
-    WEBAUTHN_RP_ID=os.environ.get("PWEDEPA_RP_ID", "localhost"),
+    WEBAUTHN_RP_ID=rp_id,
     WEBAUTHN_RP_NAME=os.environ.get("PWEDEPA_RP_NAME", "PwedePa"),
-    WEBAUTHN_ORIGIN=os.environ.get("PWEDEPA_ORIGIN", "http://localhost:5000"),
+    WEBAUTHN_ORIGIN=origin,
     SESSION_COOKIE_SECURE=os.environ.get("PWEDEPA_COOKIE_SECURE", "1") == "1",
     DEMO_MODE=False,  # the frozen build asks for demo mode in code
     DEMO_SWITCH=False,  # the frozen build holds both page sets, so it shows the switch
