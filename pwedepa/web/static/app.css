@@ -333,7 +333,7 @@ main { animation: page-in 0.18s ease-out; }
 
 /* Owner batch: steady pages, centered inspector, account menu, selects. */
 html { scrollbar-gutter: stable; }
-.workspace-grid > .inspector { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 16px 40px rgb(0 0 0 / 0.22); }
+.workspace-grid > .inspector { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: color-mix(in srgb, var(--accent) 5%, var(--surface)); box-shadow: 0 10px 30px rgb(0 0 0 / 0.16); }
 .records .strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .user-menu-wrap { position: relative; }
 .avatar-btn { border: 0; padding: 0; cursor: pointer; font: inherit; }
