@@ -158,13 +158,15 @@ def rewrite(
 
 
 def _drop_worker(script: Path) -> None:
-  """Take the worker registration out of the frozen copy of the app script."""
+  """Take every worker line out of the frozen copy of the app script."""
   kept = [
     line
     for line in script.read_text(encoding="utf-8").splitlines(keepends=True)
-    if "serviceWorker.register" not in line
+    if "serviceWorker" not in line
   ]
   script.write_text("".join(kept), encoding="utf-8")
+  if "serviceWorker" in script.read_text(encoding="utf-8"):
+    raise SystemExit(f"{script.name} still names a service worker")
 
 
 def seeded_records(database: Path) -> tuple[list[int], list[int]]:
@@ -237,7 +239,13 @@ def main() -> int:
   for route, folder in client_pages:
     freeze(route, folder, nav=nav)
   static = out / "static"
-  shutil.copytree(ROOT / "pwedepa" / "web" / "static", static)
+  shutil.copytree(
+    ROOT / "pwedepa" / "web" / "static",
+    static,
+    ignore=shutil.ignore_patterns("sw.js"),
+  )
+  if (static / "sw.js").exists():
+    raise SystemExit("the frozen site still carries a worker")
   _drop_worker(static / "app.js")
   (out / ".nojekyll").write_text("", encoding="utf-8")
   for leftover in out.glob("demo.db*"):

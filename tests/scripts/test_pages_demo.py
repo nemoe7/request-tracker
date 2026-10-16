@@ -269,5 +269,6 @@ def test_the_frozen_site_ships_no_service_worker(tmp_path):
   out = _frozen_site(tmp_path)
   script = (out / "static" / "app.js").read_text(encoding="utf-8")
 
-  assert "serviceWorker.register" not in script
+  assert "serviceWorker" not in script
   assert not (out / "sw.js").exists()
+  assert not (out / "static" / "sw.js").exists()
