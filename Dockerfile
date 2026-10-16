@@ -15,6 +15,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 COPY --from=build /app/.venv /app/.venv
+COPY domains.json ./
 RUN rm -rf /usr/local/lib/python3.13/site-packages/pip \
       /usr/local/lib/python3.13/site-packages/pip-*.dist-info \
       /usr/local/lib/python3.13/site-packages/setuptools \

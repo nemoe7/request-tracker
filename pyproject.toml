@@ -33,7 +33,7 @@ packages = [
 ]
 
 [tool.setuptools.package-data]
-"pwedepa.data" = ["domains.json", "schema.sql"]
+"pwedepa.data" = ["schema.sql"]
 "pwedepa.web" = [
   "templates/*.html",
   "static/*.css",

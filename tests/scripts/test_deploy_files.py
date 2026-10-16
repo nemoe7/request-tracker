@@ -13,6 +13,11 @@ def test_dockerfile_runs_the_web_app_as_one_service():
   assert "pwedepa.web" in text
   assert "PWEDEPA_HOST" in text
   assert "USER" in text
+  assert "COPY domains.json ./" in text, "the image carries the domains config"
+
+
+def test_the_domains_config_sits_at_the_repo_root():
+  assert (ROOT / "domains.json").is_file()
 
 
 def test_compose_defines_one_service_with_a_data_volume():

@@ -19,10 +19,10 @@ def test_the_config_lists_unique_domains_in_order():
   assert list(names) == sorted(names), "the rail shows this order"
 
 
-def test_the_config_sits_beside_the_schema():
+def test_the_config_sits_at_the_project_root():
   assert CONFIG.name == "domains.json"
-  assert CONFIG.parent.name == "data"
-  assert CONFIG.is_file(), "the packaged config must ship with the data layer"
+  assert CONFIG.parent == ROOT, "the operator edits the config at the root"
+  assert CONFIG.is_file(), "the deploy files carry the config to the image"
 
 
 def test_the_stub_seeds_only_configured_domains(tmp_path):
