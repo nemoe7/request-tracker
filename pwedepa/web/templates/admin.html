@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Admin — PwedePa{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Admin</h1>
+</div>
+<div class="cards">
+  <article class="panel">
+    <h2>People</h2>
+    <p class="muted">{{ users | length }} users, including archived accounts.</p>
+    <a class="btn primary" href="{{ url_for('admin.users') }}">Manage users</a>
+  </article>
+  <article class="panel">
+    <h2>Sharing</h2>
+    <p class="muted">{{ share_links | length }} share links exist.</p>
+    <a class="btn" href="{{ url_for('admin.shares') }}">Review share links</a>
+  </article>
+  <article class="panel">
+    <h2>Audit</h2>
+    <p class="muted">Security and admin events stay in the audit log.</p>
+    <a class="btn" href="{{ url_for('admin.audit') }}">Open audit log</a>
+  </article>
+</div>
+
+<section class="panel admin-section">
+  <h2>Landing message</h2>
+  <form class="form" method="post" action="{{ url_for('admin.site_message') }}">
+    <div class="field">
+      <label for="site-message">Message</label>
+      <textarea id="site-message" name="message" rows="3">{{ site_messages[0].message if site_messages else '' }}</textarea>
+    </div>
+    <div class="field">
+      <label for="site-days">Expires in days</label>
+      <input id="site-days" type="number" name="expires_days" min="1" placeholder="No expiry">
+    </div>
+    <label class="check"><input type="checkbox" name="enabled" checked> Enabled</label>
+    <div class="form-actions"><button class="btn primary" type="submit">Save message</button></div>
+  </form>
+</section>
+
+<section class="panel admin-section">
+  <h2>New issue</h2>
+  <form class="form" method="post" action="{{ url_for('admin.create_issue') }}">
+    <div class="field">
+      <label for="admin-issue-title">Title</label>
+      <input id="admin-issue-title" type="text" name="title" required>
+    </div>
+    <div class="field">
+      <label for="admin-issue-description">Description</label>
+      <textarea id="admin-issue-description" name="description" rows="4"></textarea>
+    </div>
+    <div class="field">
+      <label for="admin-issue-assignee">Assignee</label>
+      <select id="admin-issue-assignee" name="assignee_id">
+        <option value="">Unassigned</option>
+        {% for person in users %}<option value="{{ person.id }}">{{ person.display_name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="admin-issue-priority">Priority</label>
+      <select id="admin-issue-priority" name="priority">
+        {% for value in priorities %}<option value="{{ value }}">{{ value | capitalize }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="admin-issue-visibility">Visibility</label>
+      <select id="admin-issue-visibility" name="visibility">
+        <option value="PRIVATE">Private</option>
+        <option value="PUBLIC">Public</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="admin-issue-domains">Domains</label>
+      <input id="admin-issue-domains" type="text" name="domains">
+    </div>
+    <div class="form-actions"><button class="btn primary" type="submit">Create issue</button></div>
+  </form>
+</section>
+{% endblock %}

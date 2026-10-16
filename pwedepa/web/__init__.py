@@ -21,6 +21,7 @@ def create_app(config: dict | None = None) -> Flask:
     WEBAUTHN_RP_NAME=os.environ.get("PWEDEPA_RP_NAME", "PwedePa"),
     WEBAUTHN_ORIGIN=os.environ.get("PWEDEPA_ORIGIN", "http://localhost:5000"),
     SESSION_COOKIE_SECURE=os.environ.get("PWEDEPA_COOKIE_SECURE", "1") == "1",
+    DEMO_MODE=os.environ.get("PWEDEPA_DEMO", "0") == "1",
   )
   if config:
     app.config.update(config)
@@ -34,11 +35,21 @@ def create_app(config: dict | None = None) -> Flask:
 
   @app.context_processor
   def inject_actor() -> dict:
-    from .routes._helpers import current_user
+    from pwedepa.data import notifications as notifications_data
+
+    from .routes._helpers import current_user, db
     from .routes.records import is_staff
 
     user = current_user()
-    return {"user": user, "is_staff": user is not None and is_staff(user)}
+    count = 0
+    if user is not None and notifications_data.pip_visible(db(), user.id):
+      count = notifications_data.count_for_user(db(), user.id)
+    return {
+      "user": user,
+      "is_staff": user is not None and is_staff(user),
+      "notification_count": count,
+      "demo_mode": bool(app.config.get("DEMO_MODE")),
+    }
 
   @app.teardown_appcontext
   def close_db(error: BaseException | None = None) -> None:

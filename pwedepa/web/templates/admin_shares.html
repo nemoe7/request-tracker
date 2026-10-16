@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Admin share links — PwedePa{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Share links</h1>
+  <a class="btn" href="{{ url_for('admin.overview') }}">Admin home</a>
+</div>
+<section class="panel">
+  {% if share_links %}
+  <table class="record-table">
+    <thead><tr><th>Link</th><th>Record</th><th>Access</th><th>Created by</th><th>State</th><th></th></tr></thead>
+    <tbody>
+      {% for link in share_links %}
+      <tr>
+        <td>#{{ link.id }}</td>
+        <td>{{ link.object_type }} #{{ link.object_id }}</td>
+        <td>{{ link.permissions | join(", ") }}</td>
+        <td>{{ names.get(link.created_by_id, "—") }}</td>
+        <td>{% if link.revoked_at %}Revoked{% elif link.view_consumed_at %}View used{% else %}Active{% endif %}</td>
+        <td>{% if not link.revoked_at %}<form method="post" action="{{ url_for('sharing.revoke', link_id=link.id) }}"><button class="btn danger" type="submit">Revoke</button></form>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="muted">No share links yet.</p>{% endif %}
+</section>
+{% endblock %}

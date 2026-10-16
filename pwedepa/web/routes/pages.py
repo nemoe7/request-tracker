@@ -4,7 +4,9 @@ from flask import Blueprint, redirect, render_template, send_from_directory, url
 from werkzeug.wrappers import Response
 
 from pwedepa.auth import list_passkeys
+from pwedepa.data import site as site_data
 
+from .. import now
 from ._helpers import current_user, db
 
 bp = Blueprint("pages", __name__)
@@ -20,7 +22,7 @@ def landing() -> str | Response:
     if is_staff(user):
       return redirect(url_for("records.workspace"))
     return redirect(url_for("records.my_requests"))
-  return render_template("landing.html")
+  return render_template("landing.html", site_message=site_data.get_active(db(), now()))
 
 
 @bp.get("/login")

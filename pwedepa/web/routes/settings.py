@@ -1,0 +1,65 @@
+"""User settings, including notification preferences."""
+
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from werkzeug.wrappers import Response
+
+from pwedepa.auth import AuthError, Role, list_passkeys, list_roles, update_display_name
+from pwedepa.data import notifications as notifications_data
+
+from .. import now
+from ._helpers import current_user, db
+
+bp = Blueprint("settings", __name__)
+
+
+@bp.get("/settings")
+def settings() -> str | Response:
+  """Render grouped settings in the Apple Settings pattern."""
+  user = current_user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  return render_template(
+    "settings.html",
+    passkeys=list_passkeys(db(), user.id),
+    preferences=notifications_data.preferences(db(), user.id),
+    is_admin=Role.ADMIN in list_roles(db(), user.id),
+  )
+
+
+@bp.post("/settings/profile")
+def profile() -> Response:
+  """Save the signed-in user's display name."""
+  user = current_user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  try:
+    update_display_name(
+      db(),
+      user.id,
+      request.form.get("display_name", ""),
+      at=now(),
+      actor_id=user.id,
+    )
+    flash("Display name saved.")
+  except AuthError as error:
+    flash(str(error))
+  return redirect(url_for("settings.settings"))
+
+
+@bp.post("/settings/notifications")
+def notification_preferences() -> Response:
+  """Save the signed-in user's notification preferences."""
+  user = current_user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  for category in notifications_data.CATEGORIES:
+    notifications_data.set_preference(
+      db(),
+      user.id,
+      category,
+      enabled=f"{category}_enabled" in request.form,
+      inbox_enabled=f"{category}_inbox" in request.form,
+      pip_enabled=f"{category}_pip" in request.form,
+    )
+  flash("Notification settings saved.")
+  return redirect(url_for("settings.settings"))

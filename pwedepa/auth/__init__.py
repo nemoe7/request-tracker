@@ -29,6 +29,7 @@ from .grants import (
   assign_role,
   grant_permission,
   grants_for_user,
+  list_direct_grants,
   list_roles,
   revoke_permission,
   revoke_role,
@@ -52,6 +53,7 @@ from .users import (
   get_user_by_username,
   list_users,
   reactivate_user,
+  update_display_name,
 )
 
 __all__ = [
@@ -85,6 +87,7 @@ __all__ = [
   "grants_for_user",
   "issue_enrollment_token",
   "list_audit_events",
+  "list_direct_grants",
   "list_passkeys",
   "list_roles",
   "list_users",
@@ -101,5 +104,6 @@ __all__ = [
   "start_authentication",
   "start_enrollment_registration",
   "start_registration",
+  "update_display_name",
   "validate_enrollment_token",
 ]

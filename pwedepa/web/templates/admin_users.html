@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Admin users — PwedePa{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Users</h1>
+  <a class="btn" href="{{ url_for('admin.overview') }}">Admin home</a>
+</div>
+
+{% if issued_token %}
+<div class="share-once panel">
+  <label for="issued-token">Copy this enrollment token now</label>
+  <input id="issued-token" type="text" readonly value="{{ issued_token }}">
+</div>
+{% endif %}
+
+<section class="panel admin-section">
+  <h2>Create user</h2>
+  <form class="form inline-form" method="post" action="{{ url_for('admin.create_person') }}">
+    <div class="field"><label for="new-username">Username</label><input id="new-username" name="username" type="text" required></div>
+    <div class="field"><label for="new-display">Display name</label><input id="new-display" name="display_name" type="text" required></div>
+    <div class="field"><label for="new-role">Role</label><select id="new-role" name="role"><option value="">No role</option>{% for role in roles %}<option value="{{ role }}">{{ role | capitalize }}</option>{% endfor %}</select></div>
+    <button class="btn primary" type="submit">Create user</button>
+  </form>
+</section>
+
+<div class="admin-user-list">
+  {% for person in people %}
+  <article class="panel admin-user">
+    <div class="card-top">
+      <div>
+        <h2>{{ person.display_name }}</h2>
+        <p class="meta">@{{ person.username }} · #{{ person.id }} · {{ person.status.value | capitalize }}</p>
+      </div>
+      <div class="actions">
+        {% if person.status.value == "ACTIVE" %}
+        <form method="post" action="{{ url_for('admin.archive', user_id=person.id) }}"><button class="btn danger" type="submit">Archive</button></form>
+        {% else %}
+        <form method="post" action="{{ url_for('admin.reactivate', user_id=person.id) }}"><button class="btn" type="submit">Reactivate</button></form>
+        {% endif %}
+        <form method="post" action="{{ url_for('admin.enrollment_token', user_id=person.id) }}"><button class="btn" type="submit">Enrollment token</button></form>
+      </div>
+    </div>
+
+    <h3>Roles</h3>
+    <div class="chip-list">
+      {% for role in details[person.id].roles %}<span class="pill st-open"><span class="dot"></span>{{ role.value | capitalize }}</span>{% else %}<span class="muted">No roles</span>{% endfor %}
+    </div>
+    <form class="inline-form" method="post" action="{{ url_for('admin.change_role', user_id=person.id) }}">
+      <select name="role" aria-label="Role">{% for role in roles %}<option value="{{ role }}">{{ role | capitalize }}</option>{% endfor %}</select>
+      <button class="btn" type="submit" name="action" value="assign">Assign</button>
+      <button class="btn danger" type="submit" name="action" value="revoke">Revoke</button>
+    </form>
+
+    <h3>Direct grants</h3>
+    {% if details[person.id].grants %}
+    <ul class="compact-list">
+      {% for grant in details[person.id].grants %}
+      <li>
+        <code>{{ grant.permission }}</code> · {{ grant.effect.value }}
+        <form method="post" action="{{ url_for('admin.change_grant', user_id=person.id) }}">
+          <input type="hidden" name="permission" value="{{ grant.permission }}">
+          <input type="hidden" name="effect" value="{{ grant.effect.value }}">
+          <button class="btn danger" type="submit" name="action" value="revoke">Revoke</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">No direct grants.</p>{% endif %}
+    <form class="inline-form" method="post" action="{{ url_for('admin.change_grant', user_id=person.id) }}">
+      <input type="text" name="permission" placeholder="issue.1.comment" aria-label="Permission">
+      <select name="effect" aria-label="Effect"><option value="ALLOW">Allow</option><option value="DENY">Deny</option></select>
+      <button class="btn" type="submit">Add grant</button>
+    </form>
+
+    <h3>Passkeys</h3>
+    {% if details[person.id].passkeys %}
+    <ul class="compact-list">
+      {% for passkey in details[person.id].passkeys %}
+      <li>
+        <span>Passkey #{{ passkey.id }}{% if passkey.revoked_at %} · revoked{% endif %}</span>
+        {% if not passkey.revoked_at %}<form method="post" action="{{ url_for('admin.passkey_revoke', passkey_id=passkey.id) }}"><button class="btn danger" type="submit">Revoke</button></form>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">No passkeys.</p>{% endif %}
+  </article>
+  {% endfor %}
+</div>
+{% endblock %}

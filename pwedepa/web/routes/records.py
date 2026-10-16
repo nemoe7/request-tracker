@@ -7,15 +7,18 @@ from flask import (
   redirect,
   render_template,
   request,
+  session,
   url_for,
 )
 from werkzeug.wrappers import Response
 
 from pwedepa.auth import Role, actor_for_user, list_roles, list_users
 from pwedepa.core import (
+  Actor,
   ConfirmationRequired,
   CoreError,
   Event,
+  Grant,
   IssueStatus,
   Priority,
   Request,
@@ -31,7 +34,9 @@ from pwedepa.core import (
 from pwedepa.core.transitions import ISSUE_TRANSITIONS, REQUEST_TRANSITIONS
 from pwedepa.data import events as events_data
 from pwedepa.data import issues as issues_data
+from pwedepa.data import notifications as notifications_data
 from pwedepa.data import requests as requests_data
+from pwedepa.data import sharing as sharing_data
 
 from .. import now
 from ._helpers import current_user, db
@@ -89,8 +94,30 @@ def _can(actor, action: str, record) -> bool:
   )
 
 
+def _actor_for_record(actor, object_type: str, record):
+  """Add the active share link grants for one record to an actor."""
+  link_id = session.get("share_link_id")
+  if not link_id:
+    return actor
+  link = sharing_data.get(db(), link_id)
+  if link is None or not sharing_data.is_active(link, now()):
+    return actor
+  if link.object_type != object_type or link.object_id != record.id:
+    return actor
+  grants = [Grant(f"{object_type}.{record.id}.view")]
+  if "COMMENT" in link.permissions:
+    grants.append(Grant(f"{object_type}.{record.id}.comment"))
+  if "EDIT" in link.permissions:
+    grants.append(Grant(f"{object_type}.{record.id}.edit"))
+  return Actor(actor.id, actor.is_admin, actor.grants + tuple(grants))
+
+
 def _viewable_requests(actor, rows) -> list:
-  return [row for row in rows if _can(actor, "request.view", row)]
+  return [
+    row
+    for row in rows
+    if _can(_actor_for_record(actor, "request", row), "request.view", row)
+  ]
 
 
 def _can_view_issue(actor, record) -> bool:
@@ -101,7 +128,9 @@ def _can_view_issue(actor, record) -> bool:
 
 
 def _viewable_issues(actor, rows) -> list:
-  return [row for row in rows if _can_view_issue(actor, row)]
+  return [
+    row for row in rows if _can_view_issue(_actor_for_record(actor, "issue", row), row)
+  ]
 
 
 def _can_comment_issue(actor, record) -> bool:
@@ -110,9 +139,64 @@ def _can_comment_issue(actor, record) -> bool:
   return _can(actor, "issue.comment", record)
 
 
-def _append_all(object_type: str, object_id: int, change) -> None:
+def _issued_token(object_type: str, object_id: int) -> str | None:
+  stored = session.get("issued_share")
+  if not stored:
+    return None
+  if stored.get("object_type") != object_type or stored.get("object_id") != object_id:
+    return None
+  session.pop("issued_share", None)
+  return stored.get("token")
+
+
+def _event_message(record, event) -> str:
+  if event.event_type.endswith("state_changed"):
+    return f"{record.title}: {event.data.get('from', '')} to {event.data.get('to', '')}"
+  if event.event_type.endswith("comment"):
+    return f"New comment on {record.title}"
+  if event.event_type.endswith("priority_changed"):
+    return (
+      f"{record.title}: priority {event.data.get('from', '')} "
+      f"to {event.data.get('to', '')}"
+    )
+  if event.event_type.endswith("raised_from_request"):
+    return f"{record.title} was raised into Issue #{event.data.get('issue_id', '')}"
+  if event.event_type.endswith("created"):
+    return f"New record: {record.title}"
+  if event.event_type.endswith("edited"):
+    return f"{record.title} was edited"
+  return f"{record.title}: {event.event_type.replace('.', ' ')}"
+
+
+def _notify_event(object_type: str, record, event) -> None:
+  if event.event_type.endswith("comment"):
+    category = "comments"
+  elif "share" in event.event_type:
+    category = "sharing"
+  else:
+    category = "activity"
+  recipients = {record.requester_id}
+  if object_type == "issue":
+    recipients.add(record.assignee_id)
+  for user_id in recipients:
+    if user_id is None or user_id == event.actor_id:
+      continue
+    notifications_data.notify(
+      db(),
+      user_id,
+      category,
+      _event_message(record, event),
+      at=now(),
+      object_type=object_type,
+      object_id=record.id,
+      actor_id=event.actor_id,
+    )
+
+
+def _append_all(object_type: str, record, change) -> None:
   for event in change.events:
-    events_data.append(db(), object_type, object_id, event)
+    events_data.append(db(), object_type, record.id, event)
+    _notify_event(object_type, record, event)
 
 
 def _request_actions(actor, record) -> list[tuple[str, str]]:
@@ -156,18 +240,24 @@ def _issue_actions(actor, record) -> list[tuple[str, str]]:
   return actions
 
 
-def _get_request_or_404(actor, request_id: int) -> Request:
+def _load_request(actor, request_id: int):
   record = requests_data.get(db(), request_id)
-  if record is None or not _can(actor, "request.view", record):
+  if record is None:
     abort(404)
-  return record
+  actor = _actor_for_record(actor, "request", record)
+  if not _can(actor, "request.view", record):
+    abort(404)
+  return record, actor
 
 
-def _get_issue_or_404(actor, issue_id: int):
+def _load_issue(actor, issue_id: int):
   record = issues_data.get(db(), issue_id)
-  if record is None or not _can_view_issue(actor, record):
+  if record is None:
     abort(404)
-  return record
+  actor = _actor_for_record(actor, "issue", record)
+  if not _can_view_issue(actor, record):
+    abort(404)
+  return record, actor
 
 
 @bp.get("/workspace")
@@ -325,7 +415,9 @@ def request_create() -> Response:
     updated_at=at,
   )
   requests_data.save(db(), record)
-  events_data.append(db(), "request", record.id, Event("request.created", user.id, at))
+  created = Event("request.created", user.id, at)
+  events_data.append(db(), "request", record.id, created)
+  _notify_event("request", record, created)
   return redirect(url_for("records.request_detail", request_id=record.id))
 
 
@@ -336,7 +428,7 @@ def request_detail(request_id: int) -> str | Response:
   if user is None:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
-  record = _get_request_or_404(actor, request_id)
+  record, actor = _load_request(actor, request_id)
   events = events_data.list_for(db(), "request", request_id)
   return render_template(
     "request_detail.html",
@@ -346,6 +438,10 @@ def request_detail(request_id: int) -> str | Response:
     can_comment=_can(actor, "request.comment", record),
     events=events,
     comments=[e for e in events if e.event_type == "request.comment"],
+    share_links=sharing_data.list_for_object(db(), "request", record.id),
+    can_share=actor.is_admin or user.id == record.requester_id,
+    object_type="request",
+    issued_token=_issued_token("request", record.id),
     names=_names(),
   )
 
@@ -357,7 +453,7 @@ def request_transition(request_id: int) -> Response:
   if user is None:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
-  record = _get_request_or_404(actor, request_id)
+  record, actor = _load_request(actor, request_id)
   target = RequestStatus(request.form["target"])
   at = now()
   try:
@@ -365,17 +461,17 @@ def request_transition(request_id: int) -> Response:
       issue, change = raise_request(record, _next_id("issues"), actor, at=at)
       issues_data.save(db(), issue)
       requests_data.save(db(), change.object)
-      _append_all("request", record.id, change)
-      events_data.append(
-        db(), "issue", issue.id, Event("issue.created", user.id, at, {})
-      )
+      _append_all("request", record, change)
+      created = Event("issue.created", user.id, at, {})
+      events_data.append(db(), "issue", issue.id, created)
+      _notify_event("issue", issue, created)
       flash(f"Raised into Issue #{issue.id}.")
       return redirect(url_for("records.issue_detail", issue_id=issue.id))
     change = transition_request(
       record, target, actor, at=at, reason=request.form.get("reason") or None
     )
     requests_data.save(db(), change.object)
-    _append_all("request", record.id, change)
+    _append_all("request", record, change)
   except CoreError as error:
     flash(str(error))
   return redirect(url_for("records.request_detail", request_id=request_id))
@@ -388,15 +484,12 @@ def request_comment(request_id: int) -> Response:
   if user is None:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
-  record = _get_request_or_404(actor, request_id)
+  record, actor = _load_request(actor, request_id)
   text = request.form.get("text", "").strip()
   if text and _can(actor, "request.comment", record):
-    events_data.append(
-      db(),
-      "request",
-      record.id,
-      Event("request.comment", user.id, now(), {"text": text}),
-    )
+    event = Event("request.comment", user.id, now(), {"text": text})
+    events_data.append(db(), "request", record.id, event)
+    _notify_event("request", record, event)
   elif text:
     flash("You cannot comment on this request.")
   return redirect(url_for("records.request_detail", request_id=request_id))
@@ -409,7 +502,7 @@ def request_edit(request_id: int) -> str | Response:
   if user is None:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
-  record = _get_request_or_404(actor, request_id)
+  record, actor = _load_request(actor, request_id)
   return render_template(
     "request_form.html", record=record, priorities=[p.value for p in Priority]
   )
@@ -422,7 +515,7 @@ def request_edit_save(request_id: int) -> str | Response:
   if user is None:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
-  record = _get_request_or_404(actor, request_id)
+  record, actor = _load_request(actor, request_id)
   priority = request.form.get("priority_suggestion", "")
   submitted = {
     "title": request.form.get("title", "").strip(),
@@ -453,7 +546,7 @@ def request_edit_save(request_id: int) -> str | Response:
     flash(str(error))
     return redirect(url_for("records.request_detail", request_id=request_id))
   requests_data.save(db(), change.object)
-  _append_all("request", record.id, change)
+  _append_all("request", record, change)
   return redirect(url_for("records.request_detail", request_id=request_id))
 
 
@@ -478,7 +571,7 @@ def issue_detail(issue_id: int) -> str | Response:
   if user is None:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
-  record = _get_issue_or_404(actor, issue_id)
+  record, actor = _load_issue(actor, issue_id)
   events = events_data.list_for(db(), "issue", issue_id)
   return render_template(
     "issue_detail.html",
@@ -495,6 +588,10 @@ def issue_detail(issue_id: int) -> str | Response:
     can_comment=_can_comment_issue(actor, record),
     events=events,
     comments=[e for e in events if e.event_type == "issue.comment"],
+    share_links=sharing_data.list_for_object(db(), "issue", record.id),
+    can_share=actor.is_admin or user.id == record.requester_id,
+    object_type="issue",
+    issued_token=_issued_token("issue", record.id),
     names=_names(),
   )
 
@@ -506,12 +603,12 @@ def issue_transition(issue_id: int) -> Response:
   if user is None:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
-  record = _get_issue_or_404(actor, issue_id)
+  record, actor = _load_issue(actor, issue_id)
   target = IssueStatus(request.form["target"])
   try:
     change = transition_issue(record, target, actor, at=now())
     issues_data.save(db(), change.object)
-    _append_all("issue", record.id, change)
+    _append_all("issue", record, change)
   except CoreError as error:
     flash(str(error))
   return redirect(url_for("records.issue_detail", issue_id=issue_id))
@@ -524,7 +621,7 @@ def issue_priority(issue_id: int) -> Response:
   if user is None:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
-  record = _get_issue_or_404(actor, issue_id)
+  record, actor = _load_issue(actor, issue_id)
   try:
     change = edit_issue(
       record,
@@ -533,7 +630,7 @@ def issue_priority(issue_id: int) -> Response:
       priority=Priority(request.form.get("priority", "HIGH")),
     )
     issues_data.save(db(), change.object)
-    _append_all("issue", record.id, change)
+    _append_all("issue", record, change)
   except CoreError as error:
     flash(str(error))
   return redirect(url_for("records.issue_detail", issue_id=issue_id))
@@ -546,12 +643,12 @@ def issue_comment(issue_id: int) -> Response:
   if user is None:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
-  record = _get_issue_or_404(actor, issue_id)
+  record, actor = _load_issue(actor, issue_id)
   text = request.form.get("text", "").strip()
   if text and _can_comment_issue(actor, record):
-    events_data.append(
-      db(), "issue", record.id, Event("issue.comment", user.id, now(), {"text": text})
-    )
+    event = Event("issue.comment", user.id, now(), {"text": text})
+    events_data.append(db(), "issue", record.id, event)
+    _notify_event("issue", record, event)
   elif text:
     flash("You cannot comment on this issue.")
   return redirect(url_for("records.issue_detail", issue_id=issue_id))
@@ -564,7 +661,7 @@ def issue_edit(issue_id: int) -> str | Response:
   if user is None:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
-  record = _get_issue_or_404(actor, issue_id)
+  record, actor = _load_issue(actor, issue_id)
   return render_template(
     "issue_form.html",
     record=record,
@@ -580,7 +677,7 @@ def issue_edit_save(issue_id: int) -> Response:
   if user is None:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
-  record = _get_issue_or_404(actor, issue_id)
+  record, actor = _load_issue(actor, issue_id)
   assignee = request.form.get("assignee_id", "")
   submitted = {
     "title": request.form.get("title", "").strip(),
@@ -603,7 +700,7 @@ def issue_edit_save(issue_id: int) -> Response:
     flash(str(error))
     return redirect(url_for("records.issue_detail", issue_id=issue_id))
   issues_data.save(db(), change.object)
-  _append_all("issue", record.id, change)
+  _append_all("issue", record, change)
   return redirect(url_for("records.issue_detail", issue_id=issue_id))
 
 

@@ -63,6 +63,37 @@ def create_user(
   return get_user(db, cursor.lastrowid)
 
 
+def update_display_name(
+  db: sqlite3.Connection,
+  user_id: int,
+  display_name: str,
+  *,
+  at: datetime,
+  actor_id: int | None = None,
+) -> User:
+  """Change a display name while the username stays fixed."""
+  display_name = display_name.strip()
+  if not display_name:
+    raise AuthError("a user needs a display name")
+  _require_user(db, user_id)
+  db.execute(
+    "UPDATE users SET display_name = ?, updated_at = ? WHERE id = ?",
+    (display_name, pack_time(at), user_id),
+  )
+  record_audit(
+    db,
+    "user.display_name_changed",
+    at=at,
+    actor_id=actor_id,
+    object_type="user",
+    object_id=user_id,
+    data={"display_name": display_name},
+    commit=False,
+  )
+  db.commit()
+  return get_user(db, user_id)
+
+
 def get_user(db: sqlite3.Connection, user_id: int) -> User | None:
   row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
   return None if row is None else _from_row(row)

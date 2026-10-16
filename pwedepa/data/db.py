@@ -113,6 +113,45 @@ CREATE TABLE IF NOT EXISTS audit_events (
   data TEXT NOT NULL DEFAULT '{}',
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS share_links (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  object_type TEXT NOT NULL,
+  object_id INTEGER NOT NULL,
+  token_hash TEXT NOT NULL UNIQUE,
+  permissions TEXT NOT NULL DEFAULT '[]',
+  created_by_id INTEGER NOT NULL REFERENCES users(id),
+  created_at TEXT NOT NULL,
+  expires_at TEXT,
+  revoked_at TEXT,
+  view_consumed_at TEXT
+);
+CREATE TABLE IF NOT EXISTS notifications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  category TEXT NOT NULL,
+  object_type TEXT,
+  object_id INTEGER,
+  message TEXT NOT NULL,
+  actor_id INTEGER,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS notification_preferences (
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  category TEXT NOT NULL,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  inbox_enabled INTEGER NOT NULL DEFAULT 1,
+  pip_enabled INTEGER NOT NULL DEFAULT 1,
+  PRIMARY KEY (user_id, category)
+);
+CREATE TABLE IF NOT EXISTS site_messages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  message TEXT NOT NULL,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  expires_at TEXT,
+  created_by_id INTEGER REFERENCES users(id)
+);
 """
 
 

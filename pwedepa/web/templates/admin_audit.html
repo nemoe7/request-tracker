@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Admin audit — PwedePa{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Audit log</h1>
+  <a class="btn" href="{{ url_for('admin.overview') }}">Admin home</a>
+</div>
+<section class="panel">
+  {% if events %}
+  <table class="record-table">
+    <thead><tr><th>Event</th><th>Actor</th><th>Object</th><th>When</th></tr></thead>
+    <tbody>
+      {% for event in events %}
+      <tr>
+        <td><code>{{ event.event_type }}</code></td>
+        <td>{{ names.get(event.actor_id, "System") }}</td>
+        <td>{{ event.object_type or "—" }}{% if event.object_id %} #{{ event.object_id }}{% endif %}</td>
+        <td>{{ event.created_at.strftime("%b %-d, %H:%M") if event.created_at else "" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="muted">No audit events yet.</p>{% endif %}
+</section>
+{% endblock %}

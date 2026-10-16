@@ -28,7 +28,8 @@
       {% if is_staff %}<a href="{{ url_for('records.workspace') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg>Workspace</a>{% endif %}
       <a href="{{ url_for('records.my_requests') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg>My requests</a>
       <a href="{{ url_for('records.issue_board') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg>Issues</a>
-      <a href="{{ url_for('pages.home') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#house"/></svg>Account</a>
+      <a href="{{ url_for('notifications.inbox') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#bell"/></svg>Notifications{% if notification_count %}<span class="pip">{{ notification_count }}</span>{% endif %}</a>
+      <a href="{{ url_for('settings.settings') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg>Settings</a>
     </nav>
     {% endif %}
     <div class="top-actions">

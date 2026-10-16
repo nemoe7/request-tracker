@@ -156,6 +156,17 @@ def revoke_permission(
   return cursor.rowcount == 1
 
 
+def list_direct_grants(db: sqlite3.Connection, user_id: int) -> tuple[Grant, ...]:
+  """List active grants stored for one user, without role grants."""
+  _require_user(db, user_id)
+  rows = db.execute(
+    "SELECT permission, effect FROM permission_grants "
+    "WHERE user_id = ? AND revoked_at IS NULL ORDER BY id",
+    (user_id,),
+  )
+  return tuple(Grant(row["permission"], Effect(row["effect"])) for row in rows)
+
+
 def grants_for_user(db: sqlite3.Connection, user_id: int) -> tuple[Grant, ...]:
   grants: list[Grant] = []
   for role in list_roles(db, user_id):

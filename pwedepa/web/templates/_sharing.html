@@ -1,0 +1,41 @@
+{% if can_share %}
+<section class="share-panel" aria-label="Sharing">
+  <h2>Share</h2>
+  {% if issued_token %}
+  <div class="share-once">
+    <label for="share-link-{{ record.id }}">Copy this link now</label>
+    <input id="share-link-{{ record.id }}" type="text" readonly value="{{ url_for('sharing.open_link', token=issued_token, _external=True) }}">
+    <p class="help">The app cannot show the plain link again.</p>
+  </div>
+  {% endif %}
+  <form class="share-form" method="post" action="{{ url_for('sharing.create', object_type=object_type, object_id=record.id) }}">
+    <div class="field">
+      <label for="share-permission-{{ record.id }}">Access</label>
+      <select id="share-permission-{{ record.id }}" name="permission">
+        <option value="VIEW">View</option>
+        <option value="COMMENT">View and comment</option>
+        <option value="EDIT">View, comment, and edit</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="share-days-{{ record.id }}">Expires in days</label>
+      <input id="share-days-{{ record.id }}" type="number" name="expires_days" min="1" placeholder="No expiry">
+    </div>
+    <button class="btn" type="submit">Create link</button>
+  </form>
+  {% if share_links %}
+  <ul class="share-list">
+    {% for link in share_links %}
+    <li>
+      <span>Link #{{ link.id }} · {{ link.permissions | join(", ") }}{% if link.expires_at %} · expires {{ link.expires_at.strftime("%b %-d, %Y") }}{% endif %}{% if link.revoked_at %} · revoked{% elif link.view_consumed_at %} · view used{% endif %}</span>
+      {% if not link.revoked_at %}
+      <form method="post" action="{{ url_for('sharing.revoke', link_id=link.id) }}">
+        <button class="btn danger" type="submit">Revoke</button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+{% endif %}

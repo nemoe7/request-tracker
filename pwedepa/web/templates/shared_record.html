@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_parts.html" import pill %}
+{% block title %}Shared {{ object_type }} #{{ record.id }} — PwedePa{% endblock %}
+{% block content %}
+<article class="narrow detail">
+  <p class="eyebrow">Shared {{ object_type }} #{{ record.id }}</p>
+  <h1>{{ record.title }}</h1>
+  <p>{{ pill(record.status) }}<span class="vis">{{ record.visibility.value | capitalize }}</span></p>
+  <p class="desc">{{ record.description or "No description." }}</p>
+  <dl class="facts">
+    <div><dt>Domains</dt><dd>{{ record.domains | join(", ") or "—" }}</dd></div>
+    {% if object_type == "request" %}
+    <div><dt>Priority ask</dt><dd>{{ record.priority_suggestion.value | capitalize if record.priority_suggestion else "—" }}</dd></div>
+    {% else %}
+    <div><dt>Priority</dt><dd>{{ record.priority.value | capitalize }}</dd></div>
+    {% endif %}
+  </dl>
+  <h2>Comments</h2>
+  {% if comments %}
+  <ul class="comments">
+    {% for event in comments %}
+    <li class="comment">
+      <p>{{ event.data.get("text", "") }}</p>
+      <p class="event-meta">{{ event.at.strftime("%b %-d, %H:%M") if event.at else "" }}</p>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">No comments yet.</p>
+  {% endif %}
+</article>
+{% endblock %}

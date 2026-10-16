@@ -39,6 +39,8 @@
   </form>
   {% endif %}
 
+  {% include "_sharing.html" %}
+
   <h2>Activity</h2>
   <ul class="events">
     {% for event in events %}{% if event.event_type != "issue.comment" %}{{ event_line(event, names) }}{% endif %}{% endfor %}

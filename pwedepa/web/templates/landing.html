@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}PwedePa — pwede pa...?{% endblock %}
 {% block content %}
+{% if site_message %}
+<div class="site-message" role="status">{{ site_message.message }}</div>
+{% endif %}
 <section class="hero">
   <img class="hero-icon" src="{{ url_for('static', filename='icons/icon-animated.webp') }}" alt="Pleading face, the PwedePa stub icon">
   <h1 id="tagline">pwede pa<span id="tagline-marks" aria-hidden="true">.</span></h1>
@@ -8,6 +11,7 @@
   <div class="hero-actions">
     <a class="btn primary big" href="{{ url_for('pages.login') }}">Sign in with a passkey</a>
     <a class="btn big" href="{{ url_for('pages.enroll') }}">I have an enrollment token</a>
+    {% if demo_mode %}<a class="btn big" href="{{ url_for('demo.demo') }}">Open the demo</a>{% endif %}
   </div>
 </section>
 

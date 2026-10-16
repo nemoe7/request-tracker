@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Settings — PwedePa{% endblock %}
+{% block content %}
+<div class="narrow settings-page">
+  <h1>Settings</h1>
+
+  <section class="settings-group" aria-label="Profile">
+    <h2>Profile</h2>
+    <form method="post" action="{{ url_for('settings.profile') }}">
+      <label class="setting-row">
+        <span>Display name</span>
+        <input type="text" name="display_name" value="{{ user.display_name }}" required>
+      </label>
+      <div class="setting-row muted-row"><span>Username</span><strong>{{ user.username }}</strong></div>
+      <div class="setting-row muted-row"><span>Status</span><strong>{{ user.status.value | capitalize }}</strong></div>
+      <div class="form-actions"><button class="btn primary" type="submit">Save profile</button></div>
+    </form>
+  </section>
+
+  <section class="settings-group" aria-label="Notifications">
+    <h2>Notifications</h2>
+    <form method="post" action="{{ url_for('settings.notification_preferences') }}">
+      {% for pref in preferences %}
+      <fieldset class="setting-fieldset">
+        <legend>{{ pref.category | capitalize }}</legend>
+        <label class="setting-row"><span>Enabled</span><input type="checkbox" name="{{ pref.category }}_enabled"{% if pref.enabled %} checked{% endif %}></label>
+        <label class="setting-row"><span>Show in inbox</span><input type="checkbox" name="{{ pref.category }}_inbox"{% if pref.inbox_enabled %} checked{% endif %}></label>
+        <label class="setting-row"><span>Show pip</span><input type="checkbox" name="{{ pref.category }}_pip"{% if pref.pip_enabled %} checked{% endif %}></label>
+      </fieldset>
+      {% endfor %}
+      <div class="form-actions"><button class="btn primary" type="submit">Save notifications</button></div>
+    </form>
+    <a class="setting-row link-row" href="{{ url_for('notifications.inbox') }}"><span>Open notifications</span><span aria-hidden="true">›</span></a>
+  </section>
+
+  <section class="settings-group" aria-label="Account">
+    <h2>Account</h2>
+    <a class="setting-row link-row" href="{{ url_for('pages.home') }}"><span>Passkeys</span><strong>{{ passkeys | length }} active</strong></a>
+    <div class="setting-row muted-row"><span>Theme</span><strong>Use the top bar control</strong></div>
+    {% if is_staff %}<a class="setting-row link-row" href="{{ url_for('records.workspace') }}"><span>Workspace</span><span aria-hidden="true">›</span></a>{% endif %}
+  </section>
+
+  {% if user and is_admin %}
+  <section class="settings-group" aria-label="Admin">
+    <h2>Admin</h2>
+    <a class="setting-row link-row" href="{{ url_for('admin.overview') }}"><span>Admin home</span><span aria-hidden="true">›</span></a>
+    <a class="setting-row link-row" href="{{ url_for('admin.users') }}"><span>Users</span><span aria-hidden="true">›</span></a>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
