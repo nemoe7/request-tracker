@@ -86,6 +86,22 @@ def test_normal_service_worker_keeps_its_cache(app):
   assert b"pwedepa-v3" in body
 
 
+def test_motion_stays_fluid(app):
+  client = app.test_client()
+  css = client.get("/static/app.css").data + client.get("/static/tokens.css").data
+  assert b"cubic-bezier(0.22, 1, 0.36, 1)" in css
+  assert b"scale(1.04)" not in css
+  assert b"scale(0.96)" not in css
+  assert b"#tagline-marks" in css
+  assert b"@view-transition" in css
+  assert b"page-in" not in css
+
+
+def test_display_name_keeps_its_alignment_on_focus(app):
+  css = app.test_client().get("/static/app.css").data
+  assert b".ios-input:focus { outline: none; text-align: left; }" not in css
+
+
 def test_workspace_centers_the_inspector(app, db):
   client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   body = client.get("/workspace").data
@@ -106,3 +122,4 @@ def test_header_controls_live_in_the_user_menu(app, db):
   body = client.get("/workspace").data
   assert b"user-menu" in body
   assert b"theme-toggle" not in body
+  assert b'aria-label="Notifications"' in body

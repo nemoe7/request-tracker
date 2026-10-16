@@ -58,10 +58,29 @@ if (taglineMarks) {
   window.addEventListener("load", () => {
     setTimeout(() => {
       clearInterval(timer);
-      document.querySelector("#tagline").textContent = "pwede na!";
+      const tagline = document.querySelector("#tagline");
+      tagline.classList.add("swap");
+      setTimeout(() => {
+        tagline.textContent = "pwede na!";
+        tagline.classList.remove("swap");
+      }, 170);
     }, 1200);
   });
 }
+
+/* Prefetch linked pages on intent, so navigation answers at once. */
+const prefetched = new Set();
+document.querySelectorAll('a[href^="/"]').forEach((link) => {
+  link.addEventListener("pointerenter", () => {
+    const href = link.getAttribute("href");
+    if (!href || prefetched.has(href)) return;
+    prefetched.add(href);
+    const hint = document.createElement("link");
+    hint.rel = "prefetch";
+    hint.href = href;
+    document.head.appendChild(hint);
+  }, { once: true });
+});
 
 /* WebAuthn helpers: the server speaks base64url JSON, the browser wants buffers. */
 function toBuffer(value) {
