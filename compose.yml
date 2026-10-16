@@ -5,6 +5,7 @@ services:
     ports:
       - "127.0.0.1:5000:5000"
     environment:
+      PWEDEPA_SECRET_KEY: ${PWEDEPA_SECRET_KEY:?set PWEDEPA_SECRET_KEY in .env}
       PWEDEPA_RP_ID: ${PWEDEPA_RP_ID:-localhost}
       PWEDEPA_RP_NAME: ${PWEDEPA_RP_NAME:-PwedePa}
       PWEDEPA_ORIGIN: ${PWEDEPA_ORIGIN:-http://localhost:5000}
@@ -16,6 +17,7 @@ services:
     image: tailscale/tailscale:latest
     container_name: pwedepa-tailscale
     environment:
+      # Mint an untagged auth key, so the node carries no ACL tags.
       TS_AUTHKEY: ${TS_AUTHKEY:-}
       TS_HOSTNAME: pwedepa
       TS_STATE_DIR: /var/lib/tailscale

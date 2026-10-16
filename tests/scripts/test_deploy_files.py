@@ -1,6 +1,7 @@
 """Deployment files: one app container, one Tailscale sidecar, one Funnel proxy."""
 
 import json
+import re
 from pathlib import Path
 
 import yaml
@@ -59,3 +60,17 @@ def test_tailscale_funnel_json_proxies_to_the_app_service():
   assert web
   handlers = next(iter(web.values()))["Handlers"]
   assert next(iter(handlers.values()))["Proxy"] == "http://pwedepa:5000"
+
+
+def test_compose_requires_its_own_session_secret():
+  text = (ROOT / "compose.yml").read_text(encoding="utf-8")
+  assert "${PWEDEPA_SECRET_KEY:?" in text, "a deploy must supply its own session secret"
+
+
+def test_env_example_lists_every_variable_compose_reads():
+  compose_text = (ROOT / "compose.yml").read_text(encoding="utf-8")
+  example = (ROOT / ".env.example").read_text(encoding="utf-8")
+  names = sorted(set(re.findall(r"\$\{([A-Z_]+)", compose_text)))
+  assert names, "compose reads no variable at all"
+  missing = [name for name in names if f"{name}=" not in example]
+  assert not missing, f".env.example misses {missing}"
