@@ -37,6 +37,12 @@ def test_the_docker_release_workflow_builds_from_a_version_tag():
   assert "workflow_run" not in triggers
 
 
+def test_the_release_workflow_takes_a_tag_by_hand():
+  # The README sends the operator here with the approved tag, so the input stays.
+  triggers = gate_workflows.triggers_of(_document("docker-release.yml"))
+  assert triggers["workflow_dispatch"]["inputs"]["tag"]["required"] is True
+
+
 def test_the_release_job_publishes_the_semver_and_latest_tags():
   job = _document("docker-release.yml")["jobs"]["release"]
   assert job["permissions"]["packages"] == "write"

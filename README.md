@@ -40,9 +40,11 @@ The Docker workflow publishes the dev image from `main` as `ghcr.io/nemoe7/pwede
 
 `compose.yml` runs the published image. `compose.dev.yml` builds this checkout for a local run.
 
-A release goes through the **Gemini Release Draft** workflow. It reads the commits since the last release, proposes the next semver version and the notes, and waits. Approve the proposal from the Actions tab, and the workflow creates the tag. The Docker release workflow then builds that tag as `ghcr.io/nemoe7/pwedepa:<version>` and moves `latest`.
+A release goes through the **Gemini Release Draft** workflow. It reads the commits since the last release, proposes the next semver version and the notes, and waits. Approve the proposal from the Actions tab, and the workflow creates the tag.
 
-The draft needs one repository secret: `GEMINI_API_KEY`. The proposal and the approval both run by hand, and nothing else touches the release path.
+A tag made with the automatic token starts no other workflow, so the approval does not start this build by itself. Start the **Docker release** workflow from the Actions tab and pass the tag. It builds `ghcr.io/nemoe7/pwedepa:<version>` and moves `latest`. A tag pushed by hand starts the same build.
+
+The draft needs one repository secret: `GEMINI_API_KEY`. The proposal and the approval both run by hand, and nothing else touches the release path. The Gemini draft workflow arrives from upstream, so a change there waits for that sync.
 
 ## Docs
 

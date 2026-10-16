@@ -13,7 +13,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - `.env.example`, and a session secret that compose demands before it starts.
 - The passkey ID follows the public origin, unless a deploy sets `PWEDEPA_RP_ID`.
 - The Docker workflow publishes the dev image from `main`, and a release tag publishes the versioned image.
-- The gemini release workflow drafts a version and its notes. An approved tag builds the release image.
+- The gemini release workflow drafts a version and its notes. Start the release image with the approved tag.
 
 ### Changed
 
