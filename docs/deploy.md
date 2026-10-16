@@ -1,6 +1,6 @@
 # Deploy PwedePa
 
-Two containers run the site. `pwedepa-app` serves the app, and `pwedepa-tailscale` is the Tailscale node in front of it. SQLite lives on the named volume in `compose.yml`, so a rebuild keeps the data.
+Two containers run the site. `pwedepa-app` serves the app, and `pwedepa-tailscale` is the Tailscale node in front of it. `compose.yml` runs the published image, so a deploy needs no source checkout. SQLite lives on the named volume, so a restart keeps the data.
 
 ## Run it
 
@@ -15,10 +15,10 @@ Two containers run the site. `pwedepa-app` serves the app, and `pwedepa-tailscal
 
    `PWEDEPA_ORIGIN` also names the passkey. Set `PWEDEPA_RP_ID` only when that ID must differ from the origin host.
 
-2. Build and start the service.
+2. Pull the image and start the service.
 
    ```sh
-   docker compose up -d --build
+   docker compose up -d
    ```
 
 3. Create the first admin, then mint an enrollment token.
@@ -30,6 +30,16 @@ Two containers run the site. `pwedepa-app` serves the app, and `pwedepa-tailscal
 
 The app listens on `127.0.0.1:5000` on the host, and the sidecar reaches it at `http://pwedepa:5000` on the compose network.
 
+## Local build
+
+To run this checkout in a container, build it locally. This path starts the app alone, on the same port, on its own volume.
+
+```sh
+docker compose -f compose.dev.yml up -d --build
+```
+
+The dev file supplies a sample session secret, so a local build needs no `.env` file.
+
 ## Tailscale Funnel
 
 The `tailscale` service joins your tailnet and serves the public HTTPS name with Funnel. It mounts `tailscale-funnel.json` at `/config` and reads that file as `TS_SERVE_CONFIG`. The config proxies the public name to `http://pwedepa:5000`.
@@ -39,7 +49,7 @@ The `tailscale` service joins your tailnet and serves the public HTTPS name with
 2. Start both services, then read the Funnel status.
 
    ```sh
-   docker compose up -d --build
+   docker compose up -d
    docker compose exec tailscale tailscale funnel status
    ```
 

@@ -20,7 +20,7 @@ One root `AGENTS.md` only. Do not add nested `AGENTS.md` files unless a package 
 - Sharing, notifications, settings, admin, and the demo seat live in named modules under `routes/`.
 - Share access uses a share-scoped actor. A link never widens a signed-in user's ordinary record access.
 - Settled design decisions live in `docs/design.md`. Update it in the same change that changes a design pick.
-- Deployment ships the app container and a Tailscale sidecar from `Dockerfile` and `compose.yml`. Run notes live in `docs/deploy.md`.
+- Deployment ships the app container and a Tailscale sidecar from `Dockerfile` and `compose.yml`, which runs the published image. `compose.dev.yml` builds the checkout for local runs. Run notes live in `docs/deploy.md`.
 - The initial schema lives in `pwedepa/data/schema.sql`. Keep `docs/schema.dbml` and `docs/schema.svg` in step with it.
 - Repository gates and tools live in `scripts/`. Their tests live in `tests/scripts/`.
 - The workflow set lives in `.github/workflows/`. The set contract is `scripts/gate_workflows.py`.

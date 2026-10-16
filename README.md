@@ -38,6 +38,8 @@ Markdown gets one more check: `markdownlint-cli2`, with the rules in `.markdownl
 
 The Docker workflow publishes the dev image from `main` as `ghcr.io/nemoe7/pwedepa:dev`, with a second tag that names the commit: `dev-<7-char sha>`.
 
+`compose.yml` runs the published image. `compose.dev.yml` builds this checkout for a local run.
+
 A release goes through the **Gemini Release Draft** workflow. It reads the commits since the last release, proposes the next semver version and the notes, and waits. Approve the proposal from the Actions tab, and the workflow creates the tag. The Docker release workflow then builds that tag as `ghcr.io/nemoe7/pwedepa:<version>` and moves `latest`.
 
 The draft needs one repository secret: `GEMINI_API_KEY`. The proposal and the approval both run by hand, and nothing else touches the release path.

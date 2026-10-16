@@ -1,0 +1,20 @@
+# A local build: build this checkout and run it on the host.
+#   docker compose -f compose.dev.yml up -d --build
+# The real deployment runs the published image from compose.yml.
+services:
+  pwedepa:
+    build: .
+    image: pwedepa:dev
+    container_name: pwedepa-dev
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      # A local build may sign cookies with the sample secret.
+      PWEDEPA_SECRET_KEY: ${PWEDEPA_SECRET_KEY:-pwedepa-dev-secret}
+      PWEDEPA_ORIGIN: http://localhost:5000
+    volumes:
+      - pwedepa-dev-data:/data
+    restart: unless-stopped
+
+volumes:
+  pwedepa-dev-data:

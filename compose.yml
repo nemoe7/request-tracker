@@ -1,7 +1,9 @@
+# The real deployment: the published image, behind the Tailscale Funnel.
+# For a local build of this checkout, use compose.dev.yml instead.
 services:
   pwedepa:
-    build: .
-    image: pwedepa
+    # Pin a release tag, for example :0.1.0, when the deploy must not move.
+    image: ghcr.io/nemoe7/pwedepa:latest
     container_name: pwedepa-app
     ports:
       - "127.0.0.1:5000:5000"

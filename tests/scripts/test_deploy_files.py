@@ -9,8 +9,8 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def _compose() -> dict:
-  return yaml.safe_load((ROOT / "compose.yml").read_text(encoding="utf-8"))
+def _compose(name: str = "compose.yml") -> dict:
+  return yaml.safe_load((ROOT / name).read_text(encoding="utf-8"))
 
 
 def test_dockerfile_runs_the_web_app_as_one_service():
@@ -32,12 +32,21 @@ def test_compose_names_every_container():
   assert services["tailscale"]["container_name"] == "pwedepa-tailscale"
 
 
-def test_compose_keeps_the_app_data_on_a_volume():
+def test_deploy_compose_pulls_the_published_image():
   service = _compose()["services"]["pwedepa"]
+  assert "build" not in service, "the deploy runs the published image, not the checkout"
+  assert service["image"] == "ghcr.io/nemoe7/pwedepa:latest"
+
+
+def test_dev_compose_builds_the_checkout_locally():
+  document = _compose("compose.dev.yml")
+  assert list(document["services"]) == ["pwedepa"], "a local build needs no sidecar"
+  service = document["services"]["pwedepa"]
   assert service["build"] == "."
-  assert service["image"] == "pwedepa"
+  assert service["image"] == "pwedepa:dev"
+  assert service["container_name"] == "pwedepa-dev"
   assert any(
-    str(volume).startswith("pwedepa-data:/data") for volume in service["volumes"]
+    str(volume).startswith("pwedepa-dev-data:/data") for volume in service["volumes"]
   )
 
 
@@ -69,9 +78,11 @@ def test_compose_requires_its_own_session_secret():
 
 
 def test_env_example_lists_every_variable_compose_reads():
-  compose_text = (ROOT / "compose.yml").read_text(encoding="utf-8")
+  text = "\n".join(
+    path.read_text(encoding="utf-8") for path in sorted(ROOT.glob("compose*.yml"))
+  )
   example = (ROOT / ".env.example").read_text(encoding="utf-8")
-  names = sorted(set(re.findall(r"\$\{([A-Z_]+)", compose_text)))
+  names = sorted(set(re.findall(r"\$\{([A-Z_]+)", text)))
   assert names, "compose reads no variable at all"
   missing = [name for name in names if f"{name}=" not in example]
   assert not missing, f".env.example misses {missing}"
