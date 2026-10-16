@@ -261,11 +261,11 @@ def test_header_nav_calls_the_middle_tab_requests(cast, db):
   staff_page = admin.get("/workspace").data
   assert b'href="/workspace"' in staff_page
   assert b">Workspace</a>" in staff_page
-  assert b'href="/my"' not in staff_page
+  assert b'href="/requests"' not in staff_page
   assert b">Requests</a>" not in staff_page
   assert b">Issues</a>" not in staff_page
-  client_page = Mara.get("/my").data
-  assert b'href="/my"' in client_page
+  client_page = Mara.get("/requests").data
+  assert b'href="/requests"' in client_page
   assert b">Requests</a>" in client_page
   assert b">My requests</a>" not in client_page
   assert b">Issues</a>" in client_page

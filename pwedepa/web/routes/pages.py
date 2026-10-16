@@ -41,7 +41,7 @@ def landing() -> str | Response:
 
     if is_staff(user):
       return redirect(url_for("records.workspace"))
-    return redirect(url_for("records.my_requests"))
+    return redirect(url_for("records.requests"))
   return render_template("landing.html", site_message=site_data.get_active(db(), now()))
 
 

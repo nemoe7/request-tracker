@@ -29,7 +29,7 @@
     {% if user %}
     <nav class="tabs" aria-label="Main">
       {% if is_staff %}<a href="{{ url_for('records.workspace') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg>Workspace</a>{% else %}
-      <a href="{{ url_for('records.my_requests') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg>Requests</a>
+      <a href="{{ url_for('records.requests') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg>Requests</a>
       <a href="{{ url_for('records.issue_board') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg>Issues</a>{% endif %}
     </nav>
     {% endif %}

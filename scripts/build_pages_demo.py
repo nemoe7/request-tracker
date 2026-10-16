@@ -26,7 +26,7 @@ from pwedepa.web import create_app
 
 STAFF_PAGES = (
   "workspace",
-  "my",
+  "requests",
   "issues",
   "issues/1",
   "issues/2",

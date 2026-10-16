@@ -37,7 +37,7 @@
     <label class="check"><input type="checkbox" name="priority_unsure"{% if record and record.priority_unsure %} checked{% endif %}> I am not sure about the priority</label>
     <div class="form-actions">
       <button class="btn primary" type="submit">{% if record %}Save changes{% else %}Create request{% endif %}</button>
-      <a class="btn" href="{% if record %}{{ url_for('records.request_detail', request_id=record.id) }}{% else %}{{ url_for('records.my_requests') }}{% endif %}">Cancel</a>
+      <a class="btn" href="{% if record %}{{ url_for('records.request_detail', request_id=record.id) }}{% else %}{{ url_for('records.requests') }}{% endif %}">Cancel</a>
     </div>
   </form>
 </div>

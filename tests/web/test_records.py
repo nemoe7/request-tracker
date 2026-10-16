@@ -97,7 +97,7 @@ def test_requester_creates_request_and_sees_it_in_client_view(cast, db):
   assert b"New chairs" in detail.data
   assert b"Open" in detail.data
 
-  mine = Mara.get("/my")
+  mine = Mara.get("/requests")
   assert b"New chairs" in mine.data
   assert b"New, not yet reviewed" in mine.data
 
@@ -124,7 +124,7 @@ def test_private_records_stay_hidden_from_other_users(cast, db):
   assert Mara.get("/requests/1").status_code == 200
   assert junior.get("/requests/1").status_code == 404
   assert junior.get("/issues/1").status_code == 404
-  assert b"Broken projector" not in junior.get("/my").data
+  assert b"Broken projector" not in junior.get("/requests").data
 
 
 def test_request_transitions_follow_the_core(cast, db):

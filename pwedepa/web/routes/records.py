@@ -271,7 +271,7 @@ def workspace() -> str | Response:
   if user is None:
     return redirect(url_for("pages.login"))
   if not is_staff(user):
-    return redirect(url_for("records.my_requests"))
+    return redirect(url_for("records.requests"))
   actor = _actor(user)
   queue = request.args.get("queue", "triage")
   domain = request.args.get("domain", "")
@@ -359,9 +359,9 @@ def workspace() -> str | Response:
   )
 
 
-@bp.get("/my")
-def my_requests() -> str | Response:
-  """Show the client view: my requests and the public board."""
+@bp.get("/requests")
+def requests() -> str | Response:
+  """Show the client view: the signed-in requests and the public board."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -374,7 +374,7 @@ def my_requests() -> str | Response:
     if r.visibility is Visibility.PUBLIC and r.requester_id != user.id
   ]
   return render_template(
-    "my.html", mine=mine, public=public, status_words=STATUS_WORDS, names=_names()
+    "requests.html", mine=mine, public=public, status_words=STATUS_WORDS, names=_names()
   )
 
 
@@ -386,7 +386,7 @@ def request_new() -> str | Response:
     return redirect(url_for("pages.login"))
   if not authorize(_actor(user), "request.create"):
     flash("Your account cannot create requests.")
-    return redirect(url_for("records.my_requests"))
+    return redirect(url_for("records.requests"))
   return render_template(
     "request_form.html", record=None, priorities=[p.value for p in Priority]
   )
@@ -401,7 +401,7 @@ def request_create() -> Response:
   actor = _actor(user)
   if not authorize(actor, "request.create"):
     flash("Your account cannot create requests.")
-    return redirect(url_for("records.my_requests"))
+    return redirect(url_for("records.requests"))
   title = request.form.get("title", "").strip()
   if not title:
     flash("A request needs a title.")

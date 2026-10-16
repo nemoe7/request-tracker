@@ -42,11 +42,17 @@ def _client(app, db, name, display, roles=()):
   return client
 
 
-def test_requester_leaves_workspace_for_my_requests(app, db):
+def test_requester_leaves_workspace_for_requests(app, db):
   client = _client(app, db, "Mara", "Mara Reyes", roles=(Role.REQUESTER,))
   response = client.get("/workspace")
   assert response.status_code == 302
-  assert "/my" in response.headers["Location"]
+  assert "/requests" in response.headers["Location"]
+
+
+def test_the_requests_list_answers_at_requests(app, db):
+  client = _client(app, db, "Mara", "Mara Reyes", roles=(Role.REQUESTER,))
+  assert client.get("/requests").status_code == 200
+  assert client.get("/my").status_code == 404
 
 
 def test_assignee_keeps_workspace(app, db):
@@ -74,7 +80,7 @@ def test_admins_see_the_workspace_alone(app, db):
 
 def test_requesters_keep_their_own_tabs(app, db):
   client = _client(app, db, "Mara", "Mara Reyes", roles=(Role.REQUESTER,))
-  tabs = _nav_tabs(client.get("/my").get_data(as_text=True))
+  tabs = _nav_tabs(client.get("/requests").get_data(as_text=True))
   assert tabs == ["Requests", "Issues"]
 
 
@@ -173,7 +179,7 @@ def test_client_cards_open_the_record_from_anywhere(app, db):
   )
   requests_data.save(db, record)
 
-  body = client.get("/my").data.decode()
+  body = client.get("/requests").data.decode()
   assert f'href="/requests/{record.id}"' in body
   assert 'class="card is-linked"' in body, "a client card only opens from its title"
 
