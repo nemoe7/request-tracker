@@ -1,8 +1,8 @@
 """Freeze the seeded demo into static pages for GitHub Pages.
 
 GitHub Pages serves files only, so the demo renders once here. The script
-seeds a throwaway database, asks the demo app for each page, rewrites the
-links to relative paths, and copies the static assets beside the pages.
+seeds a throwaway database and asks the demo app for each page. It then
+rewrites the links to relative paths and copies the static assets across.
 """
 
 import os
