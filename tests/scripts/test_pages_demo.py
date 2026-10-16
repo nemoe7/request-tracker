@@ -281,3 +281,12 @@ def test_the_frozen_site_ships_no_service_worker(tmp_path):
   assert "serviceWorker" not in script
   assert not (out / "sw.js").exists()
   assert not (out / "static" / "sw.js").exists()
+
+
+def test_the_frozen_app_script_stays_valid(tmp_path):
+  """A strip of one line can cut a block and kill every script on the page."""
+  out = _frozen_site(tmp_path)
+  script = (out / "static" / "app.js").read_text(encoding="utf-8")
+
+  assert "serviceWorker" not in script
+  assert script.count("{") == script.count("}"), "the frozen script lost a brace"

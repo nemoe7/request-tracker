@@ -49,6 +49,9 @@ BASE_PIN = 'document.querySelector("base").href = document.baseURI;'
 
 STATUS_FORM_RE = re.compile(r'<form class="filter-form".*?</form>', re.DOTALL)
 STATUS_OPTION_RE = re.compile(r'<option value="([^"]*)"( selected)?>([^<]*)</option>')
+WORKER_BLOCK_RE = re.compile(
+  r'(?ms)^[ \t]*if \("serviceWorker" in navigator\) \{.*?^[ \t]*\}\n'
+)
 
 
 VIEW_KEYS = ("selected", "queue", "domain", "visibility", "status")
@@ -157,15 +160,14 @@ def rewrite(
 
 
 def _drop_worker(script: Path) -> None:
-  """Take every worker line out of the frozen copy of the app script."""
-  kept = [
-    line
-    for line in script.read_text(encoding="utf-8").splitlines(keepends=True)
-    if "serviceWorker" not in line
-  ]
-  script.write_text("".join(kept), encoding="utf-8")
-  if "serviceWorker" in script.read_text(encoding="utf-8"):
+  """Take the worker block out of the frozen copy of the app script."""
+  source = script.read_text(encoding="utf-8")
+  kept = WORKER_BLOCK_RE.sub("", source, count=1)
+  script.write_text(kept, encoding="utf-8")
+  if "serviceWorker" in kept:
     raise SystemExit(f"{script.name} still names a service worker")
+  if kept.count("{") != kept.count("}"):
+    raise SystemExit(f"{script.name} lost a brace with the worker block")
 
 
 def seeded_records(database: Path) -> tuple[list[int], list[int]]:
