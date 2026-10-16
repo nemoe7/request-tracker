@@ -346,7 +346,6 @@ html { scrollbar-gutter: stable; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted) 45%, transparent); border-radius: 8px; border: 2px solid var(--bg); }
 ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
-.workspace-grid > .inspector { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: color-mix(in srgb, var(--accent) 5%, var(--surface)); box-shadow: 0 10px 30px rgb(0 0 0 / 0.16); }
 .records .strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .bell { position: relative; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: var(--text); text-decoration: none; transition: background-color 180ms var(--ease); }
 .bell:hover { background: var(--surface-2); }
