@@ -31,12 +31,11 @@
       {% if is_staff %}<a href="{{ url_for('records.workspace') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg>Workspace</a>{% endif %}
       <a href="{{ url_for('records.my_requests') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg>My requests</a>
       <a href="{{ url_for('records.issue_board') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg>Issues</a>
-      <a href="{{ url_for('notifications.inbox') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#bell"/></svg>Notifications{% if notification_count %}<span class="pip">{{ notification_count }}</span>{% endif %}</a>
-      <a href="{{ url_for('settings.settings') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg>Settings</a>
     </nav>
     {% endif %}
     <div class="top-actions">
       {% if user %}
+      <a class="bell" href="{{ url_for('notifications.inbox') }}" aria-label="Notifications"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#bell"/></svg>{% if notification_count %}<span class="pip">{{ notification_count }}</span>{% endif %}</a>
       <div class="user-menu-wrap">
         <button class="avatar avatar-btn" id="user-menu-button" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Account menu">{{ user.display_name[0] }}</button>
         <div class="user-menu" id="user-menu" hidden>

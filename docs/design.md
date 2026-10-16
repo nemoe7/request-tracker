@@ -58,7 +58,7 @@ Scheme 2, Slate and blue. Components use tokens from `pwedepa/web/static/tokens.
 ## Theme and motion
 
 - The theme control cycles System, Light, Dark. System is the default, reads the device, and persists per device. An inline head script sets the theme before the first paint.
-- Motion runs 160 to 240 ms. `prefers-reduced-motion` turns animation off. The animated icon face plays on hover and on the landing hero.
+- One easing curve drives every hover, press, switch, and page transition. The curve is `cubic-bezier(0.22, 1, 0.36, 1)`, and the runs last 160 to 220 ms. Cross-document view transitions keep the top bar steady during navigation. `prefers-reduced-motion` turns animation off. The animated icon face crossfades on hover. It also plays on the landing hero.
 - The landing tagline asks "pwede pa" with rotating `.`, `..`, `...`, `...?` marks while the page loads, then answers "pwede na!".
 
 ## Decisions log

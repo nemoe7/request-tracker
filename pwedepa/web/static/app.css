@@ -28,10 +28,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   position: relative; width: 34px; height: 34px; border-radius: 9px; overflow: hidden;
   background: #FFF3D6; border: 1px solid var(--line); flex: 0 0 auto; display: inline-block;
 }
-.app-icon img { position: absolute; inset: 3px; width: calc(100% - 6px); height: calc(100% - 6px); object-fit: contain; transition: opacity 160ms ease, transform 240ms ease; }
-.app-icon .icon-animated { opacity: 0; transform: scale(0.96); }
+.app-icon img { position: absolute; inset: 3px; width: calc(100% - 6px); height: calc(100% - 6px); object-fit: contain; transition: opacity 220ms var(--ease); }
+.app-icon .icon-animated { opacity: 0; }
 .app-icon:hover .icon-static { opacity: 0; }
-.app-icon:hover .icon-animated { opacity: 1; transform: scale(1.04); }
+.app-icon:hover .icon-animated { opacity: 1; }
 .icon {
   width: 18px; height: 18px; flex: 0 0 auto;
   fill: none; stroke: currentColor; stroke-width: 2;
@@ -240,13 +240,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .demo-switch a { padding: 4px 12px; border-radius: 999px; color: var(--muted); font-weight: 600; font-size: 13px; }
 .demo-switch a.on { background: var(--accent); color: #fff; }
 
-/* Motion: clean and subtle, with a reduced-motion guard. */
-main { animation: page-in 0.18s ease-out; }
-@keyframes page-in { from { opacity: 0; } to { opacity: 1; } }
+/* Motion: one fluid curve, state changes only, reduced-motion safe. */
+@view-transition { navigation: auto; }
+.topbar { view-transition-name: topbar; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 220ms; animation-timing-function: var(--ease); }
 .btn, .queue-item, .card, .mini, .seg a, .tabs a, .ios-row.link-row, .queue a {
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  transition: background-color 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease), transform 180ms var(--ease);
 }
 .btn:active, .mini:active, .card:active { transform: translateY(1px); }
+#tagline { transition: opacity 160ms var(--ease); }
+#tagline.swap { opacity: 0; }
+#tagline-marks { display: inline-block; min-width: 1.5em; }
 @media (hover: hover) {
   .card:hover, .mini:hover { border-color: var(--accent); }
 }
@@ -282,7 +286,7 @@ main { animation: page-in 0.18s ease-out; }
 .ios-sub { display: block; font-size: 12px; color: var(--muted); }
 .ios-value { color: var(--muted); }
 .ios-input { flex: 1; max-width: 300px; border: 0; background: transparent; color: var(--text); font: inherit; text-align: right; padding: 8px 0; }
-.ios-input:focus { outline: none; text-align: left; }
+.ios-input:focus { outline: none; }
 .ios-action { justify-content: flex-end; }
 .ios-note { color: var(--muted); font-size: 13px; margin: 8px 16px 0; }
 .ios-chip { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; color: #fff; flex: none; }
@@ -290,8 +294,8 @@ main { animation: page-in 0.18s ease-out; }
 .chip-blue { background: #2563EB; } .chip-indigo { background: #4F46E5; } .chip-green { background: #16A34A; }
 .chip-red { background: #DC2626; } .chip-amber { background: #D97706; } .chip-gray { background: #64748B; }
 .chev { color: var(--muted); width: 18px; height: 18px; }
-.switch { appearance: none; width: 52px; height: 32px; border-radius: 999px; background: var(--line); position: relative; cursor: pointer; transition: background-color 0.15s ease; flex: none; margin: 0; }
-.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 28px; height: 28px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); transition: transform 0.15s ease; }
+.switch { appearance: none; width: 52px; height: 32px; border-radius: 999px; background: var(--line); position: relative; cursor: pointer; transition: background-color 200ms var(--ease); flex: none; margin: 0; }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 28px; height: 28px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); transition: transform 200ms var(--ease); }
 .switch:checked { background: #16A34A; }
 .switch:checked::after { transform: translateX(20px); }
 .seg-control { display: inline-flex; background: var(--surface-2); border-radius: 10px; padding: 2px; gap: 2px; }
@@ -324,17 +328,22 @@ main { animation: page-in 0.18s ease-out; }
   }
   .tabs a { flex-direction: column; gap: 2px; font-size: 10px; padding: 6px 10px; border-radius: 10px; }
   .topbar .tabs .icon { display: block; }
-  .tabs a:active { transform: scale(0.96); }
   body { padding-bottom: 76px; }
-  main { animation: page-in 0.12s ease-out; }
-  .btn:active, .mini:active, .card:active { transform: scale(0.98); }
 }
 
 
 /* Owner batch: steady pages, centered inspector, account menu, selects. */
 html { scrollbar-gutter: stable; }
+* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 45%, transparent) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted) 45%, transparent); border-radius: 8px; border: 2px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 .workspace-grid > .inspector { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: color-mix(in srgb, var(--accent) 5%, var(--surface)); box-shadow: 0 10px 30px rgb(0 0 0 / 0.16); }
 .records .strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.bell { position: relative; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: var(--text); text-decoration: none; transition: background-color 180ms var(--ease); }
+.bell:hover { background: var(--surface-2); }
+.bell .pip { position: absolute; top: -2px; right: -4px; margin: 0; }
 .user-menu-wrap { position: relative; }
 .avatar-btn { border: 0; padding: 0; cursor: pointer; font: inherit; }
 .user-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; min-width: 232px; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 16px 40px rgb(0 0 0 / 0.28); }
