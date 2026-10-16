@@ -84,9 +84,17 @@ def _relative(
   frozen: set[str],
   source: str,
   views: dict[tuple[str, str], str],
+  nav: dict[str, str] | None = None,
 ) -> str:
   """Point one link at the nearest frozen page, relative to the page depth."""
   prefix = "./" if depth == 0 else "../" * depth
+  if nav:
+    path = target.split("?", 1)[0].split("#", 1)[0].strip("/")
+    for head, folder in nav.items():
+      if path == head or path.startswith(f"{head}/"):
+        tail = folder + path[len(head) :]
+        if tail in frozen:
+          return f"{prefix}{tail}/"
   if "?" in target:
     head, query = target.split("?", 1)
     if head.strip("/") == "workspace":
@@ -105,14 +113,16 @@ def _relative(
   return prefix if not path else f"{prefix}{path}/"
 
 
-def rewrite(html: str, depth: int, frozen: set[str], source: str, views) -> str:
+def rewrite(
+  html: str, depth: int, frozen: set[str], source: str, views, nav=None
+) -> str:
   """Make root-absolute links relative, inside the frozen set, and read-only."""
   prefix = "./" if depth == 0 else "../" * depth
   html = html.replace('"/static/', f'"{prefix}static/')
   html = html.replace('method="post"', 'method="get"')
   return LINK_RE.sub(
     lambda match: (
-      f'{match.group(1)}="{_relative(match.group(2), depth, frozen, source, views)}"'
+      f'{match.group(1)}="{_relative(match.group(2), depth, frozen, source, views, nav)}"'
     ),
     html,
   )
@@ -157,14 +167,14 @@ def main() -> int:
   )
   frozen = {"", "home", *folders, *views.values()}
 
-  def freeze(route: str, folder: str, source: str = "") -> None:
+  def freeze(route: str, folder: str, source: str = "", nav=None) -> None:
     response = client.get(route)
     if response.status_code != 200:
       raise SystemExit(f"{route} answered {response.status_code}")
     depth = 0 if not folder else folder.count("/") + 1
     target = out / folder / "index.html" if folder else out / "index.html"
     target.parent.mkdir(parents=True, exist_ok=True)
-    page = rewrite(response.get_data(as_text=True), depth, frozen, source, views)
+    page = rewrite(response.get_data(as_text=True), depth, frozen, source, views, nav)
     target.write_text(page, encoding="utf-8")
     print(f"froze {route} -> {target.relative_to(out)}")
 
@@ -174,9 +184,16 @@ def main() -> int:
   for (key, value), folder in views.items():
     freeze(f"/workspace?{key}={value}", folder, source=f"{key}={value}")
   client.get("/demo/switch/client")
-  freeze("/requests", "requests")  # the client tabs need the client shape
-  freeze("/issues", "issues")
-  freeze("/home", "home")
+  nav = {"requests": "home/requests", "issues": "home/issues"}
+  client_pages = [("/home", "home")]
+  for head, folder in nav.items():
+    listing = client.get(f"/{head}").get_data(as_text=True)
+    client_pages.append((f"/{head}", folder))
+    numbers = sorted(set(re.findall(rf'href="/{head}/(\d+)"', listing)))
+    client_pages += [(f"/{head}/{number}", f"{folder}/{number}") for number in numbers]
+  frozen.update(folder for _, folder in client_pages)
+  for route, folder in client_pages:
+    freeze(route, folder, nav=nav)
   shutil.copytree(ROOT / "pwedepa" / "web" / "static", out / "static")
   (out / ".nojekyll").write_text("", encoding="utf-8")
   for leftover in out.glob("demo.db*"):

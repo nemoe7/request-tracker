@@ -85,12 +85,23 @@ def test_the_client_tabs_lead_to_client_shaped_pages(tmp_path):
     check=False,
   )
   assert result.returncode == 0, result.stderr
-  for folder in ("home", "requests", "issues"):
+  home = (out / "home" / "index.html").read_text(encoding="utf-8")
+  for head, folder in (("requests", "home/requests"), ("issues", "home/issues")):
+    assert f'href="../{folder}/"' in home, f"the {head} tab opens the client copy"
     page = (out / folder / "index.html").read_text(encoding="utf-8")
     block = re.search(r'<nav class="tabs".*?</nav>', page, re.DOTALL)
     assert block, f"{folder} carries the tab strip"
     labels = re.findall(r"</svg>([^<]+)</a>", block.group(0))
     assert labels == ["Requests", "Issues"], f"{folder} keeps the client tabs"
+  copies = sorted((out / "home" / "requests").glob("*/index.html"))
+  assert copies, "a record the client can open gets its own copy"
+  record = copies[0].read_text(encoding="utf-8")
+  block = re.search(r'<nav class="tabs".*?</nav>', record, re.DOTALL)
+  labels = re.findall(r"</svg>([^<]+)</a>", block.group(0)) if block else []
+  assert labels == ["Requests", "Issues"], "the record copy keeps the client nav"
+  assert re.search(r'href="(\.\./)+home/requests/"', record), (
+    "the copy points inside the client pages"
+  )
 
 
 def test_frozen_demo_ships_no_writes_and_no_dead_links(tmp_path):
