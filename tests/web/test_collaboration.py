@@ -87,8 +87,8 @@ def test_share_token_is_hashed_and_anonymous_view_is_one_time(app, cast, db):
   link = sharing_data.find_by_token(db, token)
   assert link is not None
   assert link.permissions == ("VIEW",)
-  row = db.execute("SELECT token_hash FROM share_links WHERE id = 1").fetchone()
-  assert token not in row["token_hash"]
+  row = db.exec_driver_sql("SELECT token_hash FROM share_links WHERE id = 1").fetchone()
+  assert token not in row._mapping["token_hash"]
 
   anonymous = app.test_client()
   notice = anonymous.get(f"/share/{token}")
@@ -191,6 +191,8 @@ def test_demo_switch_swaps_between_staff_and_client(tmp_path):
   landing = client.get("/")
   assert b"Sign in with a passkey" not in landing.data
   assert b"Open the demo" in landing.data
+  assert "/demo" in client.get("/login").headers["Location"]
+  assert "/demo" in client.get("/enroll").headers["Location"]
   assert client.get("/demo").status_code == 302
   assert client.get("/workspace").status_code == 200
   assert client.get("/demo/switch/client").status_code == 302

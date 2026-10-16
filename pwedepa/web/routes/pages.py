@@ -1,6 +1,13 @@
 """HTML pages and the service worker route."""
 
-from flask import Blueprint, redirect, render_template, send_from_directory, url_for
+from flask import (
+  Blueprint,
+  current_app,
+  redirect,
+  render_template,
+  send_from_directory,
+  url_for,
+)
 from werkzeug.wrappers import Response
 
 from pwedepa.auth import list_passkeys
@@ -27,7 +34,9 @@ def landing() -> str | Response:
 
 @bp.get("/login")
 def login() -> str | Response:
-  """Show the passkey sign-in page."""
+  """Show the passkey sign-in page, or enter the demo when demo mode is on."""
+  if current_app.config.get("DEMO_MODE"):
+    return redirect(url_for("demo.demo"))
   if current_user() is not None:
     return redirect(url_for("pages.home"))
   return render_template("login.html")
@@ -35,7 +44,9 @@ def login() -> str | Response:
 
 @bp.get("/enroll")
 def enroll() -> str | Response:
-  """Show the enrollment page for a one-time token."""
+  """Show the enrollment page, or enter the demo when demo mode is on."""
+  if current_app.config.get("DEMO_MODE"):
+    return redirect(url_for("demo.demo"))
   if current_user() is not None:
     return redirect(url_for("pages.home"))
   return render_template("enroll.html")

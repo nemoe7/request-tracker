@@ -30,8 +30,12 @@ def _ensure_user(username: str, display_name: str, role: Role):
 
 
 def _next_id(table: str) -> int:
-  row = db().execute(f"SELECT COALESCE(MAX(id), 0) + 1 AS next FROM {table}").fetchone()
-  return row["next"]
+  row = (
+    db()
+    .exec_driver_sql(f"SELECT COALESCE(MAX(id), 0) + 1 AS next FROM {table}")
+    .fetchone()
+  )
+  return row._mapping["next"]
 
 
 def _seed() -> None:
@@ -93,6 +97,7 @@ def _enter(username: str, endpoint: str) -> Response:
     httponly=True,
     secure=True,
     samesite="None",
+    partitioned=True,
     max_age=int(SESSION_TTL.total_seconds()),
     path="/",
   )
