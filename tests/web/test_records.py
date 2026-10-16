@@ -153,6 +153,39 @@ def test_request_transitions_follow_the_core(cast, db):
   assert requests_data.get(db, 1).status.value == "REVOKED"
 
 
+def test_a_value_the_page_cannot_send_gets_a_sentence(cast, db):
+  """A crafted form value must not turn into an error page."""
+  admin, _ = cast["admin"]
+  _, Mara_user = cast["Mara"]
+  _save_request(db, 1, Mara_user.id)
+
+  move = admin.post("/requests/1/transition", data={"target": "BOGUS"})
+  assert move.status_code == 302
+  assert requests_data.get(db, 1).status.value == "OPEN"
+
+  created = admin.post(
+    "/requests",
+    data={"title": "Chairs", "visibility": "BOGUS", "priority_suggestion": "BOGUS"},
+  )
+  assert created.status_code == 302
+  saved = requests_data.get(db, 1)
+  assert saved.visibility is Visibility.PRIVATE
+  assert saved.priority_suggestion is None
+
+  edited = admin.post(
+    "/requests/1/edit",
+    data={
+      "title": "Broken projector",
+      "description": "The projector in Room 4 is dead.",
+      "visibility": "BOGUS",
+      "domains": "",
+      "priority_suggestion": "BOGUS",
+    },
+  )
+  assert edited.status_code == 302
+  assert requests_data.get(db, 1).visibility is Visibility.PRIVATE
+
+
 def test_raise_creates_a_linked_issue(cast, db):
   admin, _ = cast["admin"]
   _, Mara_user = cast["Mara"]

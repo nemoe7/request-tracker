@@ -40,7 +40,7 @@ from pwedepa.data import sharing as sharing_data
 from pwedepa.data.db import transaction
 
 from .. import now
-from ._helpers import can_share, current_user, db
+from ._helpers import can_share, choice, current_user, db
 
 bp = Blueprint("records", __name__)
 
@@ -409,9 +409,11 @@ def request_create() -> Response:
         title=title,
         description=request.form.get("description", "").strip(),
         requester_id=user.id,
-        priority_suggestion=Priority(priority) if priority else None,
+        priority_suggestion=choice(Priority, priority, None),
         priority_unsure="priority_unsure" in request.form,
-        visibility=Visibility(request.form.get("visibility", "PRIVATE")),
+        visibility=choice(
+          Visibility, request.form.get("visibility", "PRIVATE"), Visibility.PRIVATE
+        ),
         domains=tuple(
           part.strip()
           for part in request.form.get("domains", "").split(",")
@@ -461,7 +463,10 @@ def request_transition(request_id: int) -> Response:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
   record, actor = _load_request(actor, request_id)
-  target = RequestStatus(request.form["target"])
+  target = choice(RequestStatus, request.form.get("target", ""), None)
+  if target is None:
+    flash("That move is not available.")
+    return redirect(url_for("records.request_detail", request_id=request_id))
   at = now()
   try:
     if target is RequestStatus.RAISED:
@@ -530,13 +535,15 @@ def request_edit_save(request_id: int) -> str | Response:
   submitted = {
     "title": request.form.get("title", "").strip(),
     "description": request.form.get("description", "").strip(),
-    "visibility": Visibility(request.form.get("visibility", "PRIVATE")),
+    "visibility": choice(
+      Visibility, request.form.get("visibility", "PRIVATE"), Visibility.PRIVATE
+    ),
     "domains": tuple(
       part.strip()
       for part in request.form.get("domains", "").split(",")
       if part.strip()
     ),
-    "priority_suggestion": Priority(priority) if priority else None,
+    "priority_suggestion": choice(Priority, priority, None),
     "priority_unsure": "priority_unsure" in request.form,
   }
   fields = {
@@ -614,7 +621,10 @@ def issue_transition(issue_id: int) -> Response:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
   record, actor = _load_issue(actor, issue_id)
-  target = IssueStatus(request.form["target"])
+  target = choice(IssueStatus, request.form.get("target", ""), None)
+  if target is None:
+    flash("That move is not available.")
+    return redirect(url_for("records.issue_detail", issue_id=issue_id))
   try:
     change = transition_issue(record, target, actor, at=now())
     issues_data.save(db(), change.object)
@@ -637,7 +647,7 @@ def issue_priority(issue_id: int) -> Response:
       record,
       actor,
       at=now(),
-      priority=Priority(request.form.get("priority", "HIGH")),
+      priority=choice(Priority, request.form.get("priority", "HIGH"), Priority.HIGH),
     )
     issues_data.save(db(), change.object)
     _append_all("issue", record, change)
@@ -692,13 +702,15 @@ def issue_edit_save(issue_id: int) -> Response:
   submitted = {
     "title": request.form.get("title", "").strip(),
     "description": request.form.get("description", "").strip(),
-    "visibility": Visibility(request.form.get("visibility", "PRIVATE")),
+    "visibility": choice(
+      Visibility, request.form.get("visibility", "PRIVATE"), Visibility.PRIVATE
+    ),
     "domains": tuple(
       part.strip()
       for part in request.form.get("domains", "").split(",")
       if part.strip()
     ),
-    "priority": Priority(request.form.get("priority", "HIGH")),
+    "priority": choice(Priority, request.form.get("priority", "HIGH"), Priority.HIGH),
     "assignee_id": int(assignee) if assignee else None,
   }
   fields = {

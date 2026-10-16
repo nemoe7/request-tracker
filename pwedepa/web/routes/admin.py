@@ -44,7 +44,7 @@ from pwedepa.data import site as site_data
 from pwedepa.data.db import transaction
 
 from .. import now
-from ._helpers import current_user, db, expiry_days
+from ._helpers import choice, current_user, db, expiry_days
 
 bp = Blueprint("admin", __name__)
 
@@ -243,8 +243,10 @@ def create_issue() -> Response:
     description=request.form.get("description", "").strip(),
     requester_id=request.form.get("requester_id", type=int),
     assignee_id=assignee,
-    priority=Priority(request.form.get("priority", "HIGH")),
-    visibility=Visibility(request.form.get("visibility", "PRIVATE")),
+    priority=choice(Priority, request.form.get("priority", "HIGH"), Priority.HIGH),
+    visibility=choice(
+      Visibility, request.form.get("visibility", "PRIVATE"), Visibility.PRIVATE
+    ),
     domains=tuple(
       part.strip()
       for part in request.form.get("domains", "").split(",")

@@ -52,6 +52,14 @@ def expiry_days() -> int | None:
   return max(1, min(MAX_EXPIRY_DAYS, days))
 
 
+def choice(enum_type, raw, default=None):
+  """Read a submitted value into an enum, or hand back the default."""
+  try:
+    return enum_type(raw)
+  except ValueError:
+    return default
+
+
 def can_share(user, record) -> bool:
   """Return whether this user may share this record. An admin, or its requester."""
   if user is None or record is None:
