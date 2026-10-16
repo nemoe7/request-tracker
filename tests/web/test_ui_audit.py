@@ -4,7 +4,9 @@ from datetime import UTC, datetime
 import pytest
 
 from pwedepa.auth import Role, assign_role, sessions, users
+from pwedepa.core import Request
 from pwedepa.data import db as data_db
+from pwedepa.data import requests as requests_data
 from pwedepa.web import SESSION_COOKIE, create_app
 
 AT = datetime(2026, 10, 16, 12, 0, tzinfo=UTC)
@@ -115,6 +117,70 @@ def test_page_switches_do_not_animate_the_whole_page(app):
     assert "animation: none" in rules[selectors], (
       f"{selectors} still animates the switch"
     )
+
+
+def test_client_cards_open_the_record_from_anywhere(app, db):
+  client = _client(app, db, "mara", "Mara Reyes", roles=(Role.REQUESTER,))
+  record = Request(
+    id=1,
+    title="Broken projector",
+    description="The projector in Room 4 is dead.",
+    requester_id=users.get_user_by_username(db, "mara").id,
+    created_at=AT,
+    updated_at=AT,
+  )
+  requests_data.save(db, record)
+
+  body = client.get("/my").data.decode()
+  assert f'href="/requests/{record.id}"' in body
+  assert 'class="card is-linked"' in body, "a client card only opens from its title"
+
+  css = app.test_client().get("/static/app.css").data.decode()
+  rules = {sel.strip(): body for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)}
+  card = rules.get(".card.is-linked", "")
+  assert "position: relative" in card, ".card.is-linked must anchor the stretched link"
+  link = rules.get(".card.is-linked h2 a::after", "")
+  assert "position: absolute" in link and "inset: 0" in link, (
+    ".card.is-linked h2 a::after must cover the whole card"
+  )
+
+
+def test_facts_rows_never_squeeze_their_value(app):
+  css = app.test_client().get("/static/app.css").data.decode()
+  grid = re.search(
+    r"\.facts \{[^}]*grid-template-columns: repeat\(auto-fit, minmax\((\d+)px, 1fr\)\)",
+    css,
+  )
+  assert grid, ".facts must fall back to one column when a panel is narrow"
+  assert int(grid.group(1)) >= 200, "a facts track must fit a label and its value"
+
+
+def test_the_bell_pip_clears_the_bell(app):
+  css = app.test_client().get("/static/app.css").data.decode()
+  rules = {sel.strip(): body for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)}
+  pip = rules.get(".bell .pip", "")
+  assert pip, "the bell pip needs its own placement rule"
+  top = int(re.search(r"top: (-?\d+)px", pip).group(1))
+  right = int(re.search(r"right: (-?\d+)px", pip).group(1))
+  assert top <= -6 and right <= -8, "the pip must sit clear of the bell glyph"
+  assert "margin-right" in rules.get(".bell", ""), (
+    "the bell must keep room before the avatar"
+  )
+
+
+def test_the_scrollbar_matches_the_theme(app):
+  client = app.test_client()
+  css = client.get("/static/app.css").data.decode()
+  tokens = client.get("/static/tokens.css").data.decode()
+  assert tokens.count("--scroll-thumb:") >= 3, "every theme needs a scrollbar colour"
+  assert "scrollbar-color: var(--scroll-thumb) transparent" in css
+  assert "color-mix(in srgb, var(--muted) 45%" not in css, (
+    "the scrollbar must not depend on color-mix"
+  )
+  root = re.search(r"\nhtml \{([^}]*)\}", css)
+  assert root and "background: var(--bg)" in root.group(1), (
+    "the root must paint the page background, so no white gutter shows"
+  )
 
 
 def test_normal_service_worker_keeps_its_cache(app):

@@ -139,7 +139,7 @@ select:focus-visible, textarea:focus-visible {
 .inspector h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 18px 0 8px; }
 .inspector > .btn { margin-top: 14px; }
 .desc { font-size: 15px; }
-.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin: 14px 0; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 16px; margin: 14px 0; }
 .facts dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
 .facts dd { margin: 2px 0 0; font-size: 14px; font-weight: 600; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -157,6 +157,8 @@ select:focus-visible, textarea:focus-visible {
 .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .card h2 { font-size: 16px; margin: 0; }
 .card h2 a { color: var(--text); text-decoration: none; }
+.card.is-linked { position: relative; }
+.card.is-linked h2 a::after { content: ""; position: absolute; inset: 0; }
 .status-word { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
 .meta { color: var(--muted); font-size: 12px; font-family: ui-monospace, "SF Mono", Menlo, monospace; margin: 6px 0 0; }
 .muted { color: var(--muted); font-size: 14px; }
@@ -345,16 +347,16 @@ select:focus-visible, textarea:focus-visible {
 
 
 /* Owner batch: steady pages, centered inspector, account menu, selects. */
-html { scrollbar-gutter: stable; }
-* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 45%, transparent) transparent; }
+html { background: var(--bg); scrollbar-gutter: stable; }
+* { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted) 45%, transparent); border-radius: 8px; border: 2px solid var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 8px; border: 2px solid var(--bg); }
 ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 .records .strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.bell { position: relative; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: var(--text); text-decoration: none; transition: background-color 180ms var(--ease); }
+.bell { position: relative; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: var(--text); text-decoration: none; transition: background-color 180ms var(--ease); margin-right: 6px; }
 .bell:hover { background: var(--surface-2); }
-.bell .pip { position: absolute; top: -2px; right: -4px; margin: 0; }
+.bell .pip { position: absolute; top: -6px; right: -8px; margin: 0; }
 .user-menu-wrap { position: relative; }
 .avatar-btn { border: 0; padding: 0; cursor: pointer; font: inherit; }
 .user-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; min-width: 232px; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 16px 40px rgb(0 0 0 / 0.28); }
