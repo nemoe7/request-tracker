@@ -43,7 +43,7 @@ from pwedepa.data import site as site_data
 from pwedepa.data.db import transaction
 
 from .. import now
-from ._helpers import current_user, db
+from ._helpers import current_user, db, expiry_days
 
 bp = Blueprint("admin", __name__)
 
@@ -237,7 +237,7 @@ def site_message() -> Response:
   user = _admin()
   if user is None:
     return redirect(url_for("pages.login"))
-  days = request.form.get("expires_days", "", type=int)
+  days = expiry_days()
   site_data.save_message(
     db(),
     request.form.get("message", "").strip(),

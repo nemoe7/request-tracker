@@ -33,3 +33,15 @@ def current_user():
 
     return seat_user()
   return None
+
+
+# 10 years. A link or a message may not outlive the person who made it.
+MAX_EXPIRY_DAYS = 3650
+
+
+def expiry_days() -> int | None:
+  """Read the day count from the form, or None for no expiry. Clamp to 1-3650."""
+  submitted = request.form.get("expires_days", "", type=int)
+  if submitted is None or not request.form.get("expires_days", "").strip():
+    return None
+  return max(1, min(MAX_EXPIRY_DAYS, submitted))

@@ -23,7 +23,7 @@ from pwedepa.data import requests as requests_data
 from pwedepa.data import sharing as sharing_data
 
 from .. import now
-from ._helpers import current_user, db
+from ._helpers import current_user, db, expiry_days
 
 bp = Blueprint("sharing", __name__)
 
@@ -72,7 +72,7 @@ def create(object_type: str, object_id: int) -> Response:
   record = _record(object_type, object_id)
   if record is None or not _can_share(user, record):
     abort(404)
-  days = request.form.get("expires_days", "", type=int)
+  days = expiry_days()
   expires_at = now() + timedelta(days=days) if days else None
   issued = sharing_data.create(
     db(),
