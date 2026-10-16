@@ -40,6 +40,12 @@ The app listens on `127.0.0.1:5000` on the host. A reverse proxy or Tailscale Fu
 
 3. Point `PWEDEPA_RP_ID` and `PWEDEPA_ORIGIN` at the same public name, then restart the service.
 
+## Demo site
+
+The `pages.yml` workflow publishes a frozen demo to GitHub Pages. It seeds a throwaway database from `scripts/demo_seed.py`, renders each page once with `scripts/build_pages_demo.py`, and deploys the static result. It runs on pushes to `main` that touch the web app or the seed, and on demand from the Actions tab.
+
+Pages serves files only, so forms and passkey buttons stay inert in the frozen copy. The deployed site needs one repository setting: Settings, Pages, source **GitHub Actions**.
+
 ## Notes
 
 - Back up the `pwedepa-data` volume. It holds the only database copy.
