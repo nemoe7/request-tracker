@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "_parts.html" import pill %}
+{% block title %}Issues — PwedePa{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Issues</h1>
+</div>
+<div class="board">
+  {% for status, issues in board.items() %}
+  <section class="board-col" aria-label="{{ status.value | capitalize }}">
+    <h2>{{ pill(status) }}<span class="count">{{ issues | length }}</span></h2>
+    {% for issue in issues %}
+    <a class="mini card-mini" href="{{ url_for('records.issue_detail', issue_id=issue.id) }}">
+      <span class="mini-title">{{ issue.title }}</span>
+      <span>#{{ issue.id }} · {{ issue.priority.value | capitalize }} · {{ names.get(issue.assignee_id, "Unassigned") }}</span>
+    </a>
+    {% endfor %}
+    {% if not issues %}<p class="muted">Nothing here.</p>{% endif %}
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

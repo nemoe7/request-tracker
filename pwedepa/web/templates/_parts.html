@@ -1,0 +1,26 @@
+{% macro pill(status) -%}
+<span class="pill st-{{ status.value | lower }}"><span class="dot"></span>{{ status.value | capitalize }}</span>
+{%- endmacro %}
+{% macro event_line(event, names) -%}
+<li class="event">
+  <span class="event-what">
+    {%- if event.event_type.endswith("state_changed") -%}
+    Moved {{ event.data.get("from", "") }} → {{ event.data.get("to", "") }}
+    {%- if event.data.get("reason") %} — {{ event.data["reason"] }}{% endif %}
+    {%- elif event.event_type.endswith("priority_changed") -%}
+    Priority {{ event.data.get("from", "") }} → {{ event.data.get("to", "") }}
+    {%- elif event.event_type.endswith("edited") -%}
+    Edited {{ event.data.get("fields", []) | join(", ") }}
+    {%- elif event.event_type.endswith("raised_from_request") -%}
+    Raised into Issue #{{ event.data.get("issue_id", "") }}
+    {%- elif event.event_type.endswith("comment") -%}
+    Comment added
+    {%- elif event.event_type.endswith("created") -%}
+    Created
+    {%- else -%}
+    {{ event.event_type }}
+    {%- endif -%}
+  </span>
+  <span class="event-meta">{{ names.get(event.actor_id, "Someone") }} · {{ event.at.strftime("%b %-d, %H:%M") if event.at else "" }}</span>
+</li>
+{%- endmacro %}

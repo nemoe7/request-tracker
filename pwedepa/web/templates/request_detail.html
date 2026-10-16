@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "_parts.html" import pill, event_line %}
+{% block title %}Request #{{ record.id }} — PwedePa{% endblock %}
+{% block content %}
+<article class="narrow detail">
+  <p class="eyebrow">Request #{{ record.id }} · opened by {{ names.get(record.requester_id, "—") }}</p>
+  <h1>{{ record.title }}</h1>
+  <p>{{ pill(record.status) }}<span class="vis">{{ record.visibility.value | capitalize }}</span></p>
+  <p class="desc">{{ record.description or "No description." }}</p>
+  <dl class="facts">
+    <div><dt>Domains</dt><dd>{{ record.domains | join(", ") or "—" }}</dd></div>
+    <div><dt>Priority ask</dt><dd>{% if record.priority_suggestion %}{{ record.priority_suggestion.value | capitalize }}{% elif record.priority_unsure %}Not sure{% else %}—{% endif %}</dd></div>
+    <div><dt>Updated</dt><dd>{{ record.updated_at.strftime("%b %-d, %H:%M") if record.updated_at else "—" }}</dd></div>
+  </dl>
+
+  {% if actions or can_edit %}
+  <div class="actions-row">
+    {% if actions %}
+    <form class="actions" method="post" action="{{ url_for('records.request_transition', request_id=record.id) }}">
+      {% for target, label in actions %}
+      <button class="btn{% if target == 'REVOKED' %} danger{% endif %}" type="submit" name="target" value="{{ target }}">{{ label }}</button>
+      {% endfor %}
+      <input class="reason" type="text" name="reason" placeholder="Reason (needed to revoke)">
+    </form>
+    {% endif %}
+    {% if can_edit %}<a class="btn" href="{{ url_for('records.request_edit', request_id=record.id) }}">Edit</a>{% endif %}
+  </div>
+  {% endif %}
+
+  <h2>Activity</h2>
+  <ul class="events">
+    {% for event in events %}{% if event.event_type != "request.comment" %}{{ event_line(event, names) }}{% endif %}{% endfor %}
+  </ul>
+
+  <h2>Comments</h2>
+  {% if comments %}
+  <ul class="comments">
+    {% for event in comments %}
+    <li class="comment">
+      <p>{{ event.data.get("text", "") }}</p>
+      <p class="event-meta">{{ names.get(event.actor_id, "Someone") }} · {{ event.at.strftime("%b %-d, %H:%M") if event.at else "" }}</p>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">No comments yet.</p>
+  {% endif %}
+  {% if can_comment %}
+  <form class="comment-form" method="post" action="{{ url_for('records.request_comment', request_id=record.id) }}">
+    <label for="comment-text">Add a comment</label>
+    <textarea id="comment-text" name="text" rows="3" required></textarea>
+    <button class="btn primary" type="submit">Post comment</button>
+  </form>
+  {% endif %}
+</article>
+{% endblock %}

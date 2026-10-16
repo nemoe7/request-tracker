@@ -12,9 +12,14 @@ bp = Blueprint("pages", __name__)
 
 @bp.get("/")
 def landing() -> str | Response:
-  """Show the public landing page, or jump home when signed in."""
-  if current_user() is not None:
-    return redirect(url_for("pages.home"))
+  """Show the public landing page, or jump to the role home when signed in."""
+  user = current_user()
+  if user is not None:
+    from .records import is_staff
+
+    if is_staff(user):
+      return redirect(url_for("records.workspace"))
+    return redirect(url_for("records.my_requests"))
   return render_template("landing.html")
 
 

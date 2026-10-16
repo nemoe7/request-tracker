@@ -25,9 +25,10 @@
     </a>
     {% if user %}
     <nav class="tabs" aria-label="Main">
-      <a class="is-active" href="{{ url_for('pages.home') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#house"/></svg>Home</a>
-      <span class="tab-soon" aria-disabled="true"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg>Requests</span>
-      <span class="tab-soon" aria-disabled="true"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg>Issues</span>
+      {% if is_staff %}<a href="{{ url_for('records.workspace') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg>Workspace</a>{% endif %}
+      <a href="{{ url_for('records.my_requests') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg>My requests</a>
+      <a href="{{ url_for('records.issue_board') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg>Issues</a>
+      <a href="{{ url_for('pages.home') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#house"/></svg>Account</a>
     </nav>
     {% endif %}
     <div class="top-actions">
@@ -41,6 +42,13 @@
     </div>
   </header>
   <main class="wrap">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="flash" role="status">
+      {% for message in messages %}<p>{{ message }}</p>{% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
     {% block content %}{% endblock %}
   </main>
   <script src="{{ url_for('static', filename='app.js') }}"></script>

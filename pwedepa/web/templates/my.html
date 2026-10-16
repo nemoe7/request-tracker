@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% from "_parts.html" import pill %}
+{% block title %}My requests — PwedePa{% endblock %}
+{% block content %}
+<div class="narrow">
+  <div class="page-head">
+    <h1>My requests</h1>
+    <a class="btn primary" href="{{ url_for('records.request_new') }}">New request</a>
+  </div>
+  {% if mine %}
+  <div class="card-list">
+    {% for record in mine %}
+    <article class="card">
+      <div class="card-top">
+        <h2><a href="{{ url_for('records.request_detail', request_id=record.id) }}">{{ record.title }}</a></h2>
+        {{ pill(record.status) }}
+      </div>
+      <p class="status-word">{{ status_words[record.status] }}</p>
+      <p class="meta">#{{ record.id }} · {{ record.visibility.value | capitalize }}{% if record.domains %} · {{ record.domains | join(", ") }}{% endif %}</p>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty panel">
+    <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="48" height="48">
+    <p>You have no requests yet.</p>
+    <a class="btn primary" href="{{ url_for('records.request_new') }}">Make your first request</a>
+  </div>
+  {% endif %}
+
+  <h2 class="section-title" id="public">Public board</h2>
+  {% if public %}
+  <div class="card-list">
+    {% for record in public %}
+    <article class="card">
+      <div class="card-top">
+        <h2><a href="{{ url_for('records.request_detail', request_id=record.id) }}">{{ record.title }}</a></h2>
+        {{ pill(record.status) }}
+      </div>
+      <p class="meta">#{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted">No public requests from other people yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

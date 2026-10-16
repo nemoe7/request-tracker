@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% from "_parts.html" import pill, event_line %}
+{% block title %}Workspace — PwedePa{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Workspace</h1>
+  <a class="btn primary" href="{{ url_for('records.request_new') }}">New request</a>
+</div>
+<div class="workspace-grid">
+  <aside class="panel filters" aria-label="Queue filters">
+    <h2>Queue</h2>
+    {% for key, label in [("triage", "Needs triage"), ("mine", "My requests"), ("assigned", "Assigned to me"), ("blocked", "Blocked"), ("public", "Public")] %}
+    <a class="queue-item{% if queue == key %} is-active{% endif %}" href="{{ url_for('records.workspace', queue=key, domain=domain, visibility=visibility, status=status_filter) }}">{{ label }}<span class="count">{{ counts[key] }}</span></a>
+    {% endfor %}
+    <h2>Domain</h2>
+    <a class="queue-item{% if not domain %} is-active{% endif %}" href="{{ url_for('records.workspace', queue=queue, visibility=visibility, status=status_filter) }}">All domains</a>
+    {% for name in domains %}
+    <a class="queue-item{% if domain == name %} is-active{% endif %}" href="{{ url_for('records.workspace', queue=queue, domain=name, visibility=visibility, status=status_filter) }}">{{ name }}</a>
+    {% endfor %}
+    <h2>Visibility</h2>
+    <div class="seg" role="group" aria-label="Visibility filter">
+      <a{% if not visibility %} class="is-active"{% endif %} href="{{ url_for('records.workspace', queue=queue, domain=domain, status=status_filter) }}">All</a>
+      <a{% if visibility == "PUBLIC" %} class="is-active"{% endif %} href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility='PUBLIC', status=status_filter) }}">Public</a>
+      <a{% if visibility == "PRIVATE" %} class="is-active"{% endif %} href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility='PRIVATE', status=status_filter) }}">Private</a>
+    </div>
+    <h2>Status</h2>
+    <form class="filter-form" method="get" action="{{ url_for('records.workspace') }}">
+      <input type="hidden" name="queue" value="{{ queue }}">
+      <input type="hidden" name="domain" value="{{ domain }}">
+      <input type="hidden" name="visibility" value="{{ visibility }}">
+      <label class="sr-only" for="status-filter">Status</label>
+      <select id="status-filter" name="status">
+        <option value="">All statuses</option>
+        {% for value in statuses %}
+        <option value="{{ value }}"{% if status_filter == value %} selected{% endif %}>{{ value | capitalize }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn" type="submit">Apply status</button>
+    </form>
+  </aside>
+
+  <section class="panel records" aria-label="Records">
+    {% if rows %}
+    <table class="record-table">
+      <thead>
+        <tr><th>Title</th><th>Status</th><th>Requester</th><th>Domain</th></tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr{% if selected and row.id == selected.id %} class="is-selected"{% endif %}>
+          <td>
+            {% if row_kind == "request" %}
+            <a href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter, selected=row.id) }}">{{ row.title }}</a>
+            <span class="row-sub"><a href="{{ url_for('records.request_detail', request_id=row.id) }}"> Open #{{ row.id }}</a></span>
+            {% else %}
+            <a href="{{ url_for('records.issue_detail', issue_id=row.id) }}">{{ row.title }}</a>
+            <span class="row-sub">Issue #{{ row.id }}</span>
+            {% endif %}
+          </td>
+          <td>{{ pill(row.status) }}</td>
+          <td>{{ names.get(row.requester_id, "—") }}</td>
+          <td>{{ row.domains | join(", ") or "—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="48" height="48">
+      <p>Nothing here yet.</p>
+    </div>
+    {% endif %}
+
+    <h2 class="strip-title">Issue strip</h2>
+    <div class="strip">
+      {% for status, issues in board.items() %}
+      <div class="strip-col">
+        <h3>{{ pill(status) }}<span class="count">{{ issues | length }}</span></h3>
+        {% for issue in issues %}
+        <a class="mini" href="{{ url_for('records.issue_detail', issue_id=issue.id) }}">{{ issue.title }}<span>#{{ issue.id }} · {{ issue.priority.value | capitalize }}</span></a>
+        {% endfor %}
+      </div>
+      {% endfor %}
+      <div class="strip-col">
+        <h3>Closed<span class="count">{{ closed_count }}</span></h3>
+        <a class="mini" href="{{ url_for('records.issue_board') }}">Open the board</a>
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel inspector" aria-label="Inspector">
+    {% if selected %}
+    <p class="eyebrow">Request #{{ selected.id }} · opened by {{ names.get(selected.requester_id, "—") }}</p>
+    <h2>{{ selected.title }}</h2>
+    <p>{{ pill(selected.status) }}<span class="vis">{{ selected.visibility.value | capitalize }}</span></p>
+    <p class="desc">{{ selected.description or "No description." }}</p>
+    <dl class="facts">
+      <div><dt>Domains</dt><dd>{{ selected.domains | join(", ") or "—" }}</dd></div>
+      <div><dt>Priority ask</dt><dd>{{ selected.priority_suggestion.value | capitalize if selected.priority_suggestion else "—" }}</dd></div>
+    </dl>
+    {% if selected_actions %}
+    <form class="actions" method="post" action="{{ url_for('records.request_transition', request_id=selected.id) }}">
+      {% for target, label in selected_actions %}
+      <button class="btn{% if target == 'REVOKED' %} danger{% endif %}" type="submit" name="target" value="{{ target }}">{{ label }}</button>
+      {% endfor %}
+      <input class="reason" type="text" name="reason" placeholder="Reason (needed to revoke)">
+    </form>
+    {% endif %}
+    <h3>Recent activity</h3>
+    <ul class="events">
+      {% for event in selected_events %}{{ event_line(event, names) }}{% endfor %}
+    </ul>
+    <a class="btn" href="{{ url_for('records.request_detail', request_id=selected.id) }}">Open request</a>
+    {% else %}
+    <div class="empty">
+      <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="48" height="48">
+      <p>Select a record to inspect it.</p>
+    </div>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

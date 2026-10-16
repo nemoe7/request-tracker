@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Edit issue #{{ record.id }} — PwedePa{% endblock %}
+{% block content %}
+<div class="narrow">
+  <h1>Edit issue</h1>
+  <form class="form panel" method="post" action="{{ url_for('records.issue_edit_save', issue_id=record.id) }}">
+    <div class="field">
+      <label for="i-title">Title</label>
+      <input id="i-title" name="title" type="text" required value="{{ record.title }}">
+    </div>
+    <div class="field">
+      <label for="i-description">Description</label>
+      <textarea id="i-description" name="description" rows="5">{{ record.description }}</textarea>
+    </div>
+    <div class="field">
+      <label for="i-domains">Domains</label>
+      <input id="i-domains" name="domains" type="text" value="{{ record.domains | join(', ') }}">
+      <p class="help">Comma separated, such as Workspace, Docs.</p>
+    </div>
+    <div class="field">
+      <label for="i-visibility">Visibility</label>
+      <select id="i-visibility" name="visibility">
+        <option value="PRIVATE"{% if record.visibility.value == 'PRIVATE' %} selected{% endif %}>Private</option>
+        <option value="PUBLIC"{% if record.visibility.value == 'PUBLIC' %} selected{% endif %}>Public</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="i-priority">Priority</label>
+      <select id="i-priority" name="priority">
+        {% for value in priorities %}
+        <option value="{{ value }}"{% if record.priority.value == value %} selected{% endif %}>{{ value | capitalize }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="i-assignee">Assignee</label>
+      <select id="i-assignee" name="assignee_id">
+        <option value="">Unassigned</option>
+        {% for person in users %}
+        <option value="{{ person.id }}"{% if record.assignee_id == person.id %} selected{% endif %}>{{ person.display_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn primary" type="submit">Save changes</button>
+      <a class="btn" href="{{ url_for('records.issue_detail', issue_id=record.id) }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

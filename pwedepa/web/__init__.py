@@ -14,6 +14,7 @@ SESSION_COOKIE = "pwedepa_session"
 def create_app(config: dict | None = None) -> Flask:
   """Build the app from environment defaults plus explicit overrides."""
   app = Flask(__name__)
+  app.secret_key = os.environ.get("PWEDEPA_SECRET_KEY", "pwedepa-dev-secret")
   app.config.update(
     DATABASE=os.environ.get("PWEDEPA_DB", "pwedepa.db"),
     WEBAUTHN_RP_ID=os.environ.get("PWEDEPA_RP_ID", "localhost"),
@@ -30,6 +31,14 @@ def create_app(config: dict | None = None) -> Flask:
     rp_name=app.config["WEBAUTHN_RP_NAME"],
     origin=app.config["WEBAUTHN_ORIGIN"],
   )
+
+  @app.context_processor
+  def inject_actor() -> dict:
+    from .routes._helpers import current_user
+    from .routes.records import is_staff
+
+    user = current_user()
+    return {"user": user, "is_staff": user is not None and is_staff(user)}
 
   @app.teardown_appcontext
   def close_db(error: BaseException | None = None) -> None:

@@ -36,6 +36,16 @@
   --danger: #DC2626;
   --warn: #B45309;
   --ok: #15803D;
+  --st-open: #2563EB; --st-open-bg: #E8EFFD;
+  --st-pending: #B45309; --st-pending-bg: #FDF3E3;
+  --st-delayed: #7C3AED; --st-delayed-bg: #F1EAFD;
+  --st-blocked: #DC2626; --st-blocked-bg: #FDECEC;
+  --st-resolved: #15803D; --st-resolved-bg: #E6F6EC;
+  --st-closed: #64748B; --st-closed-bg: #EEF2F6;
+  --st-raised: #0E7490; --st-raised-bg: #E6F4F8;
+  --st-rejected: #BE123C; --st-rejected-bg: #FDEEF1;
+  --st-fulfilled: #15803D; --st-fulfilled-bg: #E6F6EC;
+  --st-revoked: #64748B; --st-revoked-bg: #EEF2F6;
   color-scheme: light;
 }
 
@@ -52,6 +62,16 @@
   --danger: #FF9C94;
   --warn: #F5B04C;
   --ok: #6FD598;
+  --st-open: #6EA8FE; --st-open-bg: rgba(37, 99, 235, 0.18);
+  --st-pending: #F5B04C; --st-pending-bg: rgba(245, 176, 76, 0.15);
+  --st-delayed: #C4B5FD; --st-delayed-bg: rgba(124, 58, 237, 0.2);
+  --st-blocked: #FF9C94; --st-blocked-bg: rgba(220, 38, 38, 0.18);
+  --st-resolved: #6FD598; --st-resolved-bg: rgba(21, 128, 61, 0.2);
+  --st-closed: #93A5B8; --st-closed-bg: rgba(100, 116, 139, 0.2);
+  --st-raised: #67D7F2; --st-raised-bg: rgba(14, 116, 144, 0.22);
+  --st-rejected: #FDA4AF; --st-rejected-bg: rgba(190, 18, 60, 0.2);
+  --st-fulfilled: #6FD598; --st-fulfilled-bg: rgba(21, 128, 61, 0.2);
+  --st-revoked: #93A5B8; --st-revoked-bg: rgba(100, 116, 139, 0.2);
   color-scheme: dark;
 }
 
@@ -69,6 +89,16 @@
     --danger: #FF9C94;
     --warn: #F5B04C;
     --ok: #6FD598;
+    --st-open: #6EA8FE; --st-open-bg: rgba(37, 99, 235, 0.18);
+    --st-pending: #F5B04C; --st-pending-bg: rgba(245, 176, 76, 0.15);
+    --st-delayed: #C4B5FD; --st-delayed-bg: rgba(124, 58, 237, 0.2);
+    --st-blocked: #FF9C94; --st-blocked-bg: rgba(220, 38, 38, 0.18);
+    --st-resolved: #6FD598; --st-resolved-bg: rgba(21, 128, 61, 0.2);
+    --st-closed: #93A5B8; --st-closed-bg: rgba(100, 116, 139, 0.2);
+    --st-raised: #67D7F2; --st-raised-bg: rgba(14, 116, 144, 0.22);
+    --st-rejected: #FDA4AF; --st-rejected-bg: rgba(190, 18, 60, 0.2);
+    --st-fulfilled: #6FD598; --st-fulfilled-bg: rgba(21, 128, 61, 0.2);
+    --st-revoked: #93A5B8; --st-revoked-bg: rgba(100, 116, 139, 0.2);
     color-scheme: dark;
   }
 }

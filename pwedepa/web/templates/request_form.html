@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{% if record %}Edit request #{{ record.id }}{% else %}New request{% endif %} — PwedePa{% endblock %}
+{% block content %}
+<div class="narrow">
+  <h1>{% if record %}Edit request{% else %}New request{% endif %}</h1>
+  <form class="form panel" method="post" action="{% if record %}{{ url_for('records.request_edit_save', request_id=record.id) }}{% else %}{{ url_for('records.request_create') }}{% endif %}">
+    <div class="field">
+      <label for="f-title">Title</label>
+      <input id="f-title" name="title" type="text" required value="{{ record.title if record else '' }}">
+    </div>
+    <div class="field">
+      <label for="f-description">Description</label>
+      <textarea id="f-description" name="description" rows="5">{{ record.description if record else '' }}</textarea>
+      <p class="help">Say what you need and what done looks like.</p>
+    </div>
+    <div class="field">
+      <label for="f-domains">Domains</label>
+      <input id="f-domains" name="domains" type="text" value="{{ record.domains | join(', ') if record else '' }}">
+      <p class="help">Comma separated, such as Workspace, Docs.</p>
+    </div>
+    <div class="field">
+      <label for="f-visibility">Visibility</label>
+      <select id="f-visibility" name="visibility">
+        <option value="PRIVATE"{% if record and record.visibility.value == 'PRIVATE' %} selected{% endif %}>Private</option>
+        <option value="PUBLIC"{% if record and record.visibility.value == 'PUBLIC' %} selected{% endif %}>Public</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-priority">Priority suggestion</label>
+      <select id="f-priority" name="priority_suggestion">
+        <option value="">No suggestion</option>
+        {% for value in priorities %}
+        <option value="{{ value }}"{% if record and record.priority_suggestion and record.priority_suggestion.value == value %} selected{% endif %}>{{ value | capitalize }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <label class="check"><input type="checkbox" name="priority_unsure"{% if record and record.priority_unsure %} checked{% endif %}> I am not sure about the priority</label>
+    <div class="form-actions">
+      <button class="btn primary" type="submit">{% if record %}Save changes{% else %}Create request{% endif %}</button>
+      <a class="btn" href="{% if record %}{{ url_for('records.request_detail', request_id=record.id) }}{% else %}{{ url_for('records.my_requests') }}{% endif %}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
