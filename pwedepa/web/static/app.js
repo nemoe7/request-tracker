@@ -10,14 +10,31 @@ function applyThemeLabel() {
   themeLabel.textContent = theme[0].toUpperCase() + theme.slice(1);
 }
 
+const themeButtons = document.querySelectorAll("[data-theme-set]");
+
+function markThemeButtons() {
+  const theme = document.documentElement.dataset.theme || "system";
+  themeButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.themeSet === theme);
+  });
+}
+
+function setTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem("pwedepa-theme", theme);
+  applyThemeLabel();
+  markThemeButtons();
+}
+
 document.querySelector("#theme-toggle")?.addEventListener("click", () => {
   const theme = document.documentElement.dataset.theme || "system";
-  const next = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
-  document.documentElement.dataset.theme = next;
-  localStorage.setItem("pwedepa-theme", next);
-  applyThemeLabel();
+  setTheme(THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length]);
+});
+themeButtons.forEach((button) => {
+  button.addEventListener("click", () => setTheme(button.dataset.themeSet));
 });
 applyThemeLabel();
+markThemeButtons();
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js").catch(() => {});

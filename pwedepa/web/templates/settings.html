@@ -1,51 +1,135 @@
 {% extends "base.html" %}
 {% block title %}Settings — PwedePa{% endblock %}
 {% block content %}
-<div class="narrow settings-page">
-  <h1>Settings</h1>
+<div class="settings-shell">
+  <aside class="settings-rail" aria-label="Settings sections">
+    <div class="settings-profile">
+      <span class="avatar big" aria-hidden="true">{{ user.display_name[0] }}</span>
+      <div>
+        <p class="profile-name">{{ user.display_name }}</p>
+        <p class="profile-sub">@{{ user.username }} · {{ user.status.value | capitalize }}</p>
+      </div>
+    </div>
+    <nav class="settings-nav">
+      <a href="#profile">Profile</a>
+      <a href="#appearance">Appearance</a>
+      <a href="#notifications">Notifications</a>
+      <a href="#passkeys">Passkeys</a>
+      {% if is_admin %}<a href="#admin">Admin</a>{% endif %}
+    </nav>
+  </aside>
 
-  <section class="settings-group" aria-label="Profile">
-    <h2>Profile</h2>
-    <form method="post" action="{{ url_for('settings.profile') }}">
-      <label class="setting-row">
-        <span>Display name</span>
-        <input type="text" name="display_name" value="{{ user.display_name }}" required>
-      </label>
-      <div class="setting-row muted-row"><span>Username</span><strong>{{ user.username }}</strong></div>
-      <div class="setting-row muted-row"><span>Status</span><strong>{{ user.status.value | capitalize }}</strong></div>
-      <div class="form-actions"><button class="btn primary" type="submit">Save profile</button></div>
-    </form>
-  </section>
+  <div class="settings-main">
+    <h1>Settings</h1>
 
-  <section class="settings-group" aria-label="Notifications">
-    <h2>Notifications</h2>
-    <form method="post" action="{{ url_for('settings.notification_preferences') }}">
-      {% for pref in preferences %}
-      <fieldset class="setting-fieldset">
-        <legend>{{ pref.category | capitalize }}</legend>
-        <label class="setting-row"><span>Enabled</span><input type="checkbox" name="{{ pref.category }}_enabled"{% if pref.enabled %} checked{% endif %}></label>
-        <label class="setting-row"><span>Show in inbox</span><input type="checkbox" name="{{ pref.category }}_inbox"{% if pref.inbox_enabled %} checked{% endif %}></label>
-        <label class="setting-row"><span>Show pip</span><input type="checkbox" name="{{ pref.category }}_pip"{% if pref.pip_enabled %} checked{% endif %}></label>
-      </fieldset>
+    <section class="ios-group" id="profile" aria-label="Profile">
+      <h2>Profile</h2>
+      <form method="post" action="{{ url_for('settings.profile') }}">
+        <label class="ios-row">
+          <span class="ios-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg></span>
+          <span class="ios-label">Display name</span>
+          <input class="ios-input" type="text" name="display_name" value="{{ user.display_name }}" required>
+        </label>
+        <div class="ios-row">
+          <span class="ios-chip chip-gray"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg></span>
+          <span class="ios-label">Username</span>
+          <span class="ios-value">{{ user.username }}</span>
+        </div>
+        <div class="ios-row">
+          <span class="ios-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg></span>
+          <span class="ios-label">Status</span>
+          <span class="ios-value">{{ user.status.value | capitalize }}</span>
+        </div>
+        <div class="ios-row ios-action"><button class="btn primary" type="submit">Save profile</button></div>
+      </form>
+    </section>
+
+    <section class="ios-group" id="appearance" aria-label="Appearance">
+      <h2>Appearance</h2>
+      <div class="ios-row">
+        <span class="ios-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg></span>
+        <span class="ios-label">Theme</span>
+        <span class="seg-control" role="group" aria-label="Theme">
+          <button type="button" data-theme-set="system">System</button>
+          <button type="button" data-theme-set="light">Light</button>
+          <button type="button" data-theme-set="dark">Dark</button>
+        </span>
+      </div>
+      <p class="ios-note">System follows your device. The top bar control cycles the same choice.</p>
+    </section>
+
+    <section class="ios-group" id="notifications" aria-label="Notifications">
+      <h2>Notifications</h2>
+      <form method="post" action="{{ url_for('settings.notification_preferences') }}">
+        {% for pref in preferences %}
+        <fieldset class="ios-fieldset">
+          <legend>{{ pref.category | capitalize }}</legend>
+          <label class="ios-row">
+            <span class="ios-chip chip-red"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#bell"/></svg></span>
+            <span class="ios-label">Enabled</span>
+            <input class="switch" type="checkbox" name="{{ pref.category }}_enabled"{% if pref.enabled %} checked{% endif %}>
+          </label>
+          <label class="ios-row">
+            <span class="ios-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg></span>
+            <span class="ios-label">Show in inbox</span>
+            <input class="switch" type="checkbox" name="{{ pref.category }}_inbox"{% if pref.inbox_enabled %} checked{% endif %}>
+          </label>
+          <label class="ios-row">
+            <span class="ios-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg></span>
+            <span class="ios-label">Show pip</span>
+            <input class="switch" type="checkbox" name="{{ pref.category }}_pip"{% if pref.pip_enabled %} checked{% endif %}>
+          </label>
+        </fieldset>
+        {% endfor %}
+        <div class="ios-row ios-action"><button class="btn primary" type="submit">Save notifications</button></div>
+      </form>
+      <a class="ios-row link-row" href="{{ url_for('notifications.inbox') }}">
+        <span class="ios-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#bell"/></svg></span>
+        <span class="ios-label">Open notifications</span>
+        <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
+      </a>
+    </section>
+
+    <section class="ios-group" id="passkeys" aria-label="Passkeys">
+      <h2>Passkeys</h2>
+      {% for key in passkeys %}
+      <div class="ios-row">
+        <span class="ios-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#key-round"/></svg></span>
+        <span class="ios-label">Passkey<span class="ios-sub">Added {{ key.created_at.strftime("%b %d, %Y") if key.created_at else "" }}</span></span>
+        <button class="btn danger-quiet" type="button" data-revoke-passkey="{{ key.id }}">Revoke</button>
+      </div>
+      {% else %}
+      <div class="ios-row"><span class="ios-label muted">No passkeys yet.</span></div>
       {% endfor %}
-      <div class="form-actions"><button class="btn primary" type="submit">Save notifications</button></div>
-    </form>
-    <a class="setting-row link-row" href="{{ url_for('notifications.inbox') }}"><span>Open notifications</span><span aria-hidden="true">›</span></a>
-  </section>
+      <div class="ios-row ios-action"><button class="btn" id="add-passkey" type="button">Add a passkey</button></div>
+      <p class="ios-note" id="status" role="status"></p>
+    </section>
 
-  <section class="settings-group" aria-label="Account">
-    <h2>Account</h2>
-    <a class="setting-row link-row" href="{{ url_for('pages.home') }}"><span>Passkeys</span><strong>{{ passkeys | length }} active</strong></a>
-    <div class="setting-row muted-row"><span>Theme</span><strong>Use the top bar control</strong></div>
-    {% if is_staff %}<a class="setting-row link-row" href="{{ url_for('records.workspace') }}"><span>Workspace</span><span aria-hidden="true">›</span></a>{% endif %}
-  </section>
-
-  {% if user and is_admin %}
-  <section class="settings-group" aria-label="Admin">
-    <h2>Admin</h2>
-    <a class="setting-row link-row" href="{{ url_for('admin.overview') }}"><span>Admin home</span><span aria-hidden="true">›</span></a>
-    <a class="setting-row link-row" href="{{ url_for('admin.users') }}"><span>Users</span><span aria-hidden="true">›</span></a>
-  </section>
-  {% endif %}
+    {% if is_admin %}
+    <section class="ios-group" id="admin" aria-label="Admin">
+      <h2>Admin</h2>
+      <a class="ios-row link-row" href="{{ url_for('admin.overview') }}">
+        <span class="ios-chip chip-gray"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg></span>
+        <span class="ios-label">Admin home</span>
+        <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
+      </a>
+      <a class="ios-row link-row" href="{{ url_for('admin.users') }}">
+        <span class="ios-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg></span>
+        <span class="ios-label">Users</span>
+        <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
+      </a>
+      <a class="ios-row link-row" href="{{ url_for('admin.audit') }}">
+        <span class="ios-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg></span>
+        <span class="ios-label">Audit log</span>
+        <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
+      </a>
+      <a class="ios-row link-row" href="{{ url_for('admin.shares') }}">
+        <span class="ios-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg></span>
+        <span class="ios-label">Share links</span>
+        <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
+      </a>
+    </section>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}
