@@ -1,0 +1,11 @@
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        "*": ref-pin
+
+  # These base-only workflows inspect PR data. They do not execute PR code.
+  dangerous-triggers:
+    ignore:
+      - dependency-review.yml
+      - secret-scan.yml

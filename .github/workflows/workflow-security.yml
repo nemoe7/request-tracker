@@ -1,0 +1,84 @@
+name: Workflow security
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+      - ".github/actionlint.yaml"
+      - ".github/zizmor.yml"
+      - "scripts/gate_workflows.py"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/**"
+      - ".github/actionlint.yaml"
+      - ".github/zizmor.yml"
+      - "scripts/gate_workflows.py"
+  workflow_dispatch:
+
+concurrency:
+  group: workflow-security-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: raven-actions/actionlint@v2.2.0
+        with:
+          shellcheck: true
+          cache: false
+          files: .github/workflows/*.yml
+          flags: -config-file .github/actionlint.yaml
+
+  zizmor:
+    if: github.event_name != 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: zizmorcore/zizmor-action@v0.6.4
+        with:
+          config: .github/zizmor.yml
+          advanced-security: false
+          annotations: true
+
+  zizmor-main:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: zizmorcore/zizmor-action@v0.6.4
+        with:
+          config: .github/zizmor.yml
+          advanced-security: true
+
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          version: "0.12.21"
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run --no-sync python scripts/gate_workflows.py
