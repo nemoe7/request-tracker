@@ -190,10 +190,8 @@ def passkey_revoke(passkey_id: int) -> Response:
 @bp.get("/admin/audit")
 def audit() -> str | Response:
   """Show the latest audit events."""
-  events = list_audit_events(db())[-200:]
-  return render_template(
-    "admin_audit.html", events=list(reversed(events)), names=_names()
-  )
+  events = list_audit_events(db(), limit=200)
+  return render_template("admin_audit.html", events=events, names=_names())
 
 
 @bp.get("/admin/shares")

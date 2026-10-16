@@ -346,7 +346,7 @@ def workspace() -> str | Response:
     selected=selected,
     selected_actions=_request_actions(actor, selected) if selected else [],
     selected_events=(
-      events_data.list_for(db(), "request", selected.id)[-2:] if selected else []
+      events_data.list_for(db(), "request", selected.id, limit=2) if selected else []
     ),
     names=_names(),
   )

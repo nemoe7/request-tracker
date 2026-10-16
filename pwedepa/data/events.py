@@ -28,11 +28,19 @@ def append(
     db.commit()
 
 
-def list_for(db: Connection, object_type: str, object_id: int) -> list[Event]:
-  rows = db.exec_driver_sql(
-    "SELECT * FROM events WHERE object_type = ? AND object_id = ? ORDER BY id",
-    (object_type, object_id),
-  )
+def list_for(
+  db: Connection, object_type: str, object_id: int, *, limit: int | None = None
+) -> list[Event]:
+  """List a record's events oldest first. A limit takes the newest of them."""
+  query = "SELECT * FROM events WHERE object_type = ? AND object_id = ? ORDER BY id"
+  params: tuple = (object_type, object_id)
+  if limit is not None:
+    # The tail must come from the far end of the table, so read it backwards.
+    query = "SELECT * FROM events WHERE object_type = ? AND object_id = ? ORDER BY id DESC LIMIT ?"
+    params = (object_type, object_id, limit)
+  rows = list(db.exec_driver_sql(query, params))
+  if limit is not None:
+    rows.reverse()
   return [
     Event(
       event_type=row._mapping["event_type"],

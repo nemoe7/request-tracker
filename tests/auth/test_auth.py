@@ -25,7 +25,7 @@ from pwedepa.auth import (
   sessions,
   users,
 )
-from pwedepa.auth.audit import list_audit_events
+from pwedepa.auth.audit import list_audit_events, record_audit
 from pwedepa.auth.cli import main as cli_main
 from pwedepa.core import Effect, Grant
 from pwedepa.data import db as data_db
@@ -49,6 +49,21 @@ def db(tmp_path):
 @pytest.fixture
 def user(db):
   return users.create_user(db, "ada", "Ada Lovelace", at=AT)
+
+
+def test_the_audit_tail_keeps_the_newest_in_order(db, user):
+  """The audit page shows 200 rows, so it must not read every row of the table."""
+  for step in ("first", "second", "third"):
+    record_audit(db, f"probe.{step}", at=AT, actor_id=user.id)
+
+  tail = list_audit_events(db, limit=2)
+  assert [event.event_type for event in tail] == ["probe.second", "probe.third"]
+  assert [event.event_type for event in list_audit_events(db)] == [
+    "user.created",
+    "probe.first",
+    "probe.second",
+    "probe.third",
+  ]
 
 
 def test_user_lifecycle_and_actor_block(db, user):

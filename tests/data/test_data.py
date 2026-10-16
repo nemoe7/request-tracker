@@ -132,6 +132,22 @@ def test_events_round_trip(db):
   assert events.list_for(db, "issue", 1) == [first]
 
 
+def test_the_event_tail_keeps_the_newest_in_order(db):
+  """A page that shows two lines must not read the whole table for them."""
+  for index in range(5):
+    events.append(
+      db,
+      "request",
+      1,
+      Event(event_type=f"request.step{index}", actor_id=7, at=AT, data={"step": index}),
+    )
+  tail = events.list_for(db, "request", 1, limit=2)
+  assert [event.event_type for event in tail] == ["request.step3", "request.step4"]
+  assert [event.event_type for event in events.list_for(db, "request", 1)] == [
+    f"request.step{index}" for index in range(5)
+  ]
+
+
 def test_initialize_is_idempotent(db):
   data_db.initialize(db)
   data_db.initialize(db)

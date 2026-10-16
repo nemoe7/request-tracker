@@ -62,7 +62,9 @@ def list_audit_events(
   *,
   object_type: str | None = None,
   object_id: int | None = None,
+  limit: int | None = None,
 ) -> list[AuditEvent]:
+  """List audit events oldest first. A limit takes the newest of them."""
   query = "SELECT * FROM audit_events"
   clauses = []
   params: list = []
@@ -74,7 +76,15 @@ def list_audit_events(
     params.append(object_id)
   if clauses:
     query += " WHERE " + " AND ".join(clauses)
-  query += " ORDER BY id"
+  if limit is None:
+    query += " ORDER BY id"
+  else:
+    # The tail must come from the far end of the table, so read it backwards.
+    query += " ORDER BY id DESC LIMIT ?"
+    params.append(limit)
+  rows = list(db.exec_driver_sql(query, tuple(params)))
+  if limit is not None:
+    rows.reverse()
   return [
     AuditEvent(
       id=row._mapping["id"],
@@ -85,5 +95,5 @@ def list_audit_events(
       data=json.loads(row._mapping["data"]),
       created_at=unpack_time(row._mapping["created_at"]),
     )
-    for row in db.exec_driver_sql(query, tuple(params))
+    for row in rows
   ]
