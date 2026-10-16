@@ -18,6 +18,7 @@ from pwedepa.core import (
 )
 from pwedepa.data import db as data_db
 from pwedepa.data import events, issues, notifications, requests
+from pwedepa.data.domains import starter_domains
 
 
 def _user(db, username, display, role, at):
@@ -37,6 +38,8 @@ def seed(db, *, now: datetime) -> dict:
   Ben = _user(db, "Ben", "Ben Ortiz", Role.ASSIGNEE, now)
   people = {"admin": admin, "Mara": Mara, "Sam": Sam, "Priya": Priya, "Ben": Ben}
 
+  names = starter_domains()
+
   def at(days: float, hours: float = 0) -> datetime:
     return now - timedelta(days=days, hours=hours)
 
@@ -47,7 +50,7 @@ def seed(db, *, now: datetime) -> dict:
       description="The projector powers on, then drops the image after two minutes.",
       requester_id=Mara.id,
       priority_suggestion=Priority.HIGH,
-      domains=("Facilities", "Room 4"),
+      domains=(names[0], names[1]),
       created_at=at(4, 2),
       updated_at=at(0, 3),
     ),
@@ -58,7 +61,7 @@ def seed(db, *, now: datetime) -> dict:
       requester_id=admin.id,
       priority_suggestion=Priority.MEDIUM,
       visibility=Visibility.PUBLIC,
-      domains=("Community",),
+      domains=(names[4],),
       created_at=at(3, 5),
       updated_at=at(1, 1),
     ),
@@ -70,7 +73,7 @@ def seed(db, *, now: datetime) -> dict:
       requester_id=Mara.id,
       priority_suggestion=Priority.MEDIUM,
       visibility=Visibility.PUBLIC,
-      domains=("Workspace",),
+      domains=(names[2],),
       created_at=at(2, 4),
       updated_at=at(0, 6),
     ),
@@ -81,7 +84,7 @@ def seed(db, *, now: datetime) -> dict:
       status=RequestStatus.DELAYED,
       requester_id=admin.id,
       priority_suggestion=Priority.LOW,
-      domains=("Facilities",),
+      domains=(names[0],),
       created_at=at(6, 1),
       updated_at=at(2, 2),
     ),
@@ -92,7 +95,7 @@ def seed(db, *, now: datetime) -> dict:
       requester_id=Priya.id,
       priority_suggestion=Priority.HIGH,
       visibility=Visibility.PUBLIC,
-      domains=("Workspace",),
+      domains=(names[5],),
       created_at=at(1, 3),
       updated_at=at(0, 2),
     ),
@@ -104,7 +107,7 @@ def seed(db, *, now: datetime) -> dict:
       requester_id=Priya.id,
       priority_suggestion=Priority.URGENT,
       visibility=Visibility.PUBLIC,
-      domains=("Community",),
+      domains=(names[1],),
       created_at=at(0, 8),
       updated_at=at(0, 8),
     ),
@@ -115,7 +118,7 @@ def seed(db, *, now: datetime) -> dict:
       status=RequestStatus.FULFILLED,
       requester_id=Mara.id,
       priority_suggestion=Priority.LOW,
-      domains=("Docs",),
+      domains=(names[3],),
       created_at=at(9, 2),
       updated_at=at(7, 4),
     ),
@@ -126,7 +129,7 @@ def seed(db, *, now: datetime) -> dict:
       status=RequestStatus.REJECTED,
       requester_id=Priya.id,
       priority_suggestion=Priority.MEDIUM,
-      domains=("Community",),
+      domains=(names[4],),
       created_at=at(8, 3),
       updated_at=at(7, 6),
     ),
@@ -149,7 +152,7 @@ def seed(db, *, now: datetime) -> dict:
       requester_id=Mara.id,
       assignee_id=Sam.id,
       priority=Priority.HIGH,
-      domains=("Facilities", "Room 4"),
+      domains=(names[0], names[5]),
       created_at=at(4, 1),
       updated_at=at(0, 3),
     ),
@@ -161,7 +164,7 @@ def seed(db, *, now: datetime) -> dict:
       requester_id=Mara.id,
       assignee_id=Ben.id,
       priority=Priority.URGENT,
-      domains=("Facilities",),
+      domains=(names[1],),
       created_at=at(3, 2),
       updated_at=at(0, 5),
     ),
@@ -174,7 +177,7 @@ def seed(db, *, now: datetime) -> dict:
       assignee_id=Sam.id,
       priority=Priority.MEDIUM,
       visibility=Visibility.PUBLIC,
-      domains=("Workspace",),
+      domains=(names[2],),
       created_at=at(5, 4),
       updated_at=at(2, 3),
     ),
@@ -186,7 +189,7 @@ def seed(db, *, now: datetime) -> dict:
       requester_id=admin.id,
       assignee_id=Ben.id,
       priority=Priority.LOW,
-      domains=("Docs",),
+      domains=(names[3],),
       created_at=at(12, 2),
       updated_at=at(9, 1),
     ),
@@ -197,7 +200,7 @@ def seed(db, *, now: datetime) -> dict:
       requester_id=Priya.id,
       assignee_id=Ben.id,
       priority=Priority.MEDIUM,
-      domains=("Facilities",),
+      domains=(names[5],),
       created_at=at(1, 6),
       updated_at=at(0, 4),
     ),
@@ -209,7 +212,7 @@ def seed(db, *, now: datetime) -> dict:
       requester_id=Priya.id,
       assignee_id=Sam.id,
       priority=Priority.HIGH,
-      domains=("Docs",),
+      domains=(names[4],),
       created_at=at(2, 1),
       updated_at=at(1, 2),
     ),
@@ -222,7 +225,7 @@ def seed(db, *, now: datetime) -> dict:
       assignee_id=Ben.id,
       priority=Priority.LOW,
       visibility=Visibility.PUBLIC,
-      domains=("Workspace",),
+      domains=(names[2],),
       created_at=at(7, 3),
       updated_at=at(3, 3),
     ),
@@ -234,7 +237,7 @@ def seed(db, *, now: datetime) -> dict:
       requester_id=admin.id,
       assignee_id=Sam.id,
       priority=Priority.MEDIUM,
-      domains=("Docs",),
+      domains=(names[3],),
       created_at=at(15, 5),
       updated_at=at(10, 2),
     ),

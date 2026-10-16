@@ -12,6 +12,7 @@ from pwedepa.auth import (
 )
 from pwedepa.auth.sessions import SESSION_TTL
 from pwedepa.core import Issue, Priority, Request, Visibility
+from pwedepa.data import domains as domains_data
 from pwedepa.data import issues as issues_data
 from pwedepa.data import requests as requests_data
 
@@ -51,6 +52,7 @@ def _next_id(table: str) -> int:
 
 
 def _seed() -> None:
+  names = domains_data.starter_domains()
   admin = _ensure_user("demo-admin", "Demo Admin", Role.ADMIN)
   Mara = _ensure_user("demo-Mara", "Demo Requester", Role.REQUESTER)
   Sam = _ensure_user("demo-Sam", "Demo Assignee", Role.ASSIGNEE)
@@ -63,7 +65,7 @@ def _seed() -> None:
         description="The projector powers on, then drops the image after two minutes.",
         requester_id=Mara.id,
         priority_suggestion=Priority.HIGH,
-        domains=("Facilities", "Room 4"),
+        domains=(names[0], names[1]),
         created_at=now(),
         updated_at=now(),
       ),
@@ -77,7 +79,7 @@ def _seed() -> None:
         requester_id=admin.id,
         priority_suggestion=Priority.MEDIUM,
         visibility=Visibility.PUBLIC,
-        domains=("Community",),
+        domains=(names[4],),
         created_at=now(),
         updated_at=now(),
       ),
@@ -92,7 +94,7 @@ def _seed() -> None:
         requester_id=Mara.id,
         assignee_id=Sam.id,
         priority=Priority.HIGH,
-        domains=("Facilities", "Room 4"),
+        domains=(names[2], names[3]),
         created_at=now(),
         updated_at=now(),
       ),
