@@ -16,6 +16,7 @@ One root `AGENTS.md` only. Do not add nested `AGENTS.md` files unless a package 
 
 - The application package is `pwedepa/`. Split it into subpackages by job as features land.
 - The web shell lives in `pwedepa/web/`: Flask routes in `routes/`, Jinja templates in `templates/`, and PWA files in `static/`. Its tests live in `tests/web/`. Run it with `python -m pwedepa.web`.
+- Settled design decisions live in `docs/design.md`. Update it in the same change that changes a design pick.
 - Repository gates and tools live in `scripts/`. Their tests live in `tests/scripts/`.
 - The workflow set lives in `.github/workflows/`. The set contract is `scripts/gate_workflows.py`.
 - Update this file in the same change that changes the layout it points to.
