@@ -26,6 +26,14 @@ def create_app(config: dict | None = None) -> Flask:
   if config:
     app.config.update(config)
 
+  if app.config.get("DEMO_MODE"):
+
+    @app.after_request
+    def preview_no_store(response):
+      # Previews change often. Forbid storage so no copy can go stale.
+      response.headers["Cache-Control"] = "no-store"
+      return response
+
   data_db.connect(app.config["DATABASE"]).close()
   app.extensions["webauthn"] = WebAuthnConfig(
     rp_id=app.config["WEBAUTHN_RP_ID"],

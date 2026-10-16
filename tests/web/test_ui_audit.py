@@ -55,3 +55,32 @@ def test_unknown_path_renders_styled_404(app):
   response = app.test_client().get("/no-such-page")
   assert response.status_code == 404
   assert b"app.css" in response.data
+
+
+@pytest.fixture
+def demo_app(tmp_path):
+  return create_app(
+    {
+      "DATABASE": str(tmp_path / "demo.db"),
+      "WEBAUTHN_RP_ID": "example.com",
+      "WEBAUTHN_RP_NAME": "PwedePa",
+      "WEBAUTHN_ORIGIN": "https://example.com",
+      "SESSION_COOKIE_SECURE": True,
+      "DEMO_MODE": True,
+    }
+  )
+
+
+def test_demo_service_worker_retires_itself(demo_app):
+  body = demo_app.test_client().get("/sw.js").data
+  assert b"unregister" in body
+
+
+def test_demo_responses_forbid_storage(demo_app):
+  response = demo_app.test_client().get("/login")
+  assert "no-store" in response.headers.get("Cache-Control", "")
+
+
+def test_normal_service_worker_keeps_its_cache(app):
+  body = app.test_client().get("/sw.js").data
+  assert b"pwedepa-v3" in body

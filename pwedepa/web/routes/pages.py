@@ -18,6 +18,19 @@ from ._helpers import current_user, db
 
 bp = Blueprint("pages", __name__)
 
+# Demo previews serve a retiring worker instead of the caching one. Any
+# worker a preview browser installed deletes its caches and unregisters.
+RETIRING_WORKER = """self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+      .then(() => self.registration.unregister())
+      .then(() => self.clients.claim()),
+  );
+});
+"""
+
 
 @bp.get("/")
 def landing() -> str | Response:
@@ -65,6 +78,9 @@ def home() -> str | Response:
 @bp.get("/sw.js")
 def service_worker() -> Response:
   """Serve the worker from the root so its scope covers the whole app."""
-  response = send_from_directory("static", "sw.js")
+  if current_app.config.get("DEMO_MODE"):
+    response = Response(RETIRING_WORKER, mimetype="text/javascript")
+  else:
+    response = send_from_directory("static", "sw.js")
   response.headers["Service-Worker-Allowed"] = "/"
   return response
