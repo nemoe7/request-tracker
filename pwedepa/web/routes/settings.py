@@ -5,6 +5,7 @@ from werkzeug.wrappers import Response
 
 from pwedepa.auth import AuthError, Role, list_passkeys, list_roles, update_display_name
 from pwedepa.data import notifications as notifications_data
+from pwedepa.data import preferences as preferences_data
 
 from .. import now
 from ._helpers import current_user, db
@@ -43,6 +44,21 @@ def profile() -> Response:
     flash("Display name saved.")
   except AuthError as error:
     flash(str(error))
+  return redirect(url_for("settings.settings"))
+
+
+@bp.post("/settings/clock")
+def clock() -> Response:
+  """Save the signed-in user's 12 or 24 hour clock choice."""
+  user = current_user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  picked = request.form.get("clock", "")
+  if picked in preferences_data.CLOCKS:
+    preferences_data.set_clock(db(), user.id, picked)
+    flash("Time format saved.")
+  else:
+    flash("Unknown time format.")
   return redirect(url_for("settings.settings"))
 
 

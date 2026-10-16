@@ -1,5 +1,5 @@
 import re
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -8,6 +8,7 @@ from pwedepa.core import IssueStatus, Priority, Request
 from pwedepa.data import db as data_db
 from pwedepa.data import issues as issues_data
 from pwedepa.data import notifications as notifications_data
+from pwedepa.data import preferences as preferences_data
 from pwedepa.data import requests as requests_data
 from pwedepa.data import sharing as sharing_data
 from pwedepa.web import SESSION_COOKIE, create_app
@@ -267,6 +268,29 @@ def test_header_nav_is_a_single_requests_tab(cast, db):
   assert b'href="/my"' in client_page
   assert b">Requests</a>" in client_page
   assert b">Issues</a>" not in client_page
+
+
+def test_clock_preference_and_stamp_rendering(cast, db):
+  Mara, Mara_user = cast["Mara"]
+  assert preferences_data.get_clock(db, Mara_user.id) == "12"
+  old = (datetime.now(UTC) - timedelta(days=4)).replace(
+    hour=13, minute=5, second=0, microsecond=0
+  )
+  notifications_data.notify(db, Mara_user.id, "activity", "Old notice", at=old)
+  notifications_data.notify(
+    db, Mara_user.id, "activity", "Fresh notice", at=datetime.now(UTC)
+  )
+  inbox = Mara.get("/notifications")
+  assert b"1:05 PM" in inbox.data
+  assert b"just now" in inbox.data
+
+  Mara.post("/settings/clock", data={"clock": "24"})
+  assert preferences_data.get_clock(db, Mara_user.id) == "24"
+  assert b"13:05" in Mara.get("/notifications").data
+
+  Mara.post("/settings/clock", data={"clock": "13"})
+  assert preferences_data.get_clock(db, Mara_user.id) == "24"
+  assert b'name="clock"' in Mara.get("/settings").data
 
 
 def test_settings_profile_and_admin_pages(cast, db):

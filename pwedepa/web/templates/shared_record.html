@@ -21,7 +21,7 @@
     {% for event in comments %}
     <li class="comment">
       <p>{{ event.data.get("text", "") }}</p>
-      <p class="event-meta">{{ event.at.strftime("%b %-d, %H:%M") if event.at else "" }}</p>
+      <p class="event-meta">{{ event.at | stamp(clock) }}</p>
     </li>
     {% endfor %}
   </ul>

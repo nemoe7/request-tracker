@@ -10,7 +10,7 @@
   <dl class="facts">
     <div><dt>Domains</dt><dd>{{ record.domains | join(", ") or "—" }}</dd></div>
     <div><dt>Priority ask</dt><dd>{% if record.priority_suggestion %}{{ record.priority_suggestion.value | capitalize }}{% elif record.priority_unsure %}Not sure{% else %}—{% endif %}</dd></div>
-    <div><dt>Updated</dt><dd>{{ record.updated_at.strftime("%b %-d, %H:%M") if record.updated_at else "—" }}</dd></div>
+    <div><dt>Updated</dt><dd>{{ (record.updated_at | stamp(clock)) if record.updated_at else "—" }}</dd></div>
   </dl>
 
   {% if actions or can_edit %}
@@ -40,7 +40,7 @@
     {% for event in comments %}
     <li class="comment">
       <p>{{ event.data.get("text", "") }}</p>
-      <p class="event-meta">{{ names.get(event.actor_id, "Someone") }} · {{ event.at.strftime("%b %-d, %H:%M") if event.at else "" }}</p>
+      <p class="event-meta">{{ names.get(event.actor_id, "Someone") }} · {{ event.at | stamp(clock) }}</p>
     </li>
     {% endfor %}
   </ul>

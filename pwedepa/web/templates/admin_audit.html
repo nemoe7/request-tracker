@@ -15,7 +15,7 @@
         <td><code>{{ event.event_type }}</code></td>
         <td>{{ names.get(event.actor_id, "System") }}</td>
         <td>{{ event.object_type or "—" }}{% if event.object_id %} #{{ event.object_id }}{% endif %}</td>
-        <td>{{ event.created_at.strftime("%b %-d, %H:%M") if event.created_at else "" }}</td>
+        <td>{{ event.created_at | stamp(clock) }}</td>
       </tr>
       {% endfor %}
     </tbody>

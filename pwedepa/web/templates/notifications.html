@@ -23,7 +23,7 @@
           <button class="icon-btn" type="submit" aria-label="Dismiss notification"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#x"/></svg></button>
         </form>
       </div>
-      <p class="event-meta">{{ notice.category | capitalize }} · {{ names.get(notice.actor_id, "Someone") }} · {{ notice.created_at.strftime("%b %-d, %H:%M") if notice.created_at else "" }}</p>
+      <p class="event-meta">{{ notice.category | capitalize }} · {{ names.get(notice.actor_id, "Someone") }} · {{ notice.created_at | stamp(clock) }}</p>
       {% if notice.object_type == "request" %}<a class="btn" href="{{ url_for('records.request_detail', request_id=notice.object_id) }}">Open request</a>{% elif notice.object_type == "issue" %}<a class="btn" href="{{ url_for('records.issue_detail', issue_id=notice.object_id) }}">Open issue</a>{% endif %}
     </li>
     {% endfor %}
