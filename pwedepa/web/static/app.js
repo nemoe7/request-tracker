@@ -115,6 +115,16 @@ function setStatus(message) {
   if (status) status.textContent = message;
 }
 
+/* Frames without a WebAuthn delegation get a plain note, not a console error. */
+function ceremonyError(error) {
+  const blocked = error.name === "NotAllowedError" || error.name === "SecurityError"
+    || String(error.message).includes("publickey-credentials");
+  if (blocked) {
+    return "Passkeys need a direct browser tab. Open this page outside the preview, or use the demo entry.";
+  }
+  return error.message;
+}
+
 async function runCeremony(startUrl, finishUrl, extra, create) {
   const start = await postJson(startUrl, extra);
   const options = create
@@ -136,7 +146,7 @@ document.querySelector("#login-button")?.addEventListener("click", async () => {
     const done = await runCeremony("/login/options", "/login/finish", {}, false);
     window.location.assign(done.redirect || "/home");
   } catch (error) {
-    setStatus(error.message);
+    setStatus(ceremonyError(error));
   }
 });
 
@@ -150,7 +160,7 @@ document.querySelector("#enroll-form")?.addEventListener("submit", async (event)
     );
     window.location.assign(done.redirect || "/home");
   } catch (error) {
-    setStatus(error.message);
+    setStatus(ceremonyError(error));
   }
 });
 
@@ -165,7 +175,7 @@ document.querySelector("#add-passkey")?.addEventListener("click", async () => {
     await runCeremony("/auth/register/options", "/auth/register/finish", {}, true);
     window.location.reload();
   } catch (error) {
-    setStatus(error.message);
+    setStatus(ceremonyError(error));
   }
 });
 
