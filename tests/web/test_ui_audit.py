@@ -54,6 +54,30 @@ def test_assignee_keeps_workspace(app, db):
   assert client.get("/workspace").status_code == 200
 
 
+def _nav_tabs(html: str) -> list[str]:
+  block = re.search(r'<nav class="tabs".*?</nav>', html, re.DOTALL)
+  assert block, "the top bar carries no tab strip"
+  return re.findall(r"</svg>([^<]+)</a>", block.group(0))
+
+
+def test_staff_see_the_workspace_alone(app, db):
+  client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  tabs = _nav_tabs(client.get("/workspace").get_data(as_text=True))
+  assert tabs == ["Workspace"]
+
+
+def test_admins_see_the_workspace_alone(app, db):
+  client = _client(app, db, "Ana", "Ana Lim", roles=(Role.ADMIN,))
+  tabs = _nav_tabs(client.get("/workspace").get_data(as_text=True))
+  assert tabs == ["Workspace"]
+
+
+def test_requesters_keep_their_own_tabs(app, db):
+  client = _client(app, db, "Mara", "Mara Reyes", roles=(Role.REQUESTER,))
+  tabs = _nav_tabs(client.get("/my").get_data(as_text=True))
+  assert tabs == ["Requests", "Issues"]
+
+
 def test_unknown_path_renders_styled_404(app):
   response = app.test_client().get("/no-such-page")
   assert response.status_code == 404
