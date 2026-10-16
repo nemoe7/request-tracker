@@ -32,8 +32,13 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .app-icon .icon-animated { opacity: 0; transform: scale(0.96); }
 .app-icon:hover .icon-static { opacity: 0; }
 .app-icon:hover .icon-animated { opacity: 1; transform: scale(1.04); }
+.icon {
+  width: 18px; height: 18px; flex: 0 0 auto;
+  fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
 .tabs { display: flex; gap: 4px; align-items: center; }
-.tabs a, .tab-soon { padding: 8px 12px; border-radius: 8px; font-weight: 600; color: var(--muted); text-decoration: none; }
+.tabs a, .tab-soon { padding: 8px 12px; border-radius: 8px; font-weight: 600; color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; gap: 7px; }
 .tabs a.is-active { background: var(--surface-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
 .tab-soon { opacity: 0.55; }
 .top-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }

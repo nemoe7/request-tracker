@@ -234,3 +234,8 @@ def test_pwa_assets_are_served(client):
   icon = client.get("/static/icons/icon-maskable-512.png")
   assert icon.status_code == 200
   assert icon.data[:4] == b"\x89PNG"
+
+  sprite = client.get("/static/icons/lucide.svg")
+  assert sprite.status_code == 200
+  assert b'id="contrast"' in sprite.data
+  assert b'id="log-out"' in sprite.data

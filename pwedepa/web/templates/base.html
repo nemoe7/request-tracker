@@ -25,15 +25,15 @@
     </a>
     {% if user %}
     <nav class="tabs" aria-label="Main">
-      <a class="is-active" href="{{ url_for('pages.home') }}">Home</a>
-      <span class="tab-soon" aria-disabled="true">Requests</span>
-      <span class="tab-soon" aria-disabled="true">Issues</span>
+      <a class="is-active" href="{{ url_for('pages.home') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#house"/></svg>Home</a>
+      <span class="tab-soon" aria-disabled="true"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg>Requests</span>
+      <span class="tab-soon" aria-disabled="true"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg>Issues</span>
     </nav>
     {% endif %}
     <div class="top-actions">
-      <button class="chip-btn" id="theme-toggle" type="button">◐ <span id="theme-label">System</span></button>
+      <button class="chip-btn" id="theme-toggle" type="button"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg><span id="theme-label">System</span></button>
       {% if user %}
-      <button class="chip-btn" id="logout-button" type="button">Sign out</button>
+      <button class="chip-btn" id="logout-button" type="button"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#log-out"/></svg>Sign out</button>
       <span class="avatar" aria-hidden="true">{{ user.display_name[0] }}</span>
       {% else %}
       <a class="btn primary" href="{{ url_for('pages.login') }}">Sign in</a>
