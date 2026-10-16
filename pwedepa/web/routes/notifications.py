@@ -24,3 +24,23 @@ def inbox() -> str | Response:
       actor = get_user(db(), notice.actor_id)
       names[notice.actor_id] = actor.display_name if actor else "Someone"
   return render_template("notifications.html", notices=notices, names=names)
+
+
+@bp.post("/notifications/<int:notice_id>/dismiss")
+def dismiss(notice_id: int) -> Response:
+  """Remove one of the signed-in user's own notices."""
+  user = current_user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  notifications_data.delete_for_user(db(), user.id, notice_id)
+  return redirect(url_for("notifications.inbox"))
+
+
+@bp.post("/notifications/clear")
+def clear() -> Response:
+  """Remove every notice the signed-in user holds."""
+  user = current_user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  notifications_data.delete_all_for_user(db(), user.id)
+  return redirect(url_for("notifications.inbox"))
