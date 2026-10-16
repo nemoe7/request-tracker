@@ -85,7 +85,7 @@ select:focus-visible, textarea:focus-visible {
 .status { min-height: 1.45em; color: var(--warn); font-weight: 600; }
 
 .facts { margin: 8px 0 0; }
-.facts div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+.facts div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
 .facts dt { color: var(--muted); }
 .facts dd { margin: 0; font-weight: 600; }
 
@@ -145,7 +145,7 @@ select:focus-visible, textarea:focus-visible {
 .desc { font-size: 15px; }
 .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 16px; margin: 14px 0; }
 .facts dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
-.facts dd { margin: 2px 0 0; font-size: 14px; font-weight: 600; }
+.facts dd { margin: 0; font-size: 14px; font-weight: 600; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .actions-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; margin: 14px 0; }
 .btn.danger { color: var(--danger); border-color: var(--line); background: none; }

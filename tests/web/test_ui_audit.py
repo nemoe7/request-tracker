@@ -352,6 +352,17 @@ def test_workspace_opens_two_cards_then_swaps_the_centre_one(app, db):
   )
 
 
+def test_fact_rows_share_one_baseline(app):
+  css = app.test_client().get("/static/app.css").data.decode()
+  rules = {sel.strip(): body for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)}
+  assert "align-items: baseline" in rules.get(".facts div", ""), (
+    "the label and its value sit on one line"
+  )
+  assert rules.get(".facts dd", "").strip().startswith("margin: 0"), (
+    "a stray top margin drops the value below the label"
+  )
+
+
 def test_the_share_row_gives_every_control_one_height(app):
   css = app.test_client().get("/static/app.css").data.decode()
   rules = {sel.strip(): body for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)}
