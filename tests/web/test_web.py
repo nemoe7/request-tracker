@@ -258,3 +258,18 @@ def test_the_passkey_id_keeps_its_own_value(monkeypatch, tmp_path):
   monkeypatch.setenv("PWEDEPA_RP_ID", "example.com")
   app = create_app({"DATABASE": str(tmp_path / "explicit.db")})
   assert app.config["WEBAUTHN_RP_ID"] == "example.com"
+
+
+def test_a_public_host_refuses_the_sample_secret():
+  """A deploy that forgets its secret must not start on the public value."""
+  from pwedepa.web import check_secret
+
+  with pytest.raises(RuntimeError, match="PWEDEPA_SECRET_KEY"):
+    check_secret("pwedepa-dev-secret", "https://pwedepa.example.ts.net")
+
+
+def test_a_real_secret_or_a_local_run_passes_the_check():
+  from pwedepa.web import check_secret
+
+  check_secret("a-real-secret", "https://pwedepa.example.ts.net")
+  check_secret("pwedepa-dev-secret", "http://localhost:5000")

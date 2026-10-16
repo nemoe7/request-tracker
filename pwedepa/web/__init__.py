@@ -12,10 +12,21 @@ from pwedepa.data import db as data_db
 SESSION_COOKIE = "pwedepa_session"
 
 
+def check_secret(secret_key: str, origin: str) -> None:
+  """Refuse the sample secret on a public host. Every real run calls this."""
+  host = urlparse(origin).hostname
+  if secret_key == DEVELOPMENT_SECRET and host not in LOCAL_HOSTS:
+    raise RuntimeError(f"{host or origin} needs its own PWEDEPA_SECRET_KEY")
+
+
+DEVELOPMENT_SECRET = "pwedepa-dev-secret"
+LOCAL_HOSTS = ("localhost", "127.0.0.1", "::1")
+
+
 def create_app(config: dict | None = None) -> Flask:
   """Build the app from environment defaults plus explicit overrides."""
   app = Flask(__name__)
-  app.secret_key = os.environ.get("PWEDEPA_SECRET_KEY", "pwedepa-dev-secret")
+  app.secret_key = os.environ.get("PWEDEPA_SECRET_KEY", DEVELOPMENT_SECRET)
   # The public origin names the passkey, so the ID follows it unless the deploy
   # asks for a different one.
   origin = os.environ.get("PWEDEPA_ORIGIN", "http://localhost:5000")
