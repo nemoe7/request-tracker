@@ -137,6 +137,16 @@ def rewrite(
   )
 
 
+def _drop_worker(script: Path) -> None:
+  """Take the worker registration out of the frozen copy of the app script."""
+  kept = [
+    line
+    for line in script.read_text(encoding="utf-8").splitlines(keepends=True)
+    if "serviceWorker.register" not in line
+  ]
+  script.write_text("".join(kept), encoding="utf-8")
+
+
 def seeded_records(database: Path) -> tuple[list[int], list[int]]:
   """Return the seeded request and issue ids, so their links have a page."""
   connection = data_db.connect(str(database))
@@ -206,7 +216,9 @@ def main() -> int:
   frozen.update(folder for _, folder in client_pages)
   for route, folder in client_pages:
     freeze(route, folder, nav=nav)
-  shutil.copytree(ROOT / "pwedepa" / "web" / "static", out / "static")
+  static = out / "static"
+  shutil.copytree(ROOT / "pwedepa" / "web" / "static", static)
+  _drop_worker(static / "app.js")
   (out / ".nojekyll").write_text("", encoding="utf-8")
   for leftover in out.glob("demo.db*"):
     leftover.unlink()

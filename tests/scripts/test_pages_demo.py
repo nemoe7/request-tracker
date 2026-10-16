@@ -239,4 +239,14 @@ def test_a_swapped_card_leaves_every_link_on_a_real_page(tmp_path):
           target,
         )
     assert base, f"{page} answers no base element"
-    assert "document.baseURI" in html, f"{page} leaves its base free to drift"
+    pin = '<script>document.querySelector("base").href = document.baseURI;</script>'
+    assert pin in html, f"{page} leaves its base free to drift"
+
+
+def test_the_frozen_site_ships_no_service_worker(tmp_path):
+  """A worker at the host root cannot install, so the demo must not ask for one."""
+  out = _frozen_site(tmp_path)
+  script = (out / "static" / "app.js").read_text(encoding="utf-8")
+
+  assert "serviceWorker.register" not in script
+  assert not (out / "sw.js").exists()
