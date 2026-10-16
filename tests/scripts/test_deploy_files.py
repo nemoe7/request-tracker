@@ -42,8 +42,12 @@ def test_compose_keeps_the_app_data_on_a_volume():
 def test_compose_runs_the_tailscale_sidecar_for_the_funnel():
   sidecar = _compose()["services"]["tailscale"]
   assert sidecar["image"].startswith("tailscale/tailscale")
+  assert sidecar["environment"]["TS_HOSTNAME"] == "pwedepa"
   assert sidecar["environment"]["TS_SERVE_CONFIG"] == "/config/tailscale-funnel.json"
   assert sidecar["environment"]["TS_STATE_DIR"] == "/var/lib/tailscale"
+  assert "TS_CERT_DOMAIN" not in sidecar["environment"], (
+    "the sidecar fills the cert domain placeholder itself"
+  )
   mounts = [str(volume) for volume in sidecar["volumes"]]
   assert "./tailscale-funnel.json:/config/tailscale-funnel.json:ro" in mounts
   assert "tailscale-state:/var/lib/tailscale" in mounts

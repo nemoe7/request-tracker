@@ -30,13 +30,12 @@ The app listens on `127.0.0.1:5000` on the host, and the sidecar reaches it at `
 
 The `tailscale` service joins your tailnet and serves the public HTTPS name with Funnel. It mounts `tailscale-funnel.json` at `/config` and reads that file as `TS_SERVE_CONFIG`. The config proxies the public name to `http://pwedepa:5000`.
 
-1. Mint a reusable auth key in the Tailscale admin console, then set the sidecar names. `TS_CERT_DOMAIN` is the node name, in the form `pwedepa.your-tailnet.ts.net`.
+1. Mint a reusable auth key in the Tailscale admin console, then set the public names. The sidecar calls its node `pwedepa`, so the public name is `pwedepa.your-tailnet.ts.net`. Read your own tailnet name from `docker compose logs tailscale` after the first start.
 
    ```sh
    export TS_AUTHKEY=tskey-auth-...
-   export TS_CERT_DOMAIN=pwedepa.your-tailnet.ts.net
-   export PWEDEPA_RP_ID="$TS_CERT_DOMAIN"
-   export PWEDEPA_ORIGIN="https://$TS_CERT_DOMAIN"
+   export PWEDEPA_RP_ID=pwedepa.your-tailnet.ts.net
+   export PWEDEPA_ORIGIN=https://pwedepa.your-tailnet.ts.net
    ```
 
 2. Start both services, then read the Funnel status.
@@ -65,7 +64,7 @@ To run the preview demo on your own machine, ask for demo mode in code:
 ## Notes
 
 - Back up the `pwedepa-data` volume. It holds the only database copy.
-- The `tailscale-state` volume holds the node identity, so a rebuild keeps the device.
+- The `tailscale-state` volume holds the node identity, so a rebuild keeps the device. Restart the sidecar after you edit `tailscale-funnel.json`, because it reads the file at startup.
 - The starter Domains come from `domains.json`. Keep it at the project root. The image copies it to `/app/domains.json`, and a missing file fails the demo seed with a clear error.
 - Demo mode stays off in deployment. Code asks for it, and no environment variable sets it.
 - The container workflow scans each image build for high and critical findings.

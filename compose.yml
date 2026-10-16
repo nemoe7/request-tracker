@@ -15,19 +15,14 @@ services:
   tailscale:
     image: tailscale/tailscale:latest
     container_name: pwedepa-tailscale
-    hostname: pwedepa
     environment:
       TS_AUTHKEY: ${TS_AUTHKEY:-}
-      TS_CERT_DOMAIN: ${TS_CERT_DOMAIN:-}
+      TS_HOSTNAME: pwedepa
       TS_STATE_DIR: /var/lib/tailscale
       TS_SERVE_CONFIG: /config/tailscale-funnel.json
     volumes:
       - tailscale-state:/var/lib/tailscale
       - ./tailscale-funnel.json:/config/tailscale-funnel.json:ro
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun:/dev/net/tun
     restart: unless-stopped
 
 volumes:
