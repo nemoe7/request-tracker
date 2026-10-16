@@ -312,7 +312,20 @@ def test_the_scrollbar_matches_the_theme(app):
 
 def test_normal_service_worker_keeps_its_cache(app):
   body = app.test_client().get("/sw.js").data
-  assert b"pwedepa-v3" in body
+  assert b"pwedepa-v4" in body
+
+
+def test_the_worker_caches_the_static_files_only(app):
+  """A shared browser must not keep a private page after a sign-out."""
+  worker = app.test_client().get("/sw.js").data.decode("utf-8")
+  handler = worker.split('self.addEventListener("fetch"', 1)[1]
+  assert "response.ok && " in handler, "the worker must decide before it caches"
+  assert "url.origin === self.location.origin" in handler, (
+    "another origin may not fill our cache"
+  )
+  assert 'startsWith("/static/")' in handler, "only a static file may enter the cache"
+  assets = worker.split("const ASSETS", 1)[1].split("];", 1)[0]
+  assert '"/",' not in assets, "the root page is not a static file"
 
 
 def test_motion_stays_fluid(app):

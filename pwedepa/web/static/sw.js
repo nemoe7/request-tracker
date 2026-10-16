@@ -1,6 +1,5 @@
-const CACHE = "pwedepa-v3";
+const CACHE = "pwedepa-v4";
 const ASSETS = [
-  "/",
   "/static/tokens.css",
   "/static/app.css",
   "/static/app.js",
@@ -28,7 +27,9 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        if (response.ok) {
+        // A page holds one person's records, so only our own static files are kept.
+        const url = new URL(event.request.url);
+        if (response.ok && url.origin === self.location.origin && url.pathname.startsWith("/static/")) {
           const copy = response.clone();
           caches.open(CACHE).then((cache) => cache.put(event.request, copy));
         }
