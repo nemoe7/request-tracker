@@ -49,6 +49,8 @@ def edit_request(
   **fields,
 ) -> Change:
   """Edit a Request. A requester edit of a pending Request returns it to OPEN."""
+  if not fields:
+    raise DomainError("an edit needs at least one field")
   _check_fields(fields, REQUEST_FIELDS)
   if request.deleted_at is not None:
     raise DomainError("a deleted request cannot be edited")
@@ -90,6 +92,8 @@ def edit_issue(
   **fields,
 ) -> Change:
   """Edit an Issue. Only an admin reassigns. A priority change is its own event."""
+  if not fields:
+    raise DomainError("an edit needs at least one field")
   _check_fields(fields, ISSUE_FIELDS)
   if issue.deleted_at is not None:
     raise DomainError("a deleted issue cannot be edited")

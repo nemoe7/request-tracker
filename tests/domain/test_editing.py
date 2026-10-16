@@ -91,6 +91,13 @@ def test_assignee_cannot_reassign():
     edit_issue(make_issue(), Actor(id=7), at=LATER, assignee_id=8)
 
 
+def test_empty_edit_fails():
+  with pytest.raises(DomainError):
+    edit_request(make_request(), OWNER, at=LATER)
+  with pytest.raises(DomainError):
+    edit_issue(make_issue(), ADMIN, at=LATER)
+
+
 def test_assignee_cannot_change_visibility():
   assigned = edit_issue(make_issue(), ADMIN, at=LATER, assignee_id=7).object
   with pytest.raises(DomainError):
