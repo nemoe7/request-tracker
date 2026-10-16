@@ -12,8 +12,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - A Tailscale sidecar in `compose.yml`, with named containers: `pwedepa-app` and `pwedepa-tailscale`.
 - `.env.example`, and a session secret that compose demands before it starts.
 - The passkey ID follows the public origin, unless a deploy sets `PWEDEPA_RP_ID`.
-- The Docker workflow publishes the dev image from `main`, and a release tag publishes the versioned image.
-- The gemini release workflow drafts a version and its notes. Start the release image with the approved tag.
+- The Docker workflow publishes the dev image from a passing CI run on `main`, and both platform legs land behind one tag.
+- An approved release draft publishes the version tag and `latest`, through the approved tag in that run's log.
 
 ### Changed
 

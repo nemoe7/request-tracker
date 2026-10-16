@@ -36,15 +36,16 @@ Markdown gets one more check: `markdownlint-cli2`, with the rules in `.markdownl
 
 ## Images
 
-The Docker workflow publishes the dev image from `main` as `ghcr.io/nemoe7/pwedepa:dev`, with a second tag that names the commit: `dev-<7-char sha>`.
+The **Docker** workflow publishes `ghcr.io/nemoe7/pwedepa`. Every image carries both platforms, linux/amd64 and linux/arm64, behind one tag.
+
+- A CI run that passes on `main` publishes the dev image. It carries the moving tag `dev` and a tag that names the commit, `dev-<7-char sha>`. The workflow keeps the newest ten dev tags and removes the rest.
+- An approved proposal publishes the release image. It carries the version tag and `latest`. The approval makes the tag with the automatic token, and GitHub starts no workflow for a tag made that way. So the Docker workflow also watches the draft run and reads the approved tag from its log.
 
 `compose.yml` runs the published image. `compose.dev.yml` builds this checkout for a local run.
 
-A release goes through the **Gemini Release Draft** workflow. It reads the commits since the last release, proposes the next semver version and the notes, and waits. Approve the proposal from the Actions tab, and the workflow creates the tag.
+A release goes through the **Gemini Release Draft** workflow. It reads the commits since the last release, proposes the next semver version and the notes, and waits. Approve the proposal from the Actions tab: the workflow creates the tag, and the Docker workflow builds the image.
 
-A tag made with the automatic token starts no other workflow, so the approval does not start this build by itself. Start the **Docker release** workflow from the Actions tab and pass the tag. It builds `ghcr.io/nemoe7/pwedepa:<version>` and moves `latest`. A tag pushed by hand starts the same build.
-
-The draft needs one repository secret: `GEMINI_API_KEY`. The proposal and the approval both run by hand, and nothing else touches the release path. The Gemini draft workflow arrives from upstream, so a change there waits for that sync.
+The draft needs one repository secret: `GEMINI_API_KEY`. The proposal and the approval both run by hand. The Gemini draft workflow arrives from upstream, so a change there waits for that sync.
 
 ## Docs
 

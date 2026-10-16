@@ -39,13 +39,13 @@ def test_required_file_set_is_exact():
     "container-scan.yml",
     "dependency-review.yml",
     "docker.yml",
-    "docker-release.yml",
     "pages.yml",
     "pr-check.yml",
     "secret-scan.yml",
     "workflow-security.yml",
   )
   assert gate_workflows.EXEMPT_FILES == ("gemini-release.yml",)
+  assert gate_workflows.WORKFLOW_RUN_FILES == ("docker.yml",)
 
 
 def write_set(directory, names) -> None:
@@ -94,6 +94,13 @@ def test_workflow_run_fails():
   document = copy.deepcopy(BASE)
   document["on"]["workflow_run"] = {"workflows": ["CI"]}
   assert any("workflow_run" in finding for finding in findings(document))
+
+
+def test_the_named_file_may_watch_a_run():
+  document = copy.deepcopy(BASE)
+  document["on"]["workflow_run"] = {"workflows": ["CI"]}
+  assert findings(document, name="docker.yml") == []
+  assert any("workflow_run" in finding for finding in findings(document, name="ci.yml"))
 
 
 def test_pull_request_target_passes():

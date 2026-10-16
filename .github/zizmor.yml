@@ -5,7 +5,10 @@ rules:
         "*": ref-pin
 
   # These base-only workflows inspect PR data. They do not execute PR code.
+  # docker.yml watches a finished run to read an approved release tag. It never
+  # checks out a ref from the event, so no pull request code reaches it.
   dangerous-triggers:
     ignore:
       - dependency-review.yml
+      - docker.yml
       - secret-scan.yml

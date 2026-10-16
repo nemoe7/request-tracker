@@ -1,48 +1,93 @@
 name: Docker
 
-# The dev image follows main. The paths filter keeps the run off changes that
-# cannot reach the image, such as docs, tests, and the workflow set.
 on:
   push:
-    branches: [main]
-    paths:
-      - "Dockerfile"
-      - ".dockerignore"
-      - "domains.json"
-      - "pwedepa/**"
-      - "pyproject.toml"
-      - "uv.lock"
-      - ".github/workflows/docker.yml"
+    tags: ["v*"]
+  workflow_run:
+    workflows: ["CI", "Gemini Release Draft"]
+    types: [completed]
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Whether to publish the rolling dev image or a release
+        required: true
+        type: choice
+        options:
+          - dev
+          - release
+        default: dev
+      tag:
+        description: Release tag to build, such as v1.2.3. Release mode only
+        required: false
+        type: string
 
+# Least privilege at the top. Each job asks for packages: write where it publishes.
 permissions:
   contents: read
 
-# The rolling dev tag moves, so a newer build replaces an older one.
-concurrency:
-  group: docker-dev
-  cancel-in-progress: true
-
+# 1 native runner for each platform, so no job emulates the arm64 build. Each
+# leg pushes a digest, and a merge job puts the tags on the manifest list.
+#
+# A successful CI run on main publishes the rolling dev image. A new dev build
+# replaces an older one, so its group cancels.
 jobs:
   dev:
-    runs-on: ubuntu-24.04
+    if: >-
+      (github.event_name == 'workflow_run'
+      && github.event.workflow_run.name == 'CI'
+      && github.event.workflow_run.conclusion == 'success'
+      && github.event.workflow_run.head_branch == 'main')
+      || (github.event_name == 'workflow_dispatch' && inputs.mode == 'dev')
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     # Publishing to GHCR needs more than read, so the job asks for it here.
     permissions:
+      actions: read
       contents: read
       packages: write
+    concurrency:
+      group: docker-dev-${{ matrix.arch }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
     steps:
+      # `main` is a fixed, trusted ref. The commit CI tested is compared, never
+      # checked out, so no ref from the event reaches the checkout.
       - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
+          ref: main
 
-      - id: dev
-        name: Resolve the dev version
+      - name: Pin the tested commit
+        env:
+          EXPECTED: ${{ github.event.workflow_run.head_sha || github.sha }}
         shell: bash
         run: |
           set -euo pipefail
 
-          printf 'version=dev-%s\n' "$(git rev-parse --short=7 HEAD)" >>"$GITHUB_OUTPUT"
+          actual="$(git rev-parse HEAD)"
+          if [[ -n "$EXPECTED" && "$actual" != "$EXPECTED" ]]; then
+            echo "main is at $actual, but CI tested $EXPECTED" >&2
+            exit 1
+          fi
+
+      - id: dev
+        name: Resolve Dev Version
+        env:
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          short="$(git rev-parse --short "$SHA")"
+          printf 'short=%s\n' "$short" >>"$GITHUB_OUTPUT"
+          printf 'version=dev-%s\n' "$short" >>"$GITHUB_OUTPUT"
 
       - uses: docker/setup-buildx-action@v4.4.1
       - uses: docker/login-action@v4.6.0
@@ -50,7 +95,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - id: meta
         uses: docker/metadata-action@v6.2.0
         with:
@@ -58,13 +102,369 @@ jobs:
           tags: |
             type=raw,value=dev
             type=raw,value=${{ steps.dev.outputs.version }}
-
-      # One linux/amd64 leg. An arm64 leg can join when a host needs it.
-      - uses: docker/build-push-action@v7.4.0
+      # A digest only: the merge job puts the dev tags on the manifest list.
+      - id: build
+        uses: docker/build-push-action@v7.4.0
         with:
           context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/${{ matrix.arch }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          build-args: VERSION=${{ steps.dev.outputs.version }}
+          # A plain manifest for each platform: no attestation entry hides behind the digest.
+          provenance: false
+          sbom: false
+          outputs: type=image,name=ghcr.io/${{ github.repository_owner }}/pwedepa,push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=dev-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=dev-${{ matrix.arch }}
+      - name: Export the Digest
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p /tmp/digests
+          touch "/tmp/digests/${DIGEST#sha256:}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: digests-dev-${{ matrix.arch }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # The 2 digests land under 1 manifest list with the dev tags.
+  dev-merge:
+    needs: dev
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+      packages: write
+    concurrency:
+      group: docker-dev
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+          ref: main
+
+      - id: dev
+        name: Resolve Dev Version
+        env:
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          short="$(git rev-parse --short "$SHA")"
+          printf 'short=%s\n' "$short" >>"$GITHUB_OUTPUT"
+          printf 'version=dev-%s\n' "$short" >>"$GITHUB_OUTPUT"
+
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: digests-dev-*
+          path: /tmp/digests
+          merge-multiple: true
+      - uses: docker/setup-buildx-action@v4.4.1
+      - uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v6.2.0
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/pwedepa
+          tags: |
+            type=raw,value=dev
+            type=raw,value=${{ steps.dev.outputs.version }}
+      - name: Create the Manifest
+        working-directory: /tmp/digests
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/pwedepa
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # The flag and its tag ride as 2 argv entries, or buildx reads a bad reference.
+          mapfile -t tag_args < <(jq -r '.tags[] | "-t", .' <<<"${DOCKER_METADATA_OUTPUT_JSON:-{}}")
+          if ((${#tag_args[@]} == 0)); then
+            echo "The metadata output holds no tag" >&2
+            exit 1
+          fi
+          shopt -s nullglob
+          digests=()
+          for file in *; do
+            digests+=("${IMAGE}@sha256:${file}")
+          done
+          if ((${#digests[@]} == 0)); then
+            echo "No digest landed in /tmp/digests" >&2
+            exit 1
+          fi
+          printf 'tag %s\n' "${tag_args[@]}"
+          printf 'digest %s\n' "${digests[@]}"
+          docker buildx imagetools create "${tag_args[@]}" "${digests[@]}"
+
+      # The rolling dev tag moves, so each build leaves an old dev-COMMIT version behind.
+      # Keep the newest 10. A release tag or latest never starts with dev-, so it stays.
+      - name: Prune Old Dev Versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # The package carries the image name, which is not the repository name.
+          REPO: ${{ github.repository_owner }}/pwedepa
+          KEEP: 10
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          OWNER="${REPO%%/*}"
+          PACKAGE="${REPO#*/}"
+          if gh api "orgs/$OWNER" >/dev/null 2>&1; then
+            scope="orgs/$OWNER"
+          else
+            scope="users/$OWNER"
+          fi
+          versions="$scope/packages/container/$PACKAGE/versions"
+          mapfile -t stale < <(
+            gh api --paginate "$versions?per_page=100" \
+              --jq '.[] | select((.metadata.container.tags // []) | any(startswith("dev-"))) | "\(.created_at) \(.id)"' \
+              | sort -r | tail -n +$((KEEP + 1)) | cut -d' ' -f2
+          )
+          for id in "${stale[@]}"; do
+            gh api --method DELETE "$versions/$id"
+          done
+          echo "Deleted ${#stale[@]} old dev versions."
+
+  # A tag push, or a Gemini Release Draft that ran to the end, publishes the release
+  # image. The job reads the approval itself and skips when the proposal was not
+  # approved. 1 build at a time, so latest ends on the newest tag.
+  release:
+    if: >-
+      github.event_name == 'push'
+      || (github.event_name == 'workflow_run'
+      && github.event.workflow_run.name == 'Gemini Release Draft')
+      || (github.event_name == 'workflow_dispatch' && inputs.mode == 'release')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # The approval and its log live in Actions, so the job reads them.
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      expected_sha: ${{ steps.release.outputs.expected_sha }}
+      skip: ${{ steps.release.outputs.skip }}
+    steps:
+      - id: release
+        name: Resolve Release Tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          DISPATCH_TAG: ${{ inputs.tag }}
+          EVENT_NAME: ${{ github.event_name }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag=""
+          expected_sha=""
+          skip="false"
+
+          case "$EVENT_NAME" in
+            push)
+              tag="${GITHUB_REF_NAME}"
+              ;;
+            workflow_dispatch)
+              tag="$DISPATCH_TAG"
+              ;;
+            workflow_run)
+              if [[ "$RUN_CONCLUSION" != "success" ]]; then
+                skip="true"
+              else
+                job_id="$(gh api --paginate \
+                  "repos/$REPOSITORY/actions/runs/$RUN_ID/jobs?per_page=100" \
+                  --jq '.jobs[] | select(.name == "draft") | .id' | tail -n 1)"
+
+                if [[ -z "$job_id" ]]; then
+                  skip="true"
+                else
+                  approval_conclusion="$(gh api \
+                    "repos/$REPOSITORY/actions/jobs/$job_id" \
+                    --jq '.steps[] | select(.name == "Approve Proposal") | .conclusion' | tail -n 1)"
+
+                  if [[ "$approval_conclusion" != "success" ]]; then
+                    skip="true"
+                  else
+                    approval_line="$(gh api --allow-escape-sequences "repos/$REPOSITORY/actions/jobs/$job_id/logs" | \
+                      sed -nE 's/.*Tag [\x60](v[0-9]+\.[0-9]+\.[0-9]+)[\x60] points to [\x60]([0-9a-f]{40})[\x60]\..*/\1 \2/p' | \
+                      tail -n 1)"
+
+                    if [[ -z "$approval_line" ]]; then
+                      echo "Approved proposal tag not found in job logs" >&2
+                      exit 1
+                    fi
+
+                    read -r tag expected_sha <<<"$approval_line"
+                  fi
+                fi
+              fi
+              ;;
+          esac
+
+          if [[ "$skip" != "true" ]]; then
+            if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "Invalid release tag: $tag" >&2
+              exit 1
+            fi
+            printf 'tag=%s\n' "$tag" >>"$GITHUB_OUTPUT"
+            printf 'expected_sha=%s\n' "$expected_sha" >>"$GITHUB_OUTPUT"
+          fi
+
+          printf 'skip=%s\n' "$skip" >>"$GITHUB_OUTPUT"
+
+  release-build:
+    needs: release
+    if: needs.release.outputs.skip != 'true'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    # Publishing to GHCR needs more than read, so the job asks for it here.
+    permissions:
+      actions: read
+      contents: read
+      packages: write
+    concurrency:
+      group: docker-release-${{ matrix.arch }}
+      cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ needs.release.outputs.tag }}
+
+      - name: Verify Release Commit
+        env:
+          EXPECTED_SHA: ${{ needs.release.outputs.expected_sha }}
+          TAG: ${{ needs.release.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          actual_sha="$(git rev-list -n 1 "$TAG^{commit}")"
+          if [[ -n "$EXPECTED_SHA" && "$actual_sha" != "$EXPECTED_SHA" ]]; then
+            echo "Tag $TAG points to $actual_sha, expected $EXPECTED_SHA" >&2
+            exit 1
+          fi
+
+      - uses: docker/setup-buildx-action@v4.4.1
+      - uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v6.2.0
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/pwedepa
+          tags: |
+            type=raw,value=${{ needs.release.outputs.tag }}
+            type=raw,value=latest
+      # A digest only: the merge job puts the release tags on the manifest list.
+      - id: build
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          platforms: linux/${{ matrix.arch }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: VERSION=${{ needs.release.outputs.tag }}
+          # A plain manifest for each platform: no attestation entry hides behind the digest.
+          provenance: false
+          sbom: false
+          outputs: type=image,name=ghcr.io/${{ github.repository_owner }}/pwedepa,push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=release-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=release-${{ matrix.arch }}
+      - name: Export the Digest
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p /tmp/digests
+          touch "/tmp/digests/${DIGEST#sha256:}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: digests-release-${{ matrix.arch }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # The 2 digests land under 1 manifest list with the release tag and latest.
+  release-merge:
+    needs: [release, release-build]
+    if: needs.release.outputs.skip != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+      packages: write
+    concurrency:
+      group: docker-release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: digests-release-*
+          path: /tmp/digests
+          merge-multiple: true
+      - uses: docker/setup-buildx-action@v4.4.1
+      - uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v6.2.0
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/pwedepa
+          tags: |
+            type=raw,value=${{ needs.release.outputs.tag }}
+            type=raw,value=latest
+      - name: Create the Manifest
+        working-directory: /tmp/digests
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/pwedepa
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # The flag and its tag ride as 2 argv entries, or buildx reads a bad reference.
+          mapfile -t tag_args < <(jq -r '.tags[] | "-t", .' <<<"${DOCKER_METADATA_OUTPUT_JSON:-{}}")
+          if ((${#tag_args[@]} == 0)); then
+            echo "The metadata output holds no tag" >&2
+            exit 1
+          fi
+          shopt -s nullglob
+          digests=()
+          for file in *; do
+            digests+=("${IMAGE}@sha256:${file}")
+          done
+          if ((${#digests[@]} == 0)); then
+            echo "No digest landed in /tmp/digests" >&2
+            exit 1
+          fi
+          printf 'tag %s\n' "${tag_args[@]}"
+          printf 'digest %s\n' "${digests[@]}"
+          docker buildx imagetools create "${tag_args[@]}" "${digests[@]}"

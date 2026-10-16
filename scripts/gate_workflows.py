@@ -2,7 +2,8 @@
 
 actionlint checks the syntax. zizmor audits the security. This gate holds the repository
 contract that both tools leave implicit. The contract is: the exact file set, a read-only
-top level, no `workflow_run` trigger, and credentials inside their job.
+top level, no `workflow_run` trigger outside the named file, and credentials
+inside their job.
 
 `gemini-release.yml` is exempt. It is a trusted, manual-only release workflow. It needs
 a write token at the top level, and it never runs pull request code.
@@ -25,13 +26,18 @@ REQUIRED_FILES = (
   "container-scan.yml",
   "dependency-review.yml",
   "docker.yml",
-  "docker-release.yml",
   "pages.yml",
   "pr-check.yml",
   "secret-scan.yml",
   "workflow-security.yml",
 )
 EXEMPT_FILES = ("gemini-release.yml",)
+
+# `docker.yml` watches the CI run and the Gemini Release Draft run. It needs
+# `workflow_run` for one reason: the approval makes the release tag with the
+# automatic token, and that tag starts no workflow of its own. The job checks
+# out `main`, never a ref from the event, and compares the commit CI tested.
+WORKFLOW_RUN_FILES = ("docker.yml",)
 
 # A pull request can run untrusted code, so these scopes stay out of its workflows.
 FORBIDDEN_PR_PERMISSIONS = ("contents", "actions", "packages", "id-token")
@@ -92,7 +98,7 @@ def audit_document(name: str, document: object) -> list[str]:
   triggers = triggers_of(document)
   if not triggers:
     findings.append(f"{name}: the workflow needs an `on` trigger")
-  if "workflow_run" in triggers:
+  if "workflow_run" in triggers and name not in WORKFLOW_RUN_FILES:
     findings.append(f"{name}: `workflow_run` is not allowed in this repository")
 
   permissions = document.get("permissions")
