@@ -1,0 +1,20 @@
+{
+  "include": [],
+  "exclude": [
+    ".agents/**",
+    ".github/**",
+    ".dockerignore",
+    ".gitattributes",
+    ".gitignore",
+    ".markdownlint-cli2.jsonc",
+    "AGENTS.md",
+    "ARENA.md",
+    "CHANGELOG.md",
+    "LICENSE.md",
+    "arena-state/**",
+    "ruff.toml",
+    "scripts/**",
+    "tests/**",
+    "uv.lock"
+  ]
+}

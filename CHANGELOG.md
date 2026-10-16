@@ -13,6 +13,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - `.env.example`, and a session secret that compose demands before it starts.
 - The passkey ID follows the public origin, unless a deploy sets `PWEDEPA_RP_ID`.
 - The app image builds as `pwedepa`, and a Docker workflow publishes the dev image from `main`.
+- The gemini release workflow drafts a version and its notes. An approved tag builds the release image.
 
 ## [0.1.0] - 2026-10-16
 

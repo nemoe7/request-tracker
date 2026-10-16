@@ -39,6 +39,7 @@ def test_required_file_set_is_exact():
     "container-scan.yml",
     "dependency-review.yml",
     "docker.yml",
+    "docker-release.yml",
     "pages.yml",
     "pr-check.yml",
     "secret-scan.yml",

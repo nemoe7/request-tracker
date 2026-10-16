@@ -1,0 +1,80 @@
+name: Docker release
+
+# The gemini release workflow creates the tag after you approve a proposal. The
+# tag is the signal, so this workflow needs no `workflow_run` trigger.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to build, such as v1.2.3
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # Publishing to GHCR needs more than read, so the job asks for it here.
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      # The full history lets the job prove the tag sits on `main`.
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ inputs.tag || github.ref }}
+
+      - id: release
+        name: Resolve the release tag
+        shell: bash
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+
+          tag="${INPUT_TAG:-${GITHUB_REF_NAME}}"
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "release tag must look like v1.2.3, found: $tag" >&2
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "release tag $tag must point at a commit on main" >&2
+            exit 1
+          fi
+          printf 'tag=%s\n' "$tag" >>"$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v4.4.1
+      - uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v6.2.0
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/pwedepa
+          tags: |
+            type=semver,pattern={{version}},value=${{ steps.release.outputs.tag }}
+            type=raw,value=latest
+
+      # One build at a time, so `latest` ends the newest release.
+      - uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=release
+          cache-to: type=gha,mode=max,scope=release

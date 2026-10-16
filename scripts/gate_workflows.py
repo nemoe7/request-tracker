@@ -25,6 +25,7 @@ REQUIRED_FILES = (
   "container-scan.yml",
   "dependency-review.yml",
   "docker.yml",
+  "docker-release.yml",
   "pages.yml",
   "pr-check.yml",
   "secret-scan.yml",
