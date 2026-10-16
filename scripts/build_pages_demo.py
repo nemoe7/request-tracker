@@ -11,6 +11,7 @@ import re
 import shutil
 import sys
 from pathlib import Path
+from urllib.parse import parse_qsl
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -43,9 +44,55 @@ STAFF_PAGES = (
 LINK_RE = re.compile(r'(href|action)="(/(?:[^"]*))"')
 
 
-def _relative(target: str, depth: int, frozen: set[str]) -> str:
+VIEW_KEYS = ("selected", "queue", "domain", "visibility")
+
+
+def _slug(value: str) -> str:
+  return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+
+
+def filter_views(html: str, request_ids: list[int]) -> dict[tuple[str, str], str]:
+  """Map each workspace filter and record row to a folder of its own."""
+  views = {
+    ("selected", str(number)): f"workspace/record/{number}" for number in request_ids
+  }
+  for key in VIEW_KEYS[1:]:
+    for query in re.findall(r'href="/workspace\?([^"]*)"', html):
+      value = dict(parse_qsl(query.replace("&amp;", "&"))).get(key, "")
+      if value:
+        views[(key, value)] = f"workspace/{key}/{_slug(value)}"
+  return views
+
+
+def _view(query: str, source: str, views: dict[tuple[str, str], str]) -> str | None:
+  """Return the frozen page for the first filter a link changes."""
+  new = dict(parse_qsl(query.replace("&amp;", "&")))
+  old = dict(parse_qsl(source.replace("&amp;", "&")))
+  old.setdefault("queue", "triage")
+  for key in VIEW_KEYS:
+    value = new.get(key, "")
+    if value and value != old.get(key, ""):
+      folder = views.get((key, value))
+      if folder:
+        return folder
+  return None
+
+
+def _relative(
+  target: str,
+  depth: int,
+  frozen: set[str],
+  source: str,
+  views: dict[tuple[str, str], str],
+) -> str:
   """Point one link at the nearest frozen page, relative to the page depth."""
   prefix = "./" if depth == 0 else "../" * depth
+  if "?" in target:
+    head, query = target.split("?", 1)
+    if head.strip("/") == "workspace":
+      folder = _view(query, source, views)
+      if folder:
+        return f"{prefix}{folder}/"
   path = target.split("?", 1)[0].split("#", 1)[0].strip("/")
   if path == "demo/switch/staff":
     return prefix
@@ -58,25 +105,27 @@ def _relative(target: str, depth: int, frozen: set[str]) -> str:
   return prefix if not path else f"{prefix}{path}/"
 
 
-def rewrite(html: str, depth: int, frozen: set[str]) -> str:
+def rewrite(html: str, depth: int, frozen: set[str], source: str, views) -> str:
   """Make root-absolute links relative, inside the frozen set, and read-only."""
   prefix = "./" if depth == 0 else "../" * depth
   html = html.replace('"/static/', f'"{prefix}static/')
   html = html.replace('method="post"', 'method="get"')
   return LINK_RE.sub(
-    lambda match: f'{match.group(1)}="{_relative(match.group(2), depth, frozen)}"',
+    lambda match: (
+      f'{match.group(1)}="{_relative(match.group(2), depth, frozen, source, views)}"'
+    ),
     html,
   )
 
 
-def record_folders(database: Path) -> list[str]:
-  """Return one folder per seeded record, so its links have a page to land on."""
+def seeded_records(database: Path) -> tuple[list[int], list[int]]:
+  """Return the seeded request and issue ids, so their links have a page."""
   connection = data_db.connect(str(database))
   try:
-    return [
-      *(f"requests/{record.id}" for record in requests_data.list_requests(connection)),
-      *(f"issues/{record.id}" for record in issues_data.list_issues(connection)),
-    ]
+    return (
+      [record.id for record in requests_data.list_requests(connection)],
+      [record.id for record in issues_data.list_issues(connection)],
+    )
   finally:
     connection.close()
 
@@ -99,23 +148,31 @@ def main() -> int:
     }
   )
   client = app.test_client()
-  folders = (*STAFF_PAGES, *record_folders(database))
-  frozen = {"", "home", *folders}
+  request_ids, issue_ids = seeded_records(database)
+  views = filter_views(client.get("/workspace").get_data(as_text=True), request_ids)
+  folders = (
+    *STAFF_PAGES,
+    *(f"requests/{number}" for number in request_ids),
+    *(f"issues/{number}" for number in issue_ids),
+  )
+  frozen = {"", "home", *folders, *views.values()}
 
-  def freeze(route: str, folder: str) -> None:
+  def freeze(route: str, folder: str, source: str = "") -> None:
     response = client.get(route)
     if response.status_code != 200:
       raise SystemExit(f"{route} answered {response.status_code}")
     depth = 0 if not folder else folder.count("/") + 1
     target = out / folder / "index.html" if folder else out / "index.html"
     target.parent.mkdir(parents=True, exist_ok=True)
-    page = rewrite(response.get_data(as_text=True), depth, frozen)
+    page = rewrite(response.get_data(as_text=True), depth, frozen, source, views)
     target.write_text(page, encoding="utf-8")
     print(f"froze {route} -> {target.relative_to(out)}")
 
   freeze("/workspace", "")
   for folder in folders:
     freeze(f"/{folder}", folder)
+  for (key, value), folder in views.items():
+    freeze(f"/workspace?{key}={value}", folder, source=f"{key}={value}")
   client.get("/demo/switch/client")
   freeze("/home", "home")
   shutil.copytree(ROOT / "pwedepa" / "web" / "static", out / "static")

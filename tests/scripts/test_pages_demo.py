@@ -48,6 +48,30 @@ def test_frozen_demo_keeps_pages_and_assets_relative(tmp_path):
   assert (out / "home" / "index.html").exists()
 
 
+def test_frozen_demo_opens_rail_filters_and_selected_records(tmp_path):
+  out = tmp_path / "site"
+  env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
+  result = subprocess.run(
+    [sys.executable, str(ROOT / "scripts" / "build_pages_demo.py")],
+    cwd=ROOT,
+    env=env,
+    capture_output=True,
+    text=True,
+    timeout=120,
+    check=False,
+  )
+  assert result.returncode == 0, result.stderr
+  index = (out / "index.html").read_text(encoding="utf-8")
+  queue = re.search(r'href="\./(workspace/queue/mine)/"[^>]*>My requests', index)
+  assert queue, "a queue link should open its own frozen page"
+  page = (out / queue.group(1) / "index.html").read_text(encoding="utf-8")
+  assert re.search(r'class="queue-item is-active"[^>]*>My requests', page)
+  record = re.search(r'href="\./(workspace/record/\d+)/"[^>]*>[^<]+</a>', index)
+  assert record, "a record row should open its own frozen page"
+  page = (out / record.group(1) / "index.html").read_text(encoding="utf-8")
+  assert '<tr class="is-selected">' in page
+
+
 def test_frozen_demo_ships_no_writes_and_no_dead_links(tmp_path):
   out = tmp_path / "site"
   env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
