@@ -129,8 +129,7 @@ def _status_list(html: str, frozen, source: str, views, page: str) -> str:
     target = _relative(f"/workspace?status={value}", frozen, source, views, None, page)
     mark = " is-active" if selected else ""
     links.append(f'<a class="queue-item{mark}" href="{target}">{label}</a>')
-  replacement = f'<div class="status-list">{"".join(links)}</div>'
-  return f"{html[: form.start()]}{replacement}{html[form.end() :]}"
+  return f"{html[: form.start()]}{''.join(links)}{html[form.end() :]}"
 
 
 def rewrite(

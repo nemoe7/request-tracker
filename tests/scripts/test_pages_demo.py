@@ -96,6 +96,15 @@ def test_the_frozen_rail_offers_one_link_per_status(tmp_path):
   assert re.search(r'<a class="queue-item is-active" href="[^"]*">Open</a>', opened)
 
 
+def test_the_status_links_sit_in_the_rail_like_the_domain_links(tmp_path):
+  """A wrapper class with no rule would send a reader after a rule that is absent."""
+  out = _frozen_site(tmp_path)
+  page = (out / "workspace" / "index.html").read_text(encoding="utf-8")
+  rail = re.search(r"<h2>Status</h2>(.*?)</aside>", page, re.DOTALL).group(1)
+
+  assert rail.lstrip().startswith('<a class="queue-item')
+
+
 def test_the_client_tabs_lead_to_client_shaped_pages(tmp_path):
   out = tmp_path / "site"
   env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
