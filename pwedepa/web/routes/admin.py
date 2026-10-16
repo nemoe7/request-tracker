@@ -268,10 +268,14 @@ def create_issue() -> Response:
     flash("An issue needs a title.")
     return redirect(url_for("admin.overview"))
   at = now()
-  row = db().execute("SELECT COALESCE(MAX(id), 0) + 1 AS next FROM issues").fetchone()
+  row = (
+    db()
+    .exec_driver_sql("SELECT COALESCE(MAX(id), 0) + 1 AS next FROM issues")
+    .fetchone()
+  )
   assignee = request.form.get("assignee_id", type=int)
   record = Issue(
-    id=row["next"],
+    id=row._mapping["next"],
     title=title,
     description=request.form.get("description", "").strip(),
     requester_id=request.form.get("requester_id", type=int),

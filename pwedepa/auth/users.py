@@ -1,9 +1,11 @@
 """User records and account lifecycle."""
 
-import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+
+from sqlalchemy.engine import Connection, Row
+from sqlalchemy.exc import IntegrityError
 
 from pwedepa.data._rows import pack_time, unpack_time
 
@@ -28,7 +30,7 @@ class User:
 
 
 def create_user(
-  db: sqlite3.Connection,
+  db: Connection,
   username: str,
   display_name: str,
   *,
@@ -41,12 +43,12 @@ def create_user(
   if not username or not display_name:
     raise AuthError("a user needs a username and a display name")
   try:
-    cursor = db.execute(
+    cursor = db.exec_driver_sql(
       "INSERT INTO users (username, display_name, status, created_at, updated_at) "
       "VALUES (?, ?, ?, ?, ?)",
       (username, display_name, UserStatus.ACTIVE.value, pack_time(at), pack_time(at)),
     )
-  except sqlite3.IntegrityError as exc:
+  except IntegrityError as exc:
     db.rollback()
     raise AuthError("the username is already in use") from exc
   record_audit(
@@ -64,7 +66,7 @@ def create_user(
 
 
 def update_display_name(
-  db: sqlite3.Connection,
+  db: Connection,
   user_id: int,
   display_name: str,
   *,
@@ -76,7 +78,7 @@ def update_display_name(
   if not display_name:
     raise AuthError("a user needs a display name")
   _require_user(db, user_id)
-  db.execute(
+  db.exec_driver_sql(
     "UPDATE users SET display_name = ?, updated_at = ? WHERE id = ?",
     (display_name, pack_time(at), user_id),
   )
@@ -94,34 +96,34 @@ def update_display_name(
   return get_user(db, user_id)
 
 
-def get_user(db: sqlite3.Connection, user_id: int) -> User | None:
-  row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+def get_user(db: Connection, user_id: int) -> User | None:
+  row = db.exec_driver_sql("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
   return None if row is None else _from_row(row)
 
 
-def get_user_by_username(db: sqlite3.Connection, username: str) -> User | None:
-  row = db.execute(
+def get_user_by_username(db: Connection, username: str) -> User | None:
+  row = db.exec_driver_sql(
     "SELECT * FROM users WHERE username = ? COLLATE NOCASE", (username.strip(),)
   ).fetchone()
   return None if row is None else _from_row(row)
 
 
-def list_users(db: sqlite3.Connection, *, include_archived: bool = False) -> list[User]:
+def list_users(db: Connection, *, include_archived: bool = False) -> list[User]:
   query = "SELECT * FROM users"
   if not include_archived:
     query += " WHERE archived_at IS NULL"
   query += " ORDER BY id"
-  return [_from_row(row) for row in db.execute(query)]
+  return [_from_row(row) for row in db.exec_driver_sql(query)]
 
 
 def archive_user(
-  db: sqlite3.Connection, user_id: int, *, at: datetime, actor_id: int | None = None
+  db: Connection, user_id: int, *, at: datetime, actor_id: int | None = None
 ) -> User:
   """Archive a user. Historical records keep pointing at the user."""
   user = _require_user(db, user_id)
   if user.status is UserStatus.ARCHIVED:
     return user
-  db.execute(
+  db.exec_driver_sql(
     "UPDATE users SET status = ?, archived_at = ?, updated_at = ? WHERE id = ?",
     (UserStatus.ARCHIVED.value, pack_time(at), pack_time(at), user_id),
   )
@@ -139,10 +141,10 @@ def archive_user(
 
 
 def reactivate_user(
-  db: sqlite3.Connection, user_id: int, *, at: datetime, actor_id: int | None = None
+  db: Connection, user_id: int, *, at: datetime, actor_id: int | None = None
 ) -> User:
   _require_user(db, user_id)
-  db.execute(
+  db.exec_driver_sql(
     "UPDATE users SET status = ?, archived_at = NULL, updated_at = ? WHERE id = ?",
     (UserStatus.ACTIVE.value, pack_time(at), user_id),
   )
@@ -159,20 +161,20 @@ def reactivate_user(
   return get_user(db, user_id)
 
 
-def _require_user(db: sqlite3.Connection, user_id: int) -> User:
+def _require_user(db: Connection, user_id: int) -> User:
   user = get_user(db, user_id)
   if user is None:
     raise AuthError("the user does not exist")
   return user
 
 
-def _from_row(row: sqlite3.Row) -> User:
+def _from_row(row: Row) -> User:
   return User(
-    id=row["id"],
-    username=row["username"],
-    display_name=row["display_name"],
-    status=UserStatus(row["status"]),
-    created_at=unpack_time(row["created_at"]),
-    updated_at=unpack_time(row["updated_at"]),
-    archived_at=unpack_time(row["archived_at"]),
+    id=row._mapping["id"],
+    username=row._mapping["username"],
+    display_name=row._mapping["display_name"],
+    status=UserStatus(row._mapping["status"]),
+    created_at=unpack_time(row._mapping["created_at"]),
+    updated_at=unpack_time(row._mapping["updated_at"]),
+    archived_at=unpack_time(row._mapping["archived_at"]),
   )

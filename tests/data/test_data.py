@@ -135,7 +135,8 @@ def test_initialize_is_idempotent(db):
   data_db.initialize(db)
   data_db.initialize(db)
   tables = {
-    row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+    row[0]
+    for row in db.exec_driver_sql("SELECT name FROM sqlite_master WHERE type = 'table'")
   }
   assert {
     "users",

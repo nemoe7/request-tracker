@@ -1,6 +1,6 @@
 """Save, load, and list Requests in SQLite."""
 
-import sqlite3
+from sqlalchemy.engine import Connection, Row
 
 from pwedepa.core import Priority, Request, RequestStatus, Visibility
 
@@ -12,8 +12,8 @@ COLUMNS = (
 )
 
 
-def save(db: sqlite3.Connection, request: Request) -> None:
-  db.execute(
+def save(db: Connection, request: Request) -> None:
+  db.exec_driver_sql(
     f"INSERT INTO requests ({COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
     "ON CONFLICT(id) DO UPDATE SET title = excluded.title, "
     "description = excluded.description, status = excluded.status, "
@@ -42,13 +42,15 @@ def save(db: sqlite3.Connection, request: Request) -> None:
   db.commit()
 
 
-def get(db: sqlite3.Connection, request_id: int) -> Request | None:
-  row = db.execute("SELECT * FROM requests WHERE id = ?", (request_id,)).fetchone()
+def get(db: Connection, request_id: int) -> Request | None:
+  row = db.exec_driver_sql(
+    "SELECT * FROM requests WHERE id = ?", (request_id,)
+  ).fetchone()
   return None if row is None else _from_row(row)
 
 
 def list_requests(
-  db: sqlite3.Connection,
+  db: Connection,
   *,
   status: RequestStatus | None = None,
   requester_id: int | None = None,
@@ -73,25 +75,25 @@ def list_requests(
   if clauses:
     query += " WHERE " + " AND ".join(clauses)
   query += " ORDER BY id"
-  return [_from_row(row) for row in db.execute(query, params)]
+  return [_from_row(row) for row in db.exec_driver_sql(query, tuple(params))]
 
 
-def _from_row(row: sqlite3.Row) -> Request:
+def _from_row(row: Row) -> Request:
   return Request(
-    id=row["id"],
-    title=row["title"],
-    description=row["description"],
-    status=RequestStatus(row["status"]),
-    requester_id=row["requester_id"],
+    id=row._mapping["id"],
+    title=row._mapping["title"],
+    description=row._mapping["description"],
+    status=RequestStatus(row._mapping["status"]),
+    requester_id=row._mapping["requester_id"],
     priority_suggestion=(
       None
-      if row["priority_suggestion"] is None
-      else Priority(row["priority_suggestion"])
+      if row._mapping["priority_suggestion"] is None
+      else Priority(row._mapping["priority_suggestion"])
     ),
-    priority_unsure=bool(row["priority_unsure"]),
-    visibility=Visibility(row["visibility"]),
-    domains=unpack_domains(row["domains"]),
-    created_at=unpack_time(row["created_at"]),
-    updated_at=unpack_time(row["updated_at"]),
-    deleted_at=unpack_time(row["deleted_at"]),
+    priority_unsure=bool(row._mapping["priority_unsure"]),
+    visibility=Visibility(row._mapping["visibility"]),
+    domains=unpack_domains(row._mapping["domains"]),
+    created_at=unpack_time(row._mapping["created_at"]),
+    updated_at=unpack_time(row._mapping["updated_at"]),
+    deleted_at=unpack_time(row._mapping["deleted_at"]),
   )

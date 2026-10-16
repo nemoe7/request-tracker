@@ -100,7 +100,7 @@ def test_roles_and_direct_grants_make_an_actor(db, user):
 
 def test_enrollment_token_is_hashed_single_use_and_expiring(db, user):
   issued = enrollment.issue_enrollment_token(db, user.id, at=AT)
-  row = db.execute("SELECT token_hash FROM enrollment_tokens").fetchone()
+  row = db.exec_driver_sql("SELECT token_hash FROM enrollment_tokens").fetchone()
   assert row[0] != issued.token
   assert row[0] == hashlib.sha256(issued.token.encode()).hexdigest()
   assert (
@@ -123,7 +123,7 @@ def test_enrollment_token_is_hashed_single_use_and_expiring(db, user):
 
 def test_session_lifecycle_and_rotation_reuse_detection(db, user):
   issued = sessions.create_session(db, user.id, at=AT)
-  row = db.execute("SELECT token_hash FROM sessions").fetchone()
+  row = db.exec_driver_sql("SELECT token_hash FROM sessions").fetchone()
   assert row[0] != issued.token
   assert row[0] == hashlib.sha256(issued.token.encode()).hexdigest()
   resolved = sessions.resolve_session(db, issued.token, at=LATER)

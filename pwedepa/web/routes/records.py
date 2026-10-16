@@ -80,8 +80,12 @@ def _names() -> dict[int, str]:
 
 
 def _next_id(table: str) -> int:
-  row = db().execute(f"SELECT COALESCE(MAX(id), 0) + 1 AS next FROM {table}").fetchone()
-  return row["next"]
+  row = (
+    db()
+    .exec_driver_sql(f"SELECT COALESCE(MAX(id), 0) + 1 AS next FROM {table}")
+    .fetchone()
+  )
+  return row._mapping["next"]
 
 
 def _can(actor, action: str, record) -> bool:

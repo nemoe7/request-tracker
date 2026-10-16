@@ -1,6 +1,6 @@
 """Save, load, and list Issues in SQLite."""
 
-import sqlite3
+from sqlalchemy.engine import Connection, Row
 
 from pwedepa.core import Issue, IssueStatus, Priority, Visibility
 
@@ -12,8 +12,8 @@ COLUMNS = (
 )
 
 
-def save(db: sqlite3.Connection, issue: Issue) -> None:
-  db.execute(
+def save(db: Connection, issue: Issue) -> None:
+  db.exec_driver_sql(
     f"INSERT INTO issues ({COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
     "ON CONFLICT(id) DO UPDATE SET title = excluded.title, "
     "description = excluded.description, status = excluded.status, "
@@ -41,13 +41,13 @@ def save(db: sqlite3.Connection, issue: Issue) -> None:
   db.commit()
 
 
-def get(db: sqlite3.Connection, issue_id: int) -> Issue | None:
-  row = db.execute("SELECT * FROM issues WHERE id = ?", (issue_id,)).fetchone()
+def get(db: Connection, issue_id: int) -> Issue | None:
+  row = db.exec_driver_sql("SELECT * FROM issues WHERE id = ?", (issue_id,)).fetchone()
   return None if row is None else _from_row(row)
 
 
 def list_issues(
-  db: sqlite3.Connection,
+  db: Connection,
   *,
   status: IssueStatus | None = None,
   requester_id: int | None = None,
@@ -76,22 +76,22 @@ def list_issues(
   if clauses:
     query += " WHERE " + " AND ".join(clauses)
   query += " ORDER BY id"
-  return [_from_row(row) for row in db.execute(query, params)]
+  return [_from_row(row) for row in db.exec_driver_sql(query, tuple(params))]
 
 
-def _from_row(row: sqlite3.Row) -> Issue:
+def _from_row(row: Row) -> Issue:
   return Issue(
-    id=row["id"],
-    title=row["title"],
-    description=row["description"],
-    status=IssueStatus(row["status"]),
-    source_request_id=row["source_request_id"],
-    requester_id=row["requester_id"],
-    assignee_id=row["assignee_id"],
-    priority=Priority(row["priority"]),
-    visibility=Visibility(row["visibility"]),
-    domains=unpack_domains(row["domains"]),
-    created_at=unpack_time(row["created_at"]),
-    updated_at=unpack_time(row["updated_at"]),
-    deleted_at=unpack_time(row["deleted_at"]),
+    id=row._mapping["id"],
+    title=row._mapping["title"],
+    description=row._mapping["description"],
+    status=IssueStatus(row._mapping["status"]),
+    source_request_id=row._mapping["source_request_id"],
+    requester_id=row._mapping["requester_id"],
+    assignee_id=row._mapping["assignee_id"],
+    priority=Priority(row._mapping["priority"]),
+    visibility=Visibility(row._mapping["visibility"]),
+    domains=unpack_domains(row._mapping["domains"]),
+    created_at=unpack_time(row._mapping["created_at"]),
+    updated_at=unpack_time(row._mapping["updated_at"]),
+    deleted_at=unpack_time(row._mapping["deleted_at"]),
   )

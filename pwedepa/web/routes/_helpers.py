@@ -1,8 +1,7 @@
 """Shared request helpers for the web routes."""
 
-import sqlite3
-
 from flask import current_app, g, request
+from sqlalchemy.engine import Connection
 
 from pwedepa.auth import WebAuthnConfig, get_user, resolve_session
 from pwedepa.data import db as data_db
@@ -10,7 +9,7 @@ from pwedepa.data import db as data_db
 from .. import SESSION_COOKIE, now
 
 
-def db() -> sqlite3.Connection:
+def db() -> Connection:
   """Return this request's database connection, opening it on first use."""
   if "db" not in g:
     g.db = data_db.connect(current_app.config["DATABASE"])

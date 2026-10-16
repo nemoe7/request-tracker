@@ -2,13 +2,14 @@
 
 import json
 import secrets
-import sqlite3
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
 import webauthn
+from sqlalchemy.engine import Connection, Row
+from sqlalchemy.exc import IntegrityError
 from webauthn import (
   generate_authentication_options,
   generate_registration_options,
@@ -61,7 +62,7 @@ class CeremonyStart:
 
 
 def start_registration(
-  db: sqlite3.Connection,
+  db: Connection,
   user: User,
   config: WebAuthnConfig,
   *,
@@ -93,7 +94,7 @@ def start_registration(
 
 
 def finish_registration(
-  db: sqlite3.Connection,
+  db: Connection,
   user: User,
   flow_id: str,
   credential: Any,
@@ -107,7 +108,7 @@ def finish_registration(
 
 
 def start_enrollment_registration(
-  db: sqlite3.Connection,
+  db: Connection,
   token: str,
   config: WebAuthnConfig,
   *,
@@ -122,7 +123,7 @@ def start_enrollment_registration(
 
 
 def finish_enrollment_registration(
-  db: sqlite3.Connection,
+  db: Connection,
   token: str,
   flow_id: str,
   credential: Any,
@@ -139,7 +140,7 @@ def finish_enrollment_registration(
 
 
 def start_authentication(
-  db: sqlite3.Connection,
+  db: Connection,
   config: WebAuthnConfig,
   *,
   at: datetime,
@@ -171,7 +172,7 @@ def start_authentication(
 
 
 def finish_authentication(
-  db: sqlite3.Connection,
+  db: Connection,
   flow_id: str,
   credential: Any,
   config: WebAuthnConfig,
@@ -211,7 +212,7 @@ def finish_authentication(
   ):
     raise AuthenticationFailed("the passkey sign count did not increase")
 
-  db.execute(
+  db.exec_driver_sql(
     "UPDATE passkeys SET sign_count = ?, last_used_at = ? WHERE id = ?",
     (verified.new_sign_count, pack_time(at), passkey.id),
   )
@@ -230,28 +231,30 @@ def finish_authentication(
 
 
 def list_passkeys(
-  db: sqlite3.Connection, user_id: int, *, include_revoked: bool = False
+  db: Connection, user_id: int, *, include_revoked: bool = False
 ) -> list[Passkey]:
   query = "SELECT * FROM passkeys WHERE user_id = ?"
   if not include_revoked:
     query += " AND revoked_at IS NULL"
   query += " ORDER BY id"
-  return [_from_row(row) for row in db.execute(query, (user_id,))]
+  return [_from_row(row) for row in db.exec_driver_sql(query, (user_id,))]
 
 
 def revoke_passkey(
-  db: sqlite3.Connection,
+  db: Connection,
   passkey_id: int,
   *,
   at: datetime,
   actor_id: int | None = None,
 ) -> Passkey:
   """Revoke one passkey while keeping its record for audit history."""
-  row = db.execute("SELECT * FROM passkeys WHERE id = ?", (passkey_id,)).fetchone()
+  row = db.exec_driver_sql(
+    "SELECT * FROM passkeys WHERE id = ?", (passkey_id,)
+  ).fetchone()
   if row is None:
     raise AuthError("the passkey does not exist")
-  if row["revoked_at"] is None:
-    db.execute(
+  if row._mapping["revoked_at"] is None:
+    db.exec_driver_sql(
       "UPDATE passkeys SET revoked_at = ? WHERE id = ?", (pack_time(at), passkey_id)
     )
     record_audit(
@@ -261,7 +264,7 @@ def revoke_passkey(
       actor_id=actor_id,
       object_type="passkey",
       object_id=passkey_id,
-      data={"user_id": row["user_id"]},
+      data={"user_id": row._mapping["user_id"]},
       commit=False,
     )
     db.commit()
@@ -269,7 +272,7 @@ def revoke_passkey(
 
 
 def _finish_registration(
-  db: sqlite3.Connection,
+  db: Connection,
   user: User,
   flow_id: str,
   credential: Any,
@@ -290,7 +293,7 @@ def _finish_registration(
     raise AuthenticationFailed("passkey registration failed") from exc
 
   try:
-    cursor = db.execute(
+    cursor = db.exec_driver_sql(
       "INSERT INTO passkeys "
       "(user_id, credential_id, public_key, sign_count, created_at) "
       "VALUES (?, ?, ?, ?, ?)",
@@ -302,7 +305,7 @@ def _finish_registration(
         pack_time(at),
       ),
     )
-  except sqlite3.IntegrityError as exc:
+  except IntegrityError as exc:
     db.rollback()
     raise AuthError("the passkey is already registered") from exc
   record_audit(
@@ -320,7 +323,7 @@ def _finish_registration(
 
 
 def _store_challenge(
-  db: sqlite3.Connection,
+  db: Connection,
   user_id: int | None,
   ceremony: str,
   challenge: bytes,
@@ -328,7 +331,7 @@ def _store_challenge(
   at: datetime,
 ) -> str:
   flow_id = uuid.uuid4().hex
-  db.execute(
+  db.exec_driver_sql(
     "INSERT INTO webauthn_challenges "
     "(id, user_id, ceremony, challenge, created_at, expires_at) "
     "VALUES (?, ?, ?, ?, ?, ?)",
@@ -346,23 +349,29 @@ def _store_challenge(
 
 
 def _claim_challenge(
-  db: sqlite3.Connection,
+  db: Connection,
   flow_id: str,
   ceremony: str,
   *,
   at: datetime,
   user_id: int | None = None,
 ) -> tuple[bytes, int | None]:
-  row = db.execute(
+  row = db.exec_driver_sql(
     "SELECT * FROM webauthn_challenges WHERE id = ?", (flow_id,)
   ).fetchone()
-  if row is None or row["ceremony"] != ceremony or row["used_at"] is not None:
+  if (
+    row is None
+    or row._mapping["ceremony"] != ceremony
+    or row._mapping["used_at"] is not None
+  ):
     raise AuthenticationFailed("the WebAuthn challenge is invalid or already used")
-  if user_id is not None and row["user_id"] != user_id:
+  if user_id is not None and row._mapping["user_id"] != user_id:
     raise AuthenticationFailed("the WebAuthn challenge belongs to another user")
-  if row["expires_at"] is None or unpack_time(row["expires_at"]) <= at:
+  if (
+    row._mapping["expires_at"] is None or unpack_time(row._mapping["expires_at"]) <= at
+  ):
     raise AuthenticationFailed("the WebAuthn challenge has expired")
-  cursor = db.execute(
+  cursor = db.exec_driver_sql(
     "UPDATE webauthn_challenges SET used_at = ? "
     "WHERE id = ? AND used_at IS NULL AND expires_at > ?",
     (pack_time(at), flow_id, pack_time(at)),
@@ -371,7 +380,7 @@ def _claim_challenge(
     db.rollback()
     raise AuthenticationFailed("the WebAuthn challenge is invalid or already used")
   db.commit()
-  return bytes(row["challenge"]), row["user_id"]
+  return bytes(row._mapping["challenge"]), row._mapping["user_id"]
 
 
 def _credential_id(credential: Any) -> bytes:
@@ -392,17 +401,17 @@ def _credential_id(credential: Any) -> bytes:
   raise AuthenticationFailed("the WebAuthn credential is malformed")
 
 
-def _get_by_credential_id(
-  db: sqlite3.Connection, credential_id: bytes
-) -> Passkey | None:
-  row = db.execute(
+def _get_by_credential_id(db: Connection, credential_id: bytes) -> Passkey | None:
+  row = db.exec_driver_sql(
     "SELECT * FROM passkeys WHERE credential_id = ?", (credential_id,)
   ).fetchone()
   return None if row is None else _from_row(row)
 
 
-def _get_passkey(db: sqlite3.Connection, passkey_id: int) -> Passkey:
-  row = db.execute("SELECT * FROM passkeys WHERE id = ?", (passkey_id,)).fetchone()
+def _get_passkey(db: Connection, passkey_id: int) -> Passkey:
+  row = db.exec_driver_sql(
+    "SELECT * FROM passkeys WHERE id = ?", (passkey_id,)
+  ).fetchone()
   return _from_row(row)
 
 
@@ -415,14 +424,14 @@ def _new_challenge() -> bytes:
   return secrets.token_bytes(32)
 
 
-def _from_row(row: sqlite3.Row) -> Passkey:
+def _from_row(row: Row) -> Passkey:
   return Passkey(
-    id=row["id"],
-    user_id=row["user_id"],
-    credential_id=bytes(row["credential_id"]),
-    public_key=bytes(row["public_key"]),
-    sign_count=row["sign_count"],
-    created_at=unpack_time(row["created_at"]),
-    last_used_at=unpack_time(row["last_used_at"]),
-    revoked_at=unpack_time(row["revoked_at"]),
+    id=row._mapping["id"],
+    user_id=row._mapping["user_id"],
+    credential_id=bytes(row._mapping["credential_id"]),
+    public_key=bytes(row._mapping["public_key"]),
+    sign_count=row._mapping["sign_count"],
+    created_at=unpack_time(row._mapping["created_at"]),
+    last_used_at=unpack_time(row._mapping["last_used_at"]),
+    revoked_at=unpack_time(row._mapping["revoked_at"]),
   )

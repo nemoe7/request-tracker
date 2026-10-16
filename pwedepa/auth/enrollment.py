@@ -1,8 +1,9 @@
 """One-time, expiring enrollment tokens. The database stores only hashes."""
 
-import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+
+from sqlalchemy.engine import Connection, Row
 
 from pwedepa.data._rows import pack_time, unpack_time
 
@@ -30,7 +31,7 @@ class IssuedEnrollmentToken:
 
 
 def issue_enrollment_token(
-  db: sqlite3.Connection,
+  db: Connection,
   user_id: int,
   *,
   at: datetime,
@@ -42,7 +43,7 @@ def issue_enrollment_token(
   if user is None or user.status is UserStatus.ARCHIVED:
     raise AuthenticationFailed("an enrollment token needs an active user")
   token = new_token()
-  cursor = db.execute(
+  cursor = db.exec_driver_sql(
     "INSERT INTO enrollment_tokens (user_id, token_hash, created_at, expires_at) "
     "VALUES (?, ?, ?, ?)",
     (user_id, hash_token(token), pack_time(at), pack_time(at + ttl)),
@@ -61,7 +62,7 @@ def issue_enrollment_token(
 
 
 def validate_enrollment_token(
-  db: sqlite3.Connection, token: str, *, at: datetime
+  db: Connection, token: str, *, at: datetime
 ) -> EnrollmentToken:
   record = _find_token(db, token)
   if record is None or record.used_at is not None:
@@ -72,10 +73,10 @@ def validate_enrollment_token(
 
 
 def consume_enrollment_token(
-  db: sqlite3.Connection, token: str, *, at: datetime
+  db: Connection, token: str, *, at: datetime
 ) -> EnrollmentToken:
   """Atomically claim a valid token so concurrent requests cannot reuse it."""
-  cursor = db.execute(
+  cursor = db.exec_driver_sql(
     "UPDATE enrollment_tokens SET used_at = ? "
     "WHERE token_hash = ? AND used_at IS NULL AND expires_at > ?",
     (pack_time(at), hash_token(token), pack_time(at)),
@@ -97,25 +98,25 @@ def consume_enrollment_token(
   return record
 
 
-def _find_token(db: sqlite3.Connection, token: str) -> EnrollmentToken | None:
-  row = db.execute(
+def _find_token(db: Connection, token: str) -> EnrollmentToken | None:
+  row = db.exec_driver_sql(
     "SELECT * FROM enrollment_tokens WHERE token_hash = ?", (hash_token(token),)
   ).fetchone()
   return None if row is None else _from_row(row)
 
 
-def _get_record(db: sqlite3.Connection, token_id: int) -> EnrollmentToken:
-  row = db.execute(
+def _get_record(db: Connection, token_id: int) -> EnrollmentToken:
+  row = db.exec_driver_sql(
     "SELECT * FROM enrollment_tokens WHERE id = ?", (token_id,)
   ).fetchone()
   return _from_row(row)
 
 
-def _from_row(row: sqlite3.Row) -> EnrollmentToken:
+def _from_row(row: Row) -> EnrollmentToken:
   return EnrollmentToken(
-    id=row["id"],
-    user_id=row["user_id"],
-    created_at=unpack_time(row["created_at"]),
-    expires_at=unpack_time(row["expires_at"]),
-    used_at=unpack_time(row["used_at"]),
+    id=row._mapping["id"],
+    user_id=row._mapping["user_id"],
+    created_at=unpack_time(row._mapping["created_at"]),
+    expires_at=unpack_time(row._mapping["expires_at"]),
+    used_at=unpack_time(row._mapping["used_at"]),
   )

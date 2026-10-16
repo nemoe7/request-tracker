@@ -1,9 +1,10 @@
 """The separate security and administration audit trail."""
 
 import json
-import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime
+
+from sqlalchemy.engine import Connection
 
 from pwedepa.data._rows import pack_time, unpack_time
 
@@ -20,7 +21,7 @@ class AuditEvent:
 
 
 def record_audit(
-  db: sqlite3.Connection,
+  db: Connection,
   event_type: str,
   *,
   at: datetime,
@@ -30,7 +31,7 @@ def record_audit(
   data: dict | None = None,
   commit: bool = True,
 ) -> AuditEvent:
-  cursor = db.execute(
+  cursor = db.exec_driver_sql(
     "INSERT INTO audit_events "
     "(actor_id, event_type, object_type, object_id, data, created_at) "
     "VALUES (?, ?, ?, ?, ?, ?)",
@@ -57,7 +58,7 @@ def record_audit(
 
 
 def list_audit_events(
-  db: sqlite3.Connection,
+  db: Connection,
   *,
   object_type: str | None = None,
   object_id: int | None = None,
@@ -76,13 +77,13 @@ def list_audit_events(
   query += " ORDER BY id"
   return [
     AuditEvent(
-      id=row["id"],
-      actor_id=row["actor_id"],
-      event_type=row["event_type"],
-      object_type=row["object_type"],
-      object_id=row["object_id"],
-      data=json.loads(row["data"]),
-      created_at=unpack_time(row["created_at"]),
+      id=row._mapping["id"],
+      actor_id=row._mapping["actor_id"],
+      event_type=row._mapping["event_type"],
+      object_type=row._mapping["object_type"],
+      object_id=row._mapping["object_id"],
+      data=json.loads(row._mapping["data"]),
+      created_at=unpack_time(row._mapping["created_at"]),
     )
-    for row in db.execute(query, params)
+    for row in db.exec_driver_sql(query, tuple(params))
   ]
