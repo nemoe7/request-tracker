@@ -1,4 +1,4 @@
-const CACHE = "pwedepa-v1";
+const CACHE = "pwedepa-v2";
 const ASSETS = [
   "/",
   "/static/tokens.css",

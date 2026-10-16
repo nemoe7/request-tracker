@@ -1,0 +1,6 @@
+.git
+arena-state
+.venv
+__pycache__
+.pytest_cache
+*.db

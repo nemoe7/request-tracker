@@ -36,6 +36,7 @@ def test_required_file_set_is_exact():
   assert gate_workflows.REQUIRED_FILES == (
     "ci.yml",
     "codeql.yml",
+    "container-scan.yml",
     "dependency-review.yml",
     "pr-check.yml",
     "secret-scan.yml",

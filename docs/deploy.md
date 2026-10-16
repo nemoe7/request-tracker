@@ -1,0 +1,47 @@
+# Deploy PwedePa
+
+One container serves the app. SQLite lives on the named volume in `compose.yml`, so a rebuild keeps the data.
+
+## Run it
+
+1. Set the public origin before the first start. Passkeys bind to it, and a later change strands enrolled passkeys.
+
+   ```sh
+   export PWEDEPA_RP_ID=your-host.example
+   export PWEDEPA_ORIGIN=https://your-host.example
+   ```
+
+2. Build and start the service.
+
+   ```sh
+   docker compose up -d --build
+   ```
+
+3. Create the first admin, then mint an enrollment token.
+
+   ```sh
+   docker compose exec pwedepa python -m pwedepa.auth create-admin \
+     --database /data/pwedepa.db --username admin --display-name "Admin"
+   ```
+
+The app listens on `127.0.0.1:5000` on the host. A reverse proxy or Tailscale Funnel terminates TLS in front of it.
+
+## Tailscale Funnel
+
+`tailscale-funnel.json` is a serve config template. It proxies the public HTTPS name to the app on port 5000.
+
+1. Replace `${TS_CERT_DOMAIN}` with the device DNS name from `tailscale status`.
+2. Set the config, then turn Funnel on.
+
+   ```sh
+   tailscale serve --config tailscale-funnel.json
+   tailscale funnel status
+   ```
+
+3. Point `PWEDEPA_RP_ID` and `PWEDEPA_ORIGIN` at the same public name, then restart the service.
+
+## Notes
+
+- Back up the `pwedepa-data` volume. It holds the only database copy.
+- Demo mode stays off in deployment. Leave `PWEDEPA_DEMO` unset.
+- The container workflow scans each image build for high and critical findings.

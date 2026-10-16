@@ -22,6 +22,7 @@ WORKFLOW_DIR = ROOT / ".github" / "workflows"
 REQUIRED_FILES = (
   "ci.yml",
   "codeql.yml",
+  "container-scan.yml",
   "dependency-review.yml",
   "pr-check.yml",
   "secret-scan.yml",

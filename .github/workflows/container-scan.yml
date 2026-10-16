@@ -1,0 +1,43 @@
+name: Container scan
+
+on:
+  pull_request:
+    paths:
+      - "Dockerfile"
+      - "compose.yml"
+      - "pwedepa/**"
+      - "pyproject.toml"
+      - ".github/workflows/container-scan.yml"
+  push:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+      - "compose.yml"
+      - "pwedepa/**"
+      - "pyproject.toml"
+      - ".github/workflows/container-scan.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: container-scan-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build the image
+        run: docker build -t pwedepa:scan .
+      - uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: pwedepa:scan
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: "1"

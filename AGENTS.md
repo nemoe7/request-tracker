@@ -20,6 +20,7 @@ One root `AGENTS.md` only. Do not add nested `AGENTS.md` files unless a package 
 - Sharing, notifications, settings, admin, and demo entry live in named modules under `routes/`.
 - Share access uses a share-scoped actor. A link never widens a signed-in user's ordinary record access.
 - Settled design decisions live in `docs/design.md`. Update it in the same change that changes a design pick.
+- Deployment ships one container from `Dockerfile` and `compose.yml`. Run notes live in `docs/deploy.md`.
 - Repository gates and tools live in `scripts/`. Their tests live in `tests/scripts/`.
 - The workflow set lives in `.github/workflows/`. The set contract is `scripts/gate_workflows.py`.
 - Update this file in the same change that changes the layout it points to.

@@ -1,0 +1,15 @@
+services:
+  pwedepa:
+    build: .
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      PWEDEPA_RP_ID: ${PWEDEPA_RP_ID:-localhost}
+      PWEDEPA_RP_NAME: ${PWEDEPA_RP_NAME:-PwedePa}
+      PWEDEPA_ORIGIN: ${PWEDEPA_ORIGIN:-http://localhost:5000}
+    volumes:
+      - pwedepa-data:/data
+    restart: unless-stopped
+
+volumes:
+  pwedepa-data:
