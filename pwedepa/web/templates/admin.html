@@ -21,6 +21,11 @@
     <p class="muted">Security and admin events stay in the audit log.</p>
     <a class="btn" href="{{ url_for('admin.audit') }}">Open audit log</a>
   </article>
+  <article class="panel">
+    <h2>Domains</h2>
+    <p class="muted">Names, slugs, and descriptions come from one YAML file.</p>
+    <a class="btn" href="{{ url_for('admin.domain_config') }}">Domain config</a>
+  </article>
 </div>
 
 <section class="panel admin-section">

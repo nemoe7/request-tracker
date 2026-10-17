@@ -20,8 +20,10 @@ services:
       PWEDEPA_ORIGIN: ${PWEDEPA_ORIGIN:-http://localhost:5000}
       PWEDEPA_RP_ID: ${PWEDEPA_RP_ID:-}
       PWEDEPA_RP_NAME: ${PWEDEPA_RP_NAME:-PwedePa}
+      PWEDEPA_DOMAINS_CONFIG: /config/domains.yaml
     volumes:
       - pwedepa-data:/data
+      - ./domains.yaml:/config/domains.yaml:ro
     restart: unless-stopped
 
   tailscale:

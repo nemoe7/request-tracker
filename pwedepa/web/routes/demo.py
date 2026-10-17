@@ -46,7 +46,7 @@ def _ensure_user(username: str, display_name: str, role: Role):
 
 
 def _seed() -> None:
-  names = domains_data.starter_domains()
+  names = domains_data.starter_domains(current_app.config["DATABASE"])
   admin = _ensure_user("demo-admin", "Demo Admin", Role.ADMIN)
   Mara = _ensure_user("demo-Mara", "Demo Requester", Role.REQUESTER)
   Sam = _ensure_user("demo-Sam", "Demo Assignee", Role.ASSIGNEE)

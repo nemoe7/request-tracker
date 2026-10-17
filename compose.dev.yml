@@ -12,8 +12,10 @@ services:
       # A local build may sign cookies with the sample secret.
       PWEDEPA_SECRET_KEY: ${PWEDEPA_SECRET_KEY:-pwedepa-dev-secret}
       PWEDEPA_ORIGIN: ${PWEDEPA_ORIGIN:-http://localhost:5000}
+      PWEDEPA_DOMAINS_CONFIG: /config/domains.yaml
     volumes:
       - pwedepa-dev-data:/data
+      - ./domains.yaml:/config/domains.yaml:ro
     restart: unless-stopped
 
 volumes:

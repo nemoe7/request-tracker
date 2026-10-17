@@ -487,6 +487,7 @@ source = { editable = "." }
 dependencies = [
     { name = "a2wsgi" },
     { name = "flask" },
+    { name = "pyyaml" },
     { name = "sqlalchemy" },
     { name = "uvicorn" },
     { name = "webauthn" },
@@ -504,6 +505,7 @@ dev = [
 requires-dist = [
     { name = "a2wsgi", specifier = ">=1.10.10" },
     { name = "flask", specifier = ">=3.1.3" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "sqlalchemy", specifier = ">=2.1.4" },
     { name = "uvicorn", specifier = ">=0.54.0" },
     { name = "webauthn", specifier = ">=3.0.1" },

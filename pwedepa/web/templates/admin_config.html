@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Domain config — PwedePa{% endblock %}
+{% block content %}
+<div class="admin-page">
+<div class="page-head">
+  <h1>Domain config</h1>
+  <a class="btn" href="{{ url_for('admin.overview') }}">Admin home</a>
+</div>
+
+<section class="panel admin-section">
+  <h2>In force</h2>
+  <p class="meta">{{ active }}</p>
+  {% if imported_exists %}<p class="muted">Last import: <code>{{ imported }}</code></p>{% endif %}
+  <ul class="compact-list">
+    {% for domain in domains %}
+    <li>
+      <strong>{{ domain.name }}</strong> <code>{{ domain.slug }}</code><br>
+      <span class="muted">{{ domain.description or "No description." }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="panel admin-section">
+  <h2>Import</h2>
+  {% if mounted_exists %}
+  <p class="muted">The app found a mounted file at <code>{{ mounted }}</code>. An import reads it.</p>
+  {% else %}
+  <p class="muted">No config file is mounted. Choose a YAML file to import.</p>
+  {% endif %}
+  <form class="form" method="post" action="{{ url_for('admin.domain_config_import') }}" enctype="multipart/form-data">
+    <div class="field">
+      <label for="config-file">Config file</label>
+      <input id="config-file" type="file" name="config" accept=".yaml,.yml">
+      <p class="help">The file holds a domains list. Each entry needs a name and may hold a description.</p>
+    </div>
+    <div class="form-actions"><button class="btn primary" type="submit">Import config</button></div>
+  </form>
+</section>
+</div>
+{% endblock %}

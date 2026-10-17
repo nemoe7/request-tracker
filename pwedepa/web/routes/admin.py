@@ -5,6 +5,7 @@ from datetime import timedelta
 from flask import (
   Blueprint,
   abort,
+  current_app,
   flash,
   g,
   redirect,
@@ -36,6 +37,7 @@ from pwedepa.auth import (
   revoke_role,
 )
 from pwedepa.core import Effect, Event, Grant, Issue, Priority, Visibility
+from pwedepa.data import domains as domains_data
 from pwedepa.data import events as events_data
 from pwedepa.data import issues as issues_data
 from pwedepa.data import notifications as notifications_data
@@ -77,6 +79,55 @@ def overview() -> str | Response:
     site_messages=site_data.list_messages(db()),
     priorities=[priority.value for priority in Priority],
   )
+
+
+@bp.get("/admin/config")
+def domain_config() -> str | Response:
+  """Show the Domain config in force, and the import control."""
+  db_path = current_app.config["DATABASE"]
+  mounted = domains_data.mounted_path()
+  return render_template(
+    "admin_config.html",
+    domains=domains_data.load(db_path),
+    active=domains_data.active_path(db_path),
+    mounted=mounted,
+    mounted_exists=bool(mounted and mounted.is_file()),
+    imported=domains_data.imported_path(db_path),
+    imported_exists=domains_data.imported_path(db_path).is_file(),
+  )
+
+
+@bp.post("/admin/config/import")
+def domain_config_import() -> Response:
+  """Import the mounted YAML, or the file the operator picked."""
+  db_path = current_app.config["DATABASE"]
+  uploaded = request.files.get("config")
+  if uploaded is not None and uploaded.filename:
+    raw = uploaded.read()
+    source = uploaded.filename
+  else:
+    mounted = domains_data.mounted_path()
+    if mounted is None or not mounted.is_file():
+      flash("No config file is mounted. Choose a file to import.")
+      return redirect(url_for("admin.domain_config"))
+    raw = mounted.read_bytes()
+    source = str(mounted)
+  try:
+    found = domains_data.import_bytes(raw, db_path)
+  except domains_data.DomainConfigError as error:
+    flash(f"The config file did not import: {error}")
+    return redirect(url_for("admin.domain_config"))
+  record_audit(
+    db(),
+    "domain_config.imported",
+    at=now(),
+    actor_id=g.admin_user.id,
+    object_type="domain_config",
+    object_id=None,
+    data={"source": source, "domains": len(found)},
+  )
+  flash(f"Imported {len(found)} domains from {source}.")
+  return redirect(url_for("admin.domain_config"))
 
 
 @bp.get("/admin/users")

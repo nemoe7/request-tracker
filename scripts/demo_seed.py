@@ -29,7 +29,7 @@ def _user(db, username, display, role, at):
   return person
 
 
-def seed(db, *, now: datetime) -> dict:
+def seed(db, *, now: datetime, db_path=None) -> dict:
   """Fill one connected database with the demo cast. Return the people."""
   admin = _user(db, "demo-admin", "Demo Admin", Role.ADMIN, now)
   Mara = _user(db, "demo-Mara", "Demo Requester", Role.REQUESTER, now)
@@ -38,7 +38,7 @@ def seed(db, *, now: datetime) -> dict:
   Ben = _user(db, "Ben", "Ben Ortiz", Role.ASSIGNEE, now)
   people = {"admin": admin, "Mara": Mara, "Sam": Sam, "Priya": Priya, "Ben": Ben}
 
-  names = starter_domains()
+  names = starter_domains(db_path)
 
   def at(days: float, hours: float = 0) -> datetime:
     return now - timedelta(days=days, hours=hours)
@@ -365,7 +365,7 @@ def seed_file(path) -> dict:
   """Seed the database file at path. Return the demo people."""
   database = data_db.connect(path)
   try:
-    return seed(database, now=datetime.now(UTC))
+    return seed(database, now=datetime.now(UTC), db_path=path)
   finally:
     database.close()
 

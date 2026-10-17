@@ -6,4 +6,5 @@ __pycache__/
 dist/
 build/
 _site/
+domains.imported.yaml
 .env

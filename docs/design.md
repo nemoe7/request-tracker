@@ -8,6 +8,11 @@ This file records the settled design calls. When a pick changes, update this fil
 - The client (requester) surface stays separate and simple: My requests, the public board, and one New request action, in a single 720 px column.
 - Settings pages follow the Apple Settings pattern: grouped rows, label on the left, control on the right. A chevron appears only when a row navigates. The pattern stays inside Settings.
 
+## Domains
+
+- The Domain list comes from `domains.yaml` at the project root. Each entry holds a name and a description. The URL slug comes from the name: lowercase, with each run of other characters folded to `-`.
+- An admin imports the file in Admin, Domain config. The page reads a mounted file first, then a picked file. The import writes a copy beside the database, and the app reads that copy first.
+
 ## Color
 
 Scheme 2, Slate and blue. Components use tokens from `pwedepa/web/static/tokens.css` and never raw hex.
