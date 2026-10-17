@@ -54,3 +54,8 @@ The draft needs one repository secret: `GEMINI_API_KEY`. The proposal and the ap
 - `docs/schema.dbml` and `docs/schema.svg` — the database shape.
 - `CHANGELOG.md` — what changed, per version.
 - `AGENTS.md` — the rules this repository follows.
+
+## License
+
+The [nemoe7 Noncommercial and Public-Interest License 1.2.0](LICENSE.md) covers this
+project. Read it before you use the code.
