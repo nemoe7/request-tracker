@@ -50,7 +50,10 @@ document.querySelectorAll("form[data-autosave]").forEach((form) => {
         form.querySelectorAll("input[type=checkbox]").forEach((box) => {
           box.checked = saved.has(box.name);
         });
-        if (status) status.textContent = "That switch did not save. Check the connection.";
+        if (status) {
+          status.textContent = "That switch did not save. Check the connection.";
+          status.scrollIntoView({ block: "nearest" });
+        }
       });
   });
 });
