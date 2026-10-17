@@ -25,6 +25,8 @@ pick.
 - Request and issue pages follow the GitHub issue shape. The title carries the
   number and the state. One comment timeline holds the description and the
   comments. A right sidebar holds the people, labels, priority, and details.
+- Prose blocks read as markdown with inline html, the way a mail client reads a
+  message. A sanitizer drops every unsafe tag, attribute, and url scheme.
 - The public share page keeps that shape. It holds one timeline and a facts
   sidebar, and no write control.
 - The Issues page groups issues by state. A row shows the number, title, priority, and

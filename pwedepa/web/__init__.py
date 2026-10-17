@@ -91,8 +91,11 @@ def create_app(config: dict | None = None) -> Flask:
   if config:
     app.config.update(config)
 
+  from .prose import plain_prose, render_prose
   from .routes._helpers import domain_path, record_path, request_open_path
 
+  app.jinja_env.filters["prose"] = render_prose
+  app.jinja_env.filters["plain_prose"] = plain_prose
   app.jinja_env.globals["record_path"] = record_path
   app.jinja_env.globals["request_open_path"] = request_open_path
   app.jinja_env.globals["domain_path"] = domain_path

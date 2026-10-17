@@ -179,6 +179,21 @@ body.is-guest .auth-card { margin: 0 auto; }
 .inspector h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 18px 0 8px; }
 .inspector > .btn { margin-top: 14px; }
 .desc { font-size: 15px; }
+.prose > :first-child { margin-top: 0; }
+.prose > :last-child { margin-bottom: 0; }
+.prose p, .prose ul, .prose ol, .prose pre, .prose blockquote, .prose table { margin: 0 0 10px; }
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 { margin: 14px 0 8px; font-size: 15px; }
+.prose ul, .prose ol { padding-left: 22px; }
+.prose li { margin: 2px 0; }
+.prose code { padding: 1px 4px; border-radius: 4px; background: var(--surface-2); font-size: 13px; }
+.prose pre { overflow-x: auto; padding: 10px 12px; border-radius: 8px; background: var(--surface-2); }
+.prose pre code { padding: 0; background: none; }
+.prose blockquote { padding-left: 10px; border-left: 3px solid var(--line); color: var(--muted); }
+.prose img { max-width: 100%; height: auto; border-radius: 6px; }
+.prose a { color: var(--accent); }
+.prose hr { margin: 14px 0; border: 0; border-top: 1px solid var(--line); }
+.prose table { border-collapse: collapse; }
+.prose th, .prose td { padding: 4px 8px; border: 1px solid var(--line); }
 .announcement-body { white-space: pre-line; }
 .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 16px; margin: 14px 0; }
 .facts dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }

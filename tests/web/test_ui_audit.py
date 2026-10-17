@@ -758,6 +758,26 @@ def test_a_staff_request_link_opens_in_the_workspace(app, db):
   assert 'href="/?selected=1"' in page, "staff open a request in the workspace"
 
 
+def test_prose_in_the_workspace_renders_safe_html(app, db):
+  """A description reads as markdown, and a script never reaches the page."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title="Broken projector",
+      description="**Dead** bulb <script>alert(1)</script>",
+      requester_id=users.get_user_by_username(db, "Ada").id,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+
+  page = client.get("/?selected=1").get_data(as_text=True)
+  assert "<strong>Dead</strong>" in page
+  assert "<script>alert(1)</script>" not in page
+
+
 def test_the_workspace_centers_the_open_request(app, db):
   client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   record = Request(
