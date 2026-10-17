@@ -221,6 +221,12 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .record-row-side { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
 .record-row-side .mini { font-size: 13px; }
 .section-actions { margin: 0 0 12px; }
+.admin-links { list-style: none; margin: 16px 0 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.admin-link + .admin-link { border-top: 1px solid var(--line); }
+.admin-link a { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 14px 16px; color: var(--text); text-decoration: none; }
+.admin-link a:hover { background: var(--surface-2); }
+.admin-link-name { font-weight: 600; }
+.admin-link-meta { color: var(--muted); font-size: 13px; }
 .card-actions { display: flex; gap: 10px; flex-shrink: 0; }
 .status-word { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
 .meta { color: var(--muted); font-size: 12px; font-family: ui-monospace, "SF Mono", Menlo, monospace; margin: 6px 0 0; }

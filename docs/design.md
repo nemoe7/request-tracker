@@ -7,6 +7,8 @@ pick.
 
 - Staff screens use the dense work-queue shape: top bar, queue filters, item list,
   inspector, and an issue strip. No sidebar.
+- Admin home lists its four sections as dense rows, each with one line of what it
+  holds.
 - The staff workspace is the one staff page. Unread items come first, then the
   opened ones. Each staff member keeps their own read list, and new activity returns
   an item to the unread group. One toolbar over the list holds the title, the status

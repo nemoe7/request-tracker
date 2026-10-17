@@ -875,3 +875,16 @@ def test_the_issues_page_lists_the_work_in_status_groups(app, db):
   assert "Nothing here." not in page, "an empty status stays out of the list"
   assert record_url(1, "issues") in page
   assert "Projector repair plan" in page
+
+
+def test_the_admin_home_lists_its_sections_as_rows(app, db):
+  """Four equal cards waste the width a dense list uses."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+
+  page = client.get("/admin").data.decode()
+
+  assert 'class="admin-links"' in page, "the sections read as one list"
+  assert page.count('class="admin-link"') == 4, "each section keeps one row"
+  assert 'class="cards"' not in page
+  for path in ("/admin/users", "/admin/shares", "/admin/audit", "/admin/config"):
+    assert f'href="{path}"' in page, f"the list misses {path}"

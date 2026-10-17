@@ -5,28 +5,32 @@
 <div class="page-head">
   <h1>Admin</h1>
 </div>
-<div class="cards">
-  <article class="panel">
-    <h2>People</h2>
-    <p class="muted">{{ users | length }} users, including archived accounts.</p>
-    <a class="btn primary" href="{{ url_for('admin.users') }}">Manage users</a>
-  </article>
-  <article class="panel">
-    <h2>Sharing</h2>
-    <p class="muted">{{ share_links | length }} share links exist.</p>
-    <a class="btn" href="{{ url_for('admin.shares') }}">Review share links</a>
-  </article>
-  <article class="panel">
-    <h2>Audit</h2>
-    <p class="muted">Security and admin events stay in the audit log.</p>
-    <a class="btn" href="{{ url_for('admin.audit') }}">Open audit log</a>
-  </article>
-  <article class="panel">
-    <h2>Domains</h2>
-    <p class="muted">Names, slugs, and descriptions come from one YAML file.</p>
-    <a class="btn" href="{{ url_for('admin.domain_config') }}">Domain config</a>
-  </article>
-</div>
+<ul class="admin-links">
+  <li class="admin-link">
+    <a href="{{ url_for('admin.users') }}">
+      <span class="admin-link-name">People</span>
+      <span class="admin-link-meta">{{ users | length }} users, including archived accounts.</span>
+    </a>
+  </li>
+  <li class="admin-link">
+    <a href="{{ url_for('admin.shares') }}">
+      <span class="admin-link-name">Sharing</span>
+      <span class="admin-link-meta">{{ share_links | length }} share links exist.</span>
+    </a>
+  </li>
+  <li class="admin-link">
+    <a href="{{ url_for('admin.audit') }}">
+      <span class="admin-link-name">Audit</span>
+      <span class="admin-link-meta">Security and admin events stay in the audit log.</span>
+    </a>
+  </li>
+  <li class="admin-link">
+    <a href="{{ url_for('admin.domain_config') }}">
+      <span class="admin-link-name">Domains</span>
+      <span class="admin-link-meta">Names, slugs, and descriptions come from one YAML file.</span>
+    </a>
+  </li>
+</ul>
 
 <section class="panel admin-section">
   <h2>Landing message</h2>
