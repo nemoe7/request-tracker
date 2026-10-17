@@ -600,4 +600,4 @@ def test_the_frozen_demo_keeps_the_save_button(tmp_path):
   body = _demo_app(tmp_path).test_client().get("/settings").data
   main = body[body.index(b"settings-main") :]
   assert b"data-autosave action" not in main
-  assert b'Save notifications' in main, "the control still names its action"
+  assert b"Save notifications" in main, "the control still names its action"
