@@ -190,3 +190,48 @@ def test_a_rename_keeps_the_domain_records(app, admin):
   finally:
     connection.close()
   assert [record.domains for record in saved] == [("Fitness",)]
+
+
+def test_a_remove_needs_the_tick_when_the_domain_holds_records(app, admin):
+  from pwedepa.core import Request, RequestStatus, Visibility
+  from pwedepa.data import db as data_db
+  from pwedepa.data import requests as requests_data
+
+  admin.post("/admin/config/add", data={"name": "Gym"})
+  db_path = app.config["DATABASE"]
+  connection = data_db.connect(db_path)
+  try:
+    requests_data.save(
+      connection,
+      Request(
+        id=0,
+        title="A leak",
+        description="Under the sink.",
+        status=RequestStatus.OPEN,
+        visibility=Visibility.PUBLIC,
+        domains=("Gym",),
+        created_at=AT,
+        updated_at=AT,
+      ),
+      commit=True,
+    )
+  finally:
+    connection.close()
+
+  held = admin.post("/admin/config/remove", data={"slug": "gym"}, follow_redirects=True)
+  assert held.status_code == 200
+  assert b"Gym has 1 Request" in held.data
+  assert [domain.slug for domain in domains_data.load(db_path)] == ["gym"]
+
+  gone = admin.post(
+    "/admin/config/remove",
+    data={"slug": "gym", "confirm": "yes"},
+    follow_redirects=True,
+  )
+  assert gone.status_code == 200
+  assert domains_data.load(db_path)
+  connection = data_db.connect(db_path)
+  try:
+    assert requests_data.list_requests(connection) == []
+  finally:
+    connection.close()

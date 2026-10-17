@@ -115,14 +115,30 @@ def domain_config_add() -> Response:
   return redirect(url_for("admin.domain_config"))
 
 
+def _held_phrase(requests: int, issues: int) -> str:
+  """Name the counts a remove would drop, with the right plural."""
+  parts = [
+    f"{count} {'Request' if count == 1 else 'Requests'}"
+    for count in (requests,)
+    if count
+  ]
+  parts += [
+    f"{count} {'Issue' if count == 1 else 'Issues'}" for count in (issues,) if count
+  ]
+  return " and ".join(parts)
+
+
 @bp.post("/admin/config/remove")
 def domain_config_remove() -> Response:
   slug = str(request.form.get("slug", "")).strip()
   db_path = current_app.config["DATABASE"]
+  found = domains_data.find(slug, db_path)
   requests, issues, announcements = domain_store.count_records(db_path, slug)
   if sum((requests, issues, announcements)) and request.form.get("confirm") != "yes":
+    name = found.name if found else slug
     flash(
-      f"{slug} still holds {requests} requests and {issues} issues. Tick the box to delete them."
+      f"{name} has {_held_phrase(requests, issues)}. "
+      'To remove them too, tick "Delete its Requests and Issues".'
     )
     return redirect(url_for("admin.domain_config"))
   try:
@@ -139,7 +155,11 @@ def domain_config_remove() -> Response:
     object_id=None,
     data={"slug": slug, "requests": gone[0], "issues": gone[1]},
   )
-  flash(f"{slug} removed with {gone[0]} requests and {gone[1]} issues.")
+  flash(
+    f"{slug} removed."
+    if not sum(gone)
+    else f"{slug} removed, with {_held_phrase(gone[0], gone[1])}."
+  )
   return redirect(url_for("admin.domain_config"))
 
 
