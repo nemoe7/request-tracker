@@ -30,6 +30,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   the inbox, and the activity switch silences it.
 - A staff workspace that reads as an inbox, with a read list per staff member.
 - A client mini dashboard on the Requests page, and a wide card for one item.
+- The base URL is the app. A guest signs in there, and a signed-in person opens
+  their own work at once. `/home` and `/workspace` forward to it.
+- The header names the running build. A checkout shows its short hash, and an
+  image shows its tag or hash.
 - A client view switch for staff, with request and issue pages read only.
 - A theme choice on the account.
 - A frozen demo on GitHub Pages, built from the app.

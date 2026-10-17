@@ -45,6 +45,10 @@ The dev compose file supplies a sample secret and a localhost origin, so it need
 no `.env`. The app reads `config.dev.yml` whole whenever that file sits beside
 `config.yml`, and it seeds a demo set of requests and issues on a first start.
 
+The build writes the `VERSION` build arg into the image. The Docker workflow
+passes the release tag, or `dev-<short hash>` on the rolling image. A plain local
+build passes nothing, so its header line reads `dev`.
+
 ## Tailscale Funnel
 
 1. Mint a reusable, untagged auth key in the admin console, then put it in
