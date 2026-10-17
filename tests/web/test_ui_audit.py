@@ -962,7 +962,7 @@ def test_the_admin_user_page_caps_its_width(app, db):
 def test_the_four_admin_pages_share_one_width(app, db):
   """A page left out of the wrapper would stretch wider than its neighbours."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
-  for path in ("/admin", "/admin/users", "/admin/shares", "/admin/audit"):
+  for path in ("/admin/site", "/admin/users", "/admin/shares", "/admin/audit"):
     body = client.get(path).data
     assert b'class="admin-page"' in body, path
 
@@ -1120,17 +1120,24 @@ def test_the_issues_page_lists_the_work_in_status_groups(app, db):
   assert "Projector repair plan" in page
 
 
-def test_the_admin_home_lists_its_sections_as_rows(app, db):
-  """Four equal cards waste the width a dense list uses."""
+def test_the_admin_home_is_a_settings_group(app, db):
+  """The hub moved into Settings, so /admin hands over to the group."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
 
-  page = client.get("/admin").data.decode()
+  response = client.get("/admin")
+  assert response.status_code == 302
+  assert response.headers["Location"].endswith("/settings#admin")
 
-  assert 'class="admin-links"' in page, "the sections read as one list"
-  assert page.count('class="admin-link"') == 4, "each section keeps one row"
-  assert 'class="cards"' not in page
-  for path in ("/admin/users", "/admin/shares", "/admin/audit", "/admin/config"):
-    assert f'href="{path}"' in page, f"the list misses {path}"
+  page = client.get("/settings").data.decode()
+  group = page[page.index('id="admin"') :]
+  for path in (
+    "/admin/users",
+    "/admin/shares",
+    "/admin/audit",
+    "/admin/config",
+    "/admin/site",
+  ):
+    assert f'href="{path}"' in group, f"the group misses {path}"
 
 
 def test_the_admin_lists_read_as_dense_rows(app, db):

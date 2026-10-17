@@ -32,7 +32,7 @@ STAFF_PAGES = (
   "requests/new",
   "notifications",
   "settings",
-  "admin",
+  "admin/site",
   "admin/users",
   "admin/shares",
   "admin/audit",

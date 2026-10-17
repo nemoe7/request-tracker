@@ -61,6 +61,7 @@ rule adds.
   it flips, so a group of switches carries no Save button.
 - Text size sets the page type from 85 to 130 percent, with a slider and a
   number for the exact value.
+- Admin is one group in Settings, and the group stays hidden for non-admins.
 
 ## Domains
 
