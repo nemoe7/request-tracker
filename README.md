@@ -17,8 +17,11 @@ uv run python -m pwedepa.web
 ```
 
 The app answers on `http://127.0.0.1:5000` and prints one admin sign-up token on
-the first start. To clear the records and keep the accounts, run
-`uv run python scripts/reset_records.py pwedepa.db`.
+the first start.
+
+To clear the requests and issues and keep the accounts, run
+`uv run python scripts/reset_records.py pwedepa.db`. It prints what it removed,
+and every passkey still signs in.
 
 ## Images
 
