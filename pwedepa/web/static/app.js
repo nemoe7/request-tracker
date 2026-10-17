@@ -27,7 +27,8 @@ function setTheme(theme) {
 /* Notification switches save as they flip, the way iOS Settings does, so the
    page never reloads and the button only exists for a browser without JS. */
 document.querySelectorAll("form[data-autosave]").forEach((form) => {
-  const status = form.querySelector("[data-autosave-status]");
+  form.classList.add("is-auto");
+  const status = document.querySelector("[data-autosave-status]");
   let saved = new FormData(form);
   let queue = Promise.resolve();
   form.addEventListener("change", () => {

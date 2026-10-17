@@ -556,12 +556,12 @@ def test_notification_switches_save_as_they_flip(cast, db):
   Mara, Mara_user = cast["Mara"]
   main = Mara.get("/settings").data.decode()
   main = main[main.index("settings-main") :]
-  marker = main.index("data-autosave")
-  fallback = main.index("<noscript>", marker)
-  assert "Save notifications" not in main[marker:fallback], (
-    "a browser with JS saves on the flip, so it needs no button"
+  assert "Save notifications" in main, "a bare browser needs a way out"
+  assert "data-save" in main
+  css = Mara.get("/static/app.css").data.decode()
+  assert "form.is-auto [data-save] { display: none; }" in css, (
+    "the script hides the button only after it takes the switches over"
   )
-  assert "Save notifications" in main[fallback:], "a bare browser needs a way out"
 
   answer = Mara.post(
     "/settings/notifications",
@@ -582,3 +582,11 @@ def test_settings_has_no_shortcut_to_notifications(cast, db):
   main = Mara.get("/settings").data.decode()
   main = main[main.index("settings-main") :]
   assert 'href="/notifications"' not in main
+
+
+def test_the_frozen_demo_keeps_the_save_button(tmp_path):
+  """The demo has no server. A switch there must not claim a save."""
+  body = _demo_app(tmp_path).test_client().get("/settings").data
+  main = body[body.index(b"settings-main") :]
+  assert b"data-autosave action" not in main
+  assert b"Save notifications" in main
