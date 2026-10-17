@@ -103,6 +103,7 @@ def test_share_token_is_hashed_and_anonymous_view_is_one_time(app, cast, db):
   page = anonymous.get("/shared/1")
   assert page.status_code == 200
   assert b"Broken projector" in page.data
+  assert b'class="issue-layout"' in page.data, "the share page keeps the record shape"
   assert anonymous.get("/shared/1").status_code == 404
   assert anonymous.get(f"/share/{token}").status_code == 410
 

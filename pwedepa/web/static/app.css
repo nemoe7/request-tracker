@@ -173,6 +173,8 @@ body.is-guest .auth-card { margin: 0 auto; }
 .event-meta { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
 .comment p { margin: 0 0 2px; }
 .narrow { max-width: 720px; margin: 0 auto; }
+body.is-guest.is-share { display: block; }
+body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .issue-page { max-width: 1100px; margin: 0 auto; }
 .issue-head { margin-bottom: 18px; }
 .issue-head h1 { font-size: 30px; line-height: 1.2; margin-top: 4px; }

@@ -24,7 +24,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='tokens.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
 </head>
-<body{% if is_staff %} class="is-staff"{% elif not user %} class="is-guest"{% endif %}>
+<body{% block body_class %}{% if is_staff %} class="is-staff"{% elif not user %} class="is-guest"{% endif %}{% endblock %}>
   {% if user %}
   <header class="topbar">
     <a class="brand" href="{{ url_for('records.workspace') }}">

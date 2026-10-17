@@ -16,6 +16,8 @@ pick.
 - Request and issue pages follow the GitHub issue shape. The title carries the
   number and the state. One comment timeline holds the description and the
   comments. A right sidebar holds the people, labels, priority, and details.
+- The public share page keeps that shape. It holds one timeline and a facts
+  sidebar, and no write control.
 - The Issues page groups issues by state. A row shows the number, title, priority, and
   assignee, and an empty state group stays out of the list.
 - A client sees a mini dashboard at the top of the Requests page. Their own requests
