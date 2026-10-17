@@ -160,7 +160,8 @@ if (workspaceGrid) {
       const card = page.querySelector(".workspace-grid .inspector");
       if (!card || !inspector) throw new Error("no card");
       inspector.innerHTML = card.innerHTML;
-      workspaceGrid.classList.add("is-open");
+      inspector.classList.add("is-main");
+      workspaceGrid.classList.add("is-open", "is-main");
       workspaceGrid.querySelector("tr.is-selected")?.classList.remove("is-selected");
       row?.classList.add("is-selected");
       if (remember) history.pushState(null, "", href);
@@ -174,7 +175,8 @@ if (workspaceGrid) {
 
   const closeCard = () => {
     inspector.innerHTML = baseCard;
-    workspaceGrid.classList.remove("is-open");
+    inspector.classList.remove("is-main");
+    workspaceGrid.classList.remove("is-open", "is-main");
     workspaceGrid.querySelector("tr.is-selected")?.classList.remove("is-selected");
   };
 

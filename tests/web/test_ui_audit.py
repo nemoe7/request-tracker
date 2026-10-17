@@ -643,3 +643,11 @@ def test_admin_rows_draw_the_rule_above(app):
   rule = css[css.index(".admin-user .compact-list li {") :].split("}", 1)[0]
   assert "border-top: 1px solid var(--line)" in rule
   assert "border-bottom: 0" in rule
+
+
+def test_the_script_opens_the_card_as_wide_as_a_reload(app):
+  """A click must land on the same classes the server writes."""
+  script = app.test_client().get("/static/app.js").data.decode()
+  assert 'workspaceGrid.classList.add("is-open", "is-main")' in script
+  assert 'inspector.classList.add("is-main")' in script
+  assert 'workspaceGrid.classList.remove("is-open", "is-main")' in script
