@@ -19,6 +19,8 @@ python -m venv .venv
 
 The app answers on `http://127.0.0.1:5000`, served by uvicorn. Demo mode asks for the seat in code, so a preview needs no environment variable.
 
+To clear the records and keep the accounts, run `python scripts/reset_records.py pwedepa.db`. The script prints the rows it removed, and every passkey still signs in.
+
 Deployment runs two containers behind Tailscale Funnel. The steps live in `docs/deploy.md`.
 
 ## Gates
