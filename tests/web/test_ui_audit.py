@@ -6,8 +6,9 @@ from _paths import record_url
 
 from pwedepa import build_label
 from pwedepa.auth import Role, assign_role, list_roles, sessions, users
-from pwedepa.core import Request
+from pwedepa.core import Issue, Request
 from pwedepa.data import db as data_db
+from pwedepa.data import issues as issues_data
 from pwedepa.data import requests as requests_data
 from pwedepa.web import SESSION_COOKIE, create_app
 
@@ -529,6 +530,52 @@ def test_the_workspace_rows_read_like_a_dense_list(app, db):
   assert re.search(
     r"\.workspace-grid\.is-open[^{]*\{[^}]*240px minmax\(0, 1fr\) 360px", wide
   ), "the reading pane keeps the right edge"
+
+
+def test_the_record_pages_read_like_a_github_issue(app, db):
+  """A number and state lead the title, and the facts sit in a right sidebar."""
+  client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  requester_id = users.get_user_by_username(db, "sam").id
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title="Broken projector",
+      description="The projector in Room 4 is dead.",
+      requester_id=requester_id,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+  issues_data.save(
+    db,
+    Issue(
+      id=1,
+      title="Projector repair plan",
+      description="Replace the lamp and test it.",
+      requester_id=requester_id,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+
+  for path, heading in (
+    (record_url(1), "Broken projector"),
+    (record_url(1, "issues"), "Projector repair plan"),
+  ):
+    page = client.get(path).get_data(as_text=True)
+    assert 'class="issue-layout"' in page, f"{path} holds one issue grid"
+    assert page.index('class="issue-main"') < page.index('class="issue-side"')
+    title = re.search(r"<h1[^>]*>(.*?)</h1>", page, re.DOTALL)
+    assert title and "#1" in title.group(1) and heading in title.group(1)
+    assert 'class="issue-head"' in page
+    assert "<h2>Activity</h2>" not in page and "<h2>Comments</h2>" not in page
+    assert '<ol class="timeline">' in page, "one timeline holds the comments"
+    assert 'class="timeline-comment' in page
+    side = page[page.index('class="issue-side"') :]
+    people = "Requester" if "requests" in path else "Assignee"
+    for label in (people, "Labels", "Priority", "Details"):
+      assert f"<h2>{label}</h2>" in side, f"{path} misses {label} in its sidebar"
 
 
 def test_workspace_opens_the_reading_pane_beside_the_list(app, db):

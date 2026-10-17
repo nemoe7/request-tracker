@@ -13,6 +13,9 @@ pick.
   filter, and the new-request action. Rows stay dense, unread titles are bold, and
   the open row carries an accent edge. The opened item reads on the right. On a
   phone the item fills the page, with a Back to the list link.
+- Request and issue pages follow the GitHub issue shape. The title carries the
+  number and the state. One comment timeline holds the description and the
+  comments. A right sidebar holds the people, labels, priority, and details.
 - A client sees a mini dashboard at the top of the Requests page: their own requests
   and the public board. A selected item opens as the wide card, and a phone shows it
   alone. The client surface stays one 720 px column.
