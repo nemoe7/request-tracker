@@ -186,7 +186,7 @@ select:focus-visible, textarea:focus-visible {
 .card-mini .mini-title { color: var(--text); font-family: inherit; font-size: 14px; }
 .form { display: grid; gap: 14px; }
 .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-.field input[type="text"], .field input[type="number"], .field select, .field textarea, .comment-form textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 15px; min-height: 44px; box-sizing: border-box; }
+.field input[type="text"], .field input[type="number"], .field select, .field textarea, .comment-form textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 15px; min-height: var(--control-h); box-sizing: border-box; }
 .field .help { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
 .check { display: flex; gap: 8px; align-items: center; font-size: 14px; min-height: 44px; }
 .check input { width: 20px; height: 20px; accent-color: var(--accent-fill); }
@@ -211,20 +211,20 @@ select:focus-visible, textarea:focus-visible {
 }
 .page-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .filter-form { display: grid; gap: 8px; }
-.filter-form select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; min-height: 44px; box-sizing: border-box; }
+.filter-form select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; min-height: var(--control-h); box-sizing: border-box; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 .priority-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px 0; }
 .priority-form label { font-size: 13px; font-weight: 600; }
-.priority-form select { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; min-height: 44px; }
+.priority-form select { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; min-height: var(--control-h); }
 
 /* Slice 6: sharing, notifications, settings, and admin */
 .pip { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--danger); color: #fff; font-size: 11px; font-weight: 700; margin-left: 6px; }
 .site-message { background: var(--st-pending-bg); color: var(--st-pending); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-weight: 600; }
 .share-panel { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 8px; }
 .share-form { display: grid; grid-template-columns: 1fr 160px auto; gap: 10px; align-items: end; margin: 12px 0; }
-.share-form .field select { min-height: 44px; padding: 10px 34px 10px 12px; }
-.share-form .btn { min-height: 44px; font-size: 14px; }
-.share-form input[type="number"], .share-once input, .share-form select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; min-height: 44px; box-sizing: border-box; }
+.share-form .field select { min-height: var(--control-h); padding: 10px 34px 10px 12px; }
+.share-form .btn { min-height: var(--control-h); font-size: 14px; }
+.share-form input[type="number"], .share-once input, .share-form select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; min-height: var(--control-h); box-sizing: border-box; }
 .share-once { display: grid; gap: 8px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin: 12px 0; }
 .share-once label { font-size: 13px; font-weight: 600; }
 .share-list, .notice-list, .compact-list { list-style: none; margin: 0; padding: 0; }
@@ -243,7 +243,7 @@ select:focus-visible, textarea:focus-visible {
 .settings-group h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 14px 0 8px; }
 .setting-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 48px; padding: 8px 0; border-bottom: 1px solid var(--line); color: var(--text); font-size: 15px; text-decoration: none; }
 .setting-row:last-child { border-bottom: 0; }
-.setting-row input[type="text"] { flex: 1; max-width: 320px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; min-height: 44px; }
+.setting-row input[type="text"] { flex: 1; max-width: 320px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; min-height: var(--control-h); }
 .setting-row input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--accent-fill); }
 .setting-fieldset { border: 0; border-bottom: 1px solid var(--line); margin: 0; padding: 8px 0 12px; }
 .setting-fieldset legend { font-weight: 700; padding-top: 10px; }
@@ -251,8 +251,8 @@ select:focus-visible, textarea:focus-visible {
 .link-row strong { color: var(--muted); font-size: 13px; }
 .admin-section { margin-top: 18px; }
 .inline-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin: 10px 0; }
-.inline-form input[type="text"], .inline-form select { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; min-height: 44px; }
-.inline-form .btn { min-height: 44px; font-size: 14px; padding-block: 10px; }
+.inline-form input[type="text"], .inline-form select { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; min-height: var(--control-h); }
+.inline-form .btn { min-height: var(--control-h); font-size: 14px; padding-block: 10px; }
 .admin-user-list { display: grid; gap: 16px; margin-top: 18px; }
 
 /* The admin cards cap their width, so a wide window leaves no long empty card. */

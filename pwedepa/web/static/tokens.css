@@ -37,6 +37,7 @@
   --warn: #B45309;
   --ok: #15803D;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --control-h: 44px;
   --st-open: #2563EB; --st-open-bg: #E8EFFD;
   --st-pending: #B45309; --st-pending-bg: #FDF3E3;
   --st-delayed: #7C3AED; --st-delayed-bg: #F1EAFD;

@@ -509,11 +509,11 @@ def test_fact_rows_share_one_baseline(app):
 def test_the_share_row_gives_every_control_one_height(app):
   css = app.test_client().get("/static/app.css").data.decode()
   rules = {sel.strip(): body for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)}
-  assert "min-height: 44px" in rules.get(".share-form .field select", ""), (
+  assert "min-height: var(--control-h)" in rules.get(".share-form .field select", ""), (
     "the Access select must match the Expires input"
   )
   button = rules.get(".share-form .btn", "")
-  assert "min-height: 44px" in button, "Create link must match the fields"
+  assert "min-height: var(--control-h)" in button, "Create link must match the fields"
   assert "font-size: 14px" in button, "Create link must match the field text"
 
 
@@ -602,8 +602,10 @@ def test_admin_row_buttons_match_their_fields(app):
   css = app.test_client().get("/static/app.css").data.decode()
   field = css[css.index(".inline-form input") :].split("}", 1)[0]
   button = css[css.index(".inline-form .btn") :].split("}", 1)[0]
-  assert "min-height: 44px" in field
-  assert "min-height: 44px" in button, "the button must not stand shorter"
+  assert "min-height: var(--control-h)" in field
+  assert "min-height: var(--control-h)" in button, "the button must not stand shorter"
+  tokens = app.test_client().get("/static/tokens.css").data.decode()
+  assert "--control-h: 44px" in tokens
   assert "font-size: 14px" in field
   assert "font-size: 14px" in button
 
