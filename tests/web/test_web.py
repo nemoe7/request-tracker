@@ -308,3 +308,11 @@ def test_the_health_route_answers_from_the_database(app):
   response = app.test_client().get("/health")
   assert response.status_code == 200
   assert response.data.strip() == b"ok"
+
+
+def test_the_font_waits_for_no_paint(app):
+  """A refresh must not strand the page on the fallback face."""
+  with app.test_client() as client:
+    sheet = client.get("/static/tokens.css").get_data(as_text=True)
+  assert "font-display: swap" in sheet
+  assert "font-display: optional" not in sheet

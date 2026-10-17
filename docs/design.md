@@ -32,7 +32,7 @@ Scheme 2, Slate and blue. Components use tokens from `pwedepa/web/static/tokens.
 
 ## Type
 
-- Inter, self-hosted woff2 in 400, 600, and 800 under the SIL Open Font License 1.1. The license ships beside the fonts. The fallback stack is the system stack.
+- Inter, self-hosted woff2 in 400, 600, and 800 under the SIL Open Font License 1.1. The license ships beside the fonts. The fallback stack is the system stack. The face swaps in when it arrives, so a refresh never strands a page on the fallback.
 - IDs, counts, and ages use the ui-monospace stack with tabular figures.
 - Scale: 11 px uppercase eyebrows, 12 px meta, 15 px body, 20 px panel titles, 28 px page titles. Headings use 600 or 800 weight with -0.02 em tracking.
 
