@@ -47,9 +47,19 @@ def test_the_release_build_checks_the_approved_commit():
   assert "expected_sha" in text
 
 
+def test_each_build_leg_smoke_tests_the_image_it_pushes():
+  """A start that cannot find the package must fail the build, not the deploy."""
+  jobs = _docker()["jobs"]
+  for name in ("dev", "release-build"):
+    steps = jobs[name]["steps"]
+    smoke = [step for step in steps if step.get("name") == "Smoke Test the Image"]
+    assert smoke, f"{name} pushes an image nobody starts"
+    assert "import pwedepa" in smoke[0]["run"]
+
+
 def test_every_image_is_named_pwedepa():
   text = _docker_text()
-  assert text.count("ghcr.io/${{ github.repository_owner }}/pwedepa") == 8
+  assert text.count("ghcr.io/${{ github.repository_owner }}/pwedepa") == 10
   assert "PACKAGE" in text
   assert "REPO: ${{ github.repository_owner }}/pwedepa" in text
 
