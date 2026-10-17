@@ -62,8 +62,8 @@ def _request(db, number, requester_id, title):
 
 
 def _order(body: str) -> tuple[int, int]:
-  """Return the offsets of the Unread and Opened headings, or -1 when absent."""
-  return body.find("Unread"), body.find("Opened")
+  """Return the offsets of the unread and opened groups, or -1 when absent."""
+  return body.find('id="group-unread"'), body.find('id="group-opened"')
 
 
 def test_an_unopened_request_sits_above_an_opened_one(db, staff):
@@ -74,7 +74,7 @@ def test_an_unopened_request_sits_above_an_opened_one(db, staff):
 
   body = client.get("/workspace").get_data(as_text=True)
   unread, opened = _order(body)
-  assert unread != -1 and opened != -1, "the inbox names both groups"
+  assert unread != -1 and opened != -1, "the inbox carries both groups"
   assert "Ladder audit" in body[unread:opened], "the unread request sits on top"
   assert "Rope climb plan" in body[opened:], "the opened request sits below"
 
@@ -86,7 +86,7 @@ def test_opening_an_item_in_the_workspace_marks_it_read(db, staff):
   client.get("/workspace?selected=1")
   body = client.get("/workspace").get_data(as_text=True)
 
-  assert "Rope climb plan" in body[body.find("Opened") :]
+  assert "Rope climb plan" in body[body.find('id="group-opened"') :]
 
 
 def test_each_staff_member_keeps_their_own_read_list(db, staff):
@@ -97,7 +97,8 @@ def test_each_staff_member_keeps_their_own_read_list(db, staff):
   client.get("/workspace?selected=1")
   body = other.get("/workspace").get_data(as_text=True)
 
-  assert "Rope climb plan" in body[body.find("Unread") : body.find("Opened")]
+  unread, opened = _order(body)
+  assert "Rope climb plan" in body[unread:opened]
 
 
 def test_the_opened_item_takes_the_wide_card(db, staff):
@@ -114,4 +115,4 @@ def test_the_mobile_view_offers_a_way_back(db, staff):
   _request(db, 1, person.id, "Rope climb plan")
 
   body = client.get("/workspace?selected=1").get_data(as_text=True)
-  assert "back-to-list" in body
+  assert 'class="back-to-list"' in body

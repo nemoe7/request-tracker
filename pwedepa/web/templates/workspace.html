@@ -76,8 +76,8 @@
   </aside>
 
   <section class="panel records" aria-label="Records">
-    {% for group, group_rows in [("Unread", unread_rows), ("Opened", opened_rows)] %}
-    <h2 class="group-title">{{ group }}<span class="count">{{ group_rows | length }}</span></h2>
+    {% for group, group_rows, group_id in [("Unread", unread_rows, "group-unread"), ("Opened", opened_rows, "group-opened")] %}
+    <h2 class="group-title" id="{{ group_id }}">{{ group }}<span class="count">{{ group_rows | length }}</span></h2>
     {% if group_rows %}
     <table class="record-table">
       <thead>

@@ -72,7 +72,7 @@ def test_the_client_sees_what_is_visible_now(app, db):
 
   body = client.get("/requests").get_data(as_text=True)
 
-  assert "Today" in body
+  assert 'id="today"' in body
   assert "My own request" in body
   assert "A public request" in body
   assert "A private request" not in body
@@ -98,7 +98,7 @@ def test_a_selected_item_opens_as_the_wide_card(app, db):
 
   assert 'class="panel inspector is-main"' in body
   assert "is-open is-main" in body
-  assert "Back to the list" in body
+  assert 'class="back-to-list"' in body
 
 
 def test_another_persons_private_item_opens_no_card(app, db):
