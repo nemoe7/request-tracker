@@ -41,7 +41,7 @@ rule adds.
   comments. A right sidebar holds the people, labels, priority, and details.
 - Prose blocks read as markdown with inline html, the way a mail client reads a
   message. A sanitizer drops every unsafe tag, attribute, and url scheme.
-- Reject opens one custom modal that asks for a reason. Cancel, Escape, and the
+- A reject asks for a reason, in one dialog. Cancel, Escape, and the
   scrim close it, and focus returns to the trigger. The reason box reuses the
   shared field rule, so it matches every other form.
 - The public share page keeps that shape. It holds one timeline and a facts
