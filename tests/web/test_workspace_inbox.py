@@ -118,3 +118,21 @@ def test_the_mobile_view_offers_a_way_back(db, staff):
 
   body = client.get("/workspace?selected=1").get_data(as_text=True)
   assert 'class="back-to-list"' in body
+
+
+def test_new_activity_returns_an_opened_item_to_unread(db, staff):
+  client, person = staff
+  _request(db, 1, person.id, "Rope climb plan")
+  client.get("/gym/requests/1")
+
+  body = client.get("/workspace").get_data(as_text=True)
+  unread, opened = _order(body)
+  assert "/gym/requests/1" in body[opened:]
+  assert "/gym/requests/1" not in body[unread:opened]
+
+  client.post("/requests/1/comment", data={"text": "A new detail."})
+
+  body = client.get("/workspace").get_data(as_text=True)
+  unread, opened = _order(body)
+  assert "/gym/requests/1" in body[unread:opened]
+  assert "/gym/requests/1" not in body[opened:]

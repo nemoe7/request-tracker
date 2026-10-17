@@ -24,6 +24,10 @@ def append(
       json.dumps(event.data),
     ),
   )
+  db.exec_driver_sql(
+    "DELETE FROM workspace_reads WHERE object_type = ? AND object_id = ?",
+    (object_type, object_id),
+  )
   if commit:
     db.commit()
 
