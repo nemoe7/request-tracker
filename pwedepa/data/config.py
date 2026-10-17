@@ -3,22 +3,17 @@
 import os
 from pathlib import Path
 
-import yaml
-
 from . import domains
-from .domains import DomainConfigError
 
 
 def read(db_path: str | Path | None = None) -> dict:
-  """Return the top-level keys of the config in force, or an empty map."""
+  """Return the keys in force: config.yml, then the file that wins over it."""
+  base = domains.CONFIG
+  settings = domains.mapping(base.read_text(encoding="utf-8")) if base.is_file() else {}
   path = domains.active_path(db_path)
-  if not path.is_file():
-    return {}
-  try:
-    raw = yaml.safe_load(path.read_text(encoding="utf-8"))
-  except yaml.YAMLError as error:
-    raise DomainConfigError(f"the YAML does not read: {error}") from error
-  return raw if isinstance(raw, dict) else {}
+  if path != base and path.is_file():
+    settings.update(domains.mapping(path.read_text(encoding="utf-8")))
+  return settings
 
 
 def value(settings: dict, key: str, env: str, default):

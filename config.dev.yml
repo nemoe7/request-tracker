@@ -1,0 +1,9 @@
+# A local run reads this file when PWEDEPA_ENV=dev. A key here wins over the
+# same key in config.yml. The Domain list still comes from config.yml, unless
+# this file names one.
+
+# The public address for a local run. Default: http://localhost:5000.
+# origin: http://localhost:5000
+
+# The SQLite file for a local run. Default: pwedepa.db.
+# database: pwedepa.db

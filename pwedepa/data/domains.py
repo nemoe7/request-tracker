@@ -13,6 +13,9 @@ MOUNTED_ENV = "PWEDEPA_CONFIG"
 # The name before the rename, still read for one release.
 LEGACY_MOUNTED_ENV = "PWEDEPA_DOMAINS_CONFIG"
 IMPORTED_NAME = "domains.imported.yaml"
+# A dev run reads this file beside config.yml, when the file exists.
+ENV = "PWEDEPA_ENV"
+DEV_NAME = "config.dev.yml"
 
 
 _SLUG = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
@@ -50,24 +53,37 @@ def mounted_path() -> Path | None:
   return Path(raw) if raw else None
 
 
+def dev_path() -> Path:
+  """Return the file a dev run reads, beside the released config."""
+  return CONFIG.with_name(DEV_NAME)
+
+
 def active_path(db_path: str | Path | None = None) -> Path:
-  """Return the file in force: an import, then the mount, then the package."""
+  """Return the file in force: an import, the mount, the dev file, the package."""
   imported = imported_path(db_path)
   if imported.is_file():
     return imported
   mounted = mounted_path()
   if mounted is not None and mounted.is_file():
     return mounted
+  if os.environ.get(ENV) == "dev" and dev_path().is_file():
+    return dev_path()
   return CONFIG
 
 
-def parse(text: str) -> tuple[Domain, ...]:
-  """Read YAML text into Domains, or raise a message the page can show."""
+def mapping(text: str) -> dict:
+  """Return the YAML mapping in text, or an empty map."""
   try:
     raw = yaml.safe_load(text)
   except yaml.YAMLError as error:
     raise DomainConfigError(f"the YAML does not read: {error}") from error
-  if not isinstance(raw, dict) or not isinstance(raw.get("domains"), list):
+  return raw if isinstance(raw, dict) else {}
+
+
+def parse(text: str) -> tuple[Domain, ...]:
+  """Read YAML text into Domains, or raise a message the page can show."""
+  raw = mapping(text)
+  if not isinstance(raw.get("domains"), list):
     raise DomainConfigError("the file needs a domains list")
   found: list[Domain] = []
   seen: dict[str, str] = {}
@@ -108,7 +124,11 @@ def load(db_path: str | Path | None = None) -> tuple[Domain, ...]:
     raise FileNotFoundError(
       f"config.yml is missing: looked at {CONFIG} and {imported_path(db_path)}"
     )
-  return parse(path.read_text(encoding="utf-8"))
+  text = path.read_text(encoding="utf-8")
+  # A dev file may name only its own keys, so the Domains come from config.yml.
+  if path != CONFIG and not isinstance(mapping(text).get("domains"), list):
+    text = CONFIG.read_text(encoding="utf-8")
+  return parse(text)
 
 
 def _entry(domain: Domain) -> dict[str, str]:

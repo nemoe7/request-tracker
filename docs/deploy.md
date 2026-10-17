@@ -45,6 +45,8 @@ docker compose -f compose.dev.yml up -d --build
 
 The dev file supplies a sample session secret and a localhost origin, so a local build needs no `.env` file. Set `PWEDEPA_ORIGIN` to open the app from another device, such as a phone on the same network.
 
+The dev compose sets `PWEDEPA_ENV=dev`, so the app reads `config.dev.yml` over `config.yml`.
+
 ## Tailscale Funnel
 
 The `tailscale` service joins your tailnet and serves the public HTTPS name with Funnel. It reports its own health at `http://127.0.0.1:9002/healthz`, so `docker compose ps` tells when the node is ready. It mounts the `tailscale` folder at `/config` and reads `serve.json` from it as `TS_SERVE_CONFIG`. The config proxies the public name to `http://pwedepa:5000`.

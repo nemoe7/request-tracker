@@ -37,6 +37,42 @@ def test_a_commented_key_leaves_the_environment_in_charge(tmp_path, monkeypatch)
   assert config.value(found, "origin", "PWEDEPA_ORIGIN", "x") == "http://localhost:5000"
 
 
+def _base_and_dev(tmp_path, monkeypatch):
+  base = tmp_path / "config.yml"
+  base.write_text(
+    "domains:\n  - name: Gym\norigin: https://base.example\n", encoding="utf-8"
+  )
+  (tmp_path / "config.dev.yml").write_text(
+    "origin: https://dev.example\n", encoding="utf-8"
+  )
+  monkeypatch.setattr(domains, "CONFIG", base)
+  _clean(monkeypatch)
+  return base
+
+
+def test_a_dev_run_reads_the_dev_file_over_the_base(tmp_path, monkeypatch):
+  _base_and_dev(tmp_path, monkeypatch)
+  monkeypatch.setenv("PWEDEPA_ENV", "dev")
+
+  found = config.read(tmp_path / "app.db")
+
+  assert found["origin"] == "https://dev.example"
+
+
+def test_a_release_run_reads_only_the_base(tmp_path, monkeypatch):
+  _base_and_dev(tmp_path, monkeypatch)
+  monkeypatch.delenv("PWEDEPA_ENV", raising=False)
+
+  assert config.read(tmp_path / "app.db")["origin"] == "https://base.example"
+
+
+def test_a_dev_file_without_domains_takes_them_from_the_base(tmp_path, monkeypatch):
+  _base_and_dev(tmp_path, monkeypatch)
+  monkeypatch.setenv("PWEDEPA_ENV", "dev")
+
+  assert [domain.name for domain in domains.load(tmp_path / "app.db")] == ["Gym"]
+
+
 def test_a_missing_file_yields_no_settings(tmp_path, monkeypatch):
   monkeypatch.setattr(domains, "CONFIG", tmp_path / "none.yml")
   _clean(monkeypatch)
