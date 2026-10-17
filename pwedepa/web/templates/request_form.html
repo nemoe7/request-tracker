@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{% if record %}Edit request #{{ record.id }}{% else %}New request{% endif %} — PwedePa{% endblock %}
+{% block title %}PwedePa | {% if record %}Edit request #{{ record.id }}{% else %}New request{% endif %}{% endblock %}
 {% block content %}
 <div class="narrow">
   <h1>{% if record %}Edit request{% else %}New request{% endif %}</h1>
