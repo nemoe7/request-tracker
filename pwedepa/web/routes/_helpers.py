@@ -77,6 +77,14 @@ def client_view() -> bool:
   return session.get("view_as") == "client"
 
 
+def safe_next() -> str | None:
+  """Read the return path a form carries, or None to keep the default page."""
+  path = request.form.get("next", "").strip()
+  if not path.startswith("/") or path.startswith("//") or "\\" in path:
+    return None
+  return path
+
+
 def db_path():
   return current_app.config["DATABASE"]
 

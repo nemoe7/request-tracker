@@ -61,9 +61,11 @@ def _request(db, number, requester_id, title):
   return requests_data.save(db, record)
 
 
-def _order(body: str) -> tuple[int, int]:
-  """Return the offsets of the unread and opened groups, or -1 when absent."""
-  return body.find('id="group-unread"'), body.find('id="group-opened"')
+def _row(body: str, title: str) -> str:
+  """Return the table row that holds one record title."""
+  at = body.index(title)
+  start = body.rindex("<tr", 0, at)
+  return body[start : body.index("</tr>", at)]
 
 
 def test_an_unopened_request_sits_above_an_opened_one(db, staff):
@@ -73,10 +75,13 @@ def test_an_unopened_request_sits_above_an_opened_one(db, staff):
   client.get("/gym/requests/1")
 
   body = client.get("/").get_data(as_text=True)
-  unread, opened = _order(body)
-  assert unread != -1 and opened != -1, "the inbox carries both groups"
-  assert "/gym/requests/2" in body[unread:opened], "the unread request sits on top"
-  assert "/gym/requests/1" in body[opened:], "the opened request sits below"
+  assert body.count('class="record-table mail-table"') == 1, "one list"
+  assert 'id="group-unread"' not in body, "no group headings"
+  assert body.index("Ladder audit") < body.index("Rope climb plan"), (
+    "the unread row comes first"
+  )
+  assert "is-unread" in _row(body, "Ladder audit")
+  assert "is-unread" not in _row(body, "Rope climb plan")
 
 
 def test_opening_an_item_in_the_workspace_marks_it_read(db, staff):
@@ -85,10 +90,8 @@ def test_opening_an_item_in_the_workspace_marks_it_read(db, staff):
 
   client.get("/?selected=1")
   body = client.get("/").get_data(as_text=True)
-  unread, opened = _order(body)
 
-  assert "/gym/requests/1" in body[opened:]
-  assert "/gym/requests/1" not in body[unread:opened]
+  assert "is-unread" not in _row(body, "Rope climb plan")
 
 
 def test_each_staff_member_keeps_their_own_read_list(db, staff):
@@ -99,8 +102,7 @@ def test_each_staff_member_keeps_their_own_read_list(db, staff):
   client.get("/?selected=1")
   body = other.get("/").get_data(as_text=True)
 
-  unread, opened = _order(body)
-  assert "/gym/requests/1" in body[unread:opened]
+  assert "is-unread" in _row(body, "Rope climb plan")
 
 
 def test_the_opened_item_takes_the_wide_card(db, staff):
@@ -126,13 +128,9 @@ def test_new_activity_returns_an_opened_item_to_unread(db, staff):
   client.get("/gym/requests/1")
 
   body = client.get("/").get_data(as_text=True)
-  unread, opened = _order(body)
-  assert "/gym/requests/1" in body[opened:]
-  assert "/gym/requests/1" not in body[unread:opened]
+  assert "is-unread" not in _row(body, "Rope climb plan")
 
   client.post("/requests/1/comment", data={"text": "A new detail."})
 
   body = client.get("/").get_data(as_text=True)
-  unread, opened = _order(body)
-  assert "/gym/requests/1" in body[unread:opened]
-  assert "/gym/requests/1" not in body[opened:]
+  assert "is-unread" in _row(body, "Rope climb plan")

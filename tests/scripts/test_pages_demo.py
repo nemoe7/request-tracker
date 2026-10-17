@@ -35,7 +35,7 @@ def test_pages_workflow_builds_and_deploys():
 def test_frozen_demo_keeps_pages_and_assets_relative(tmp_path):
   out = _frozen_site()
   index = (out / "index.html").read_text(encoding="utf-8")
-  assert re.search(r'href="[^"]*/requests/1/"', index)
+  assert re.search(r'href="[^"]*workspace/record/\d+/"', index)
   assert 'href="/static' not in index
   assert 'src="/static' not in index
   assert (out / "static" / "app.css").exists()
@@ -75,7 +75,7 @@ def test_frozen_demo_opens_rail_filters_and_selected_records(tmp_path):
   record = re.search(r'href="(workspace/record/\d+)/"[^>]*>[^<]+</a>', index)
   assert record, "a record row should open its own frozen page"
   page = (out / record.group(1) / "index.html").read_text(encoding="utf-8")
-  assert '<tr class="is-selected">' in page
+  assert re.search(r'<tr class="[^"]*is-selected[^"]*"', page)
 
 
 def test_the_frozen_rail_offers_one_link_per_status(tmp_path):

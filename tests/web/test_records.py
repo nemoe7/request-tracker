@@ -360,7 +360,7 @@ def test_workspace_queues_counts_and_inspector(cast, db):
   page = admin.get("/")
   assert b"queue=triage" in page.data
   assert mine.title.encode() in page.data
-  assert issue.title.encode() in page.data
+  assert issue.title.encode() not in page.data, "the requests list carries no issue"
 
   blocked = admin.get("/?queue=blocked")
   assert issue.title.encode() in blocked.data
