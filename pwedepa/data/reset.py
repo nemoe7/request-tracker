@@ -5,7 +5,7 @@ from sqlalchemy.engine import Connection
 from .db import transaction
 
 # Content that a reset drops. The accounts, their roles and grants, their
-# passkeys, their settings, and the account audit trail all stay, so a person
+# passkeys, their settings, and the account audit trail all stay. A person
 # signs in again without a new sign-up.
 CLEAR = (
   "issues",
