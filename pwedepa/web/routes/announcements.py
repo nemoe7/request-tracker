@@ -12,6 +12,7 @@ from flask import (
 )
 from werkzeug.wrappers import Response
 
+from pwedepa.auth.audit import record_audit
 from pwedepa.data import announcements as announcements_data
 from pwedepa.data import domains as domains_data
 from pwedepa.data import notifications as notifications_data
@@ -171,6 +172,15 @@ def remove(slug: str, announcement_id: int) -> str | Response:
   if user is None:
     return redirect(url_for("pages.login"))
   found = _find(domain, announcement_id)
+  record_audit(
+    db(),
+    "announcement.removed",
+    at=now(),
+    actor_id=user.id,
+    object_type="announcement",
+    object_id=found.id,
+    data={"reason": request.form.get("reason")} if request.form.get("reason") else None,
+  )
   announcements_data.delete(db(), found.id)
   flash("Announcement removed.")
   return redirect(url_for("records.domain_page", slug=domain.slug))

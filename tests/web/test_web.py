@@ -218,7 +218,7 @@ def test_signed_in_user_can_add_a_passkey(client, db, user, monkeypatch):
   assert credentials.list_passkeys(db, user.id)
 
   page = client.get("/settings")
-  assert b'data-revoke-passkey="' in page.data
+  assert b'data-modal-open="revoke-passkey-' in page.data
 
 
 def test_settings_survives_concurrent_requests(app, db, user):
@@ -324,6 +324,18 @@ def test_the_health_route_answers_from_the_database(app):
   response = app.test_client().get("/health")
   assert response.status_code == 200
   assert response.data.strip() == b"ok"
+
+
+def test_safe_next_returns_only_a_local_path(app):
+  from pwedepa.web.routes._helpers import safe_next
+
+  with app.test_request_context(
+    "/", method="POST", data={"next": "/?queue=triage&selected=4"}
+  ):
+    assert safe_next() == "/?queue=triage&selected=4"
+  for bad in ("//evil.example", "https://evil.example", "/\\evil.example", "/\x00x"):
+    with app.test_request_context("/", method="POST", data={"next": bad}):
+      assert safe_next() is None
 
 
 def test_the_font_waits_for_no_paint(app):

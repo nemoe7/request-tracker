@@ -1,5 +1,6 @@
 """SQLAlchemy storage opening and schema loading for the data layer."""
 
+import json
 from collections.abc import Iterator
 from contextlib import contextmanager
 from importlib.resources import files
@@ -10,7 +11,7 @@ from sqlalchemy.engine import Connection, Engine
 
 # The number this code needs. A file carries its own number in PRAGMA
 # user_version, and a step in initialize() moves a lower file up one version.
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 3
 
 SCHEMA = files(__package__).joinpath("schema.sql").read_text(encoding="utf-8")
 
@@ -78,6 +79,10 @@ def initialize(db: Connection, path: str | Path | None = None) -> None:
       db.exec_driver_sql(statement)
   if found < 1:
     _step_one(db)
+  if found < 2:
+    _step_two(db)
+  if found < 3:
+    _step_three(db)
   # A later step reads the number, adds its guard, and moves the number again.
   db.exec_driver_sql(f"PRAGMA user_version = {SCHEMA_VERSION}")
   db.commit()
@@ -112,6 +117,22 @@ def _step_one(db: Connection) -> None:
     db.exec_driver_sql("DROP TABLE enrollment_tokens_old")
 
 
+def _step_two(db: Connection) -> None:
+  """Reject is the one word for a declined request, so old rows move."""
+  db.exec_driver_sql("UPDATE requests SET status = 'REJECTED' WHERE status = 'REVOKED'")
+  rows = db.exec_driver_sql(
+    "SELECT id, data FROM events WHERE data LIKE '%REVOKED%'"
+  ).fetchall()
+  for row in rows:
+    data = json.loads(row._mapping["data"])
+    for key in ("from", "to"):
+      if data.get(key) == "REVOKED":
+        data[key] = "REJECTED"
+    db.exec_driver_sql(
+      "UPDATE events SET data = ? WHERE id = ?", (json.dumps(data), row._mapping["id"])
+    )
+
+
 @contextmanager
 def transaction(db: Connection) -> Iterator[Connection]:
   try:
@@ -120,3 +141,15 @@ def transaction(db: Connection) -> Iterator[Connection]:
     db.rollback()
     raise
   db.commit()
+
+
+def _step_three(db: Connection) -> None:
+  """Give an old file the text size column."""
+  columns = {
+    row._mapping["name"]
+    for row in db.exec_driver_sql("PRAGMA table_info(user_preferences)")
+  }
+  if "font_size" not in columns:
+    db.exec_driver_sql(
+      "ALTER TABLE user_preferences ADD COLUMN font_size INTEGER NOT NULL DEFAULT 100"
+    )

@@ -23,7 +23,14 @@ from pwedepa.data import requests as requests_data
 from pwedepa.data import sharing as sharing_data
 
 from .. import now
-from ._helpers import can_share, current_user, db, expiry_days, record_path
+from ._helpers import (
+  can_share,
+  current_user,
+  db,
+  expiry_days,
+  record_path,
+  safe_next,
+)
 
 bp = Blueprint("sharing", __name__)
 
@@ -98,7 +105,7 @@ def create(object_type: str, object_id: int) -> Response:
     data={"link_id": issued.link.id, "permissions": list(issued.link.permissions)},
   )
   flash("Share link created. Copy it now. The app shows the plain link once.")
-  return redirect(_detail_url(record, object_type))
+  return redirect(safe_next() or _detail_url(record, object_type))
 
 
 @bp.post("/share-links/<int:link_id>/revoke")
@@ -114,9 +121,14 @@ def revoke(link_id: int) -> Response:
   if not (is_admin or user.id == link.created_by_id or can_share(user, record)):
     abort(404)
   sharing_data.revoke(db(), link_id, at=now())
+  reason = (request.form.get("reason") or "").strip()[:500]
+  extra = {"reason": reason} if reason else {}
   if record is not None:
     event = Event(
-      f"{link.object_type}.share_revoked", user.id, now(), {"link_id": link_id}
+      f"{link.object_type}.share_revoked",
+      user.id,
+      now(),
+      {"link_id": link_id, **extra},
     )
     events_data.append(db(), link.object_type, link.object_id, event)
     _notify_share(
@@ -132,10 +144,10 @@ def revoke(link_id: int) -> Response:
     actor_id=user.id,
     object_type=link.object_type,
     object_id=link.object_id,
-    data={"link_id": link_id},
+    data={"link_id": link_id, **extra},
   )
   flash("Share link revoked.")
-  return redirect(_detail_url(record, link.object_type))
+  return redirect(safe_next() or _detail_url(record, link.object_type))
 
 
 @bp.get("/share/<token>")

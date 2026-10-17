@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="386" viewBox="0 0 800 386" font-family="-apple-system, Segoe UI, Roboto, sans-serif">
+<rect width="800" height="386" fill="#0C1118"/>
+<text x="24" y="32" fill="#93A5B8" font-size="11" font-weight="600" letter-spacing="1.4">COMPONENTS</text>
+<text x="24" y="66" fill="#93A5B8" font-size="10" letter-spacing="1.2">PRIMARY</text>
+<rect x="24" y="74" width="132" height="34" fill="#1D4ED8" rx="7"/>
+<text x="90" y="96" fill="#FFFFFF" font-size="12" font-weight="600" text-anchor="middle">New request</text>
+<text x="168" y="96" fill="#93A5B8" font-size="10">one per view</text>
+<text x="24" y="136" fill="#93A5B8" font-size="10" letter-spacing="1.2">DANGER</text>
+<rect x="24" y="144" width="92" height="34" fill="none" stroke="#FF9C94" stroke-width="1" rx="7"/>
+<text x="70" y="166" fill="#FF9C94" font-size="12" font-weight="600" text-anchor="middle">Reject</text>
+<text x="128" y="166" fill="#93A5B8" font-size="10">ghost, red text</text>
+<text x="24" y="206" fill="#93A5B8" font-size="10" letter-spacing="1.2">SWITCH</text>
+<text x="24" y="232" fill="#E4EBF3" font-size="12">Email alerts</text>
+<rect x="300" y="216" width="40" height="22" fill="#1D4ED8" rx="11"/>
+<circle cx="330" cy="227" r="8" fill="#FFFFFF"/>
+<text x="352" y="232" fill="#93A5B8" font-size="10">saves on flip</text>
+<rect x="440" y="62" width="336" height="200" fill="#131B26" stroke="#243144" stroke-width="1" rx="8"/>
+<text x="460" y="90" fill="#E4EBF3" font-size="12" font-weight="600">Reason</text>
+<rect x="460" y="98" width="296" height="54" fill="#0C1118" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="472" y="122" fill="#93A5B8" font-size="12">Why this is rejected</text>
+<text x="460" y="174" fill="#93A5B8" font-size="11">Shown to the requester.</text>
+<text x="460" y="196" fill="#FF9C94" font-size="11">Give a reason to reject.</text>
+<text x="460" y="232" fill="#93A5B8" font-size="10">Label above · help at 12 px · error names the fix</text>
+<rect x="24" y="268" width="752" height="84" fill="#182233" rx="8"/>
+<circle cx="52" cy="304" r="13" fill="none" stroke="#93A5B8" stroke-width="1.5"/>
+<circle cx="47" cy="301" r="1.6" fill="#93A5B8"/>
+<circle cx="57" cy="301" r="1.6" fill="#93A5B8"/>
+<path d="M47 310 q5 4 10 0" stroke="#93A5B8" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+<text x="80" y="300" fill="#E4EBF3" font-size="13">No requests match this filter.</text>
+<text x="80" y="318" fill="#93A5B8" font-size="10">One sentence, then one action.</text>
+<rect x="560" y="290" width="120" height="30" fill="none" stroke="#243144" stroke-width="1" rx="7"/>
+<text x="620" y="310" fill="#E4EBF3" font-size="11" text-anchor="middle">Clear filter</text>
+<text x="24" y="376" fill="#93A5B8" font-size="11">Every pattern needs a sheet entry and a screenshot.</text>
+</svg>

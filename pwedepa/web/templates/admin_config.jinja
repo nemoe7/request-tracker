@@ -4,7 +4,7 @@
 <div class="admin-page">
 <div class="page-head">
   <h1>Domain config</h1>
-  <a class="btn" href="{{ url_for('admin.overview') }}">Admin home</a>
+  <a class="btn" href="{{ url_for('settings.settings', _anchor='admin') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#arrow-left"/></svg>Settings</a>
 </div>
 
 <h2 class="section-title">In force</h2>
@@ -31,7 +31,7 @@
             <label for="slug-{{ domain.slug }}">URL slug</label>
             <input id="slug-{{ domain.slug }}" name="new_slug" type="text" value="{{ domain.slug }}">
           </div>
-          <div class="form-actions"><button class="btn" type="submit">Save</button></div>
+          <div class="form-actions"><button class="btn icon-only" type="submit" aria-label="Save" title="Save"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button></div>
         </form>
         <form class="form" method="post" action="{{ url_for('admin.domain_config_remove') }}">
           <input type="hidden" name="slug" value="{{ domain.slug }}">
@@ -57,7 +57,7 @@
         <label for="domain-description">Description</label>
         <input id="domain-description" name="description" type="text">
       </div>
-      <div class="form-actions"><button class="btn" type="submit">Add Domain</button></div>
+      <div class="form-actions"><button class="btn" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Add Domain</button></div>
     </form>
   </section>
 
@@ -70,7 +70,7 @@
         <input id="config-file" type="file" name="config" accept=".yaml,.yml">
         <p class="help">The file holds a domains list. Each entry needs a name and may hold a description.</p>
       </div>
-      <div class="form-actions"><button class="btn primary" type="submit">Import config</button></div>
+      <div class="form-actions"><button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#upload"/></svg>Import config</button></div>
     </form>
   </section>
 </div>

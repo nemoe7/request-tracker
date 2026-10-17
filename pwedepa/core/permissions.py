@@ -28,7 +28,7 @@ class Actor:
 
 
 OWNER_VERBS = {
-  "request": {"view", "comment", "edit", "revoke"},
+  "request": {"view", "comment", "edit", "reject"},
   "issue": {"view", "comment", "close", "reopen"},
 }
 

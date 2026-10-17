@@ -8,6 +8,6 @@
     {% if error.code == 404 %}That page is not here. It may have moved, or the link may be old.
     {% else %}You do not have access to this page.{% endif %}
   </p>
-  <a class="btn primary" href="{{ url_for('records.workspace') }}">Go to PwedePa</a>
+  <a class="btn primary" href="{{ url_for('records.workspace') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#house"/></svg>Go to PwedePa</a>
 </section>
 {% endblock %}

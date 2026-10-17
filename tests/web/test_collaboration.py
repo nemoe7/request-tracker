@@ -154,9 +154,15 @@ def test_authenticated_share_grants_only_the_picked_access(cast, db):
   )
   assert requests_data.get(db, 1).title == "Changed by Sam"
 
-  admin.post("/share-links/2/revoke")
+  admin.post("/share-links/2/revoke", data={"reason": "The link leaked."})
   assert Sam.get(record_url(1)).status_code == 404
   assert Sam.get(f"/share/{edit_token}").status_code == 404
+  revoked = next(
+    event
+    for event in events_data.list_for(db, "request", 1)
+    if event.event_type == "request.share_revoked"
+  )
+  assert revoked.data["reason"] == "The link leaked."
 
 
 def _demo_app(tmp_path, name: str = "demo.db", switch: bool = False):
@@ -177,7 +183,7 @@ def test_demo_mode_opens_seeded_workspace_without_credentials(tmp_path):
   client = _demo_app(tmp_path).test_client()
   workspace = client.get("/")
   assert workspace.status_code == 200
-  assert re.search(rb'href="/[^"]*/requests/\d+"', workspace.data)
+  assert re.search(rb'href="/\?[^"]*selected=\d+"', workspace.data)
 
 
 def test_the_demo_entry_is_not_a_url(cast, tmp_path):
@@ -505,7 +511,7 @@ def test_a_staff_member_can_check_the_client_view(cast, db):
 
   detail = admin.get(record_url(1))
   assert detail.status_code == 200
-  assert b">Edit<" not in detail.data
+  assert b'aria-label="Edit"' not in detail.data
   assert b"share-form" not in detail.data
   assert b'href="/view-as/client"' not in detail.data
   assert b'href="/view-as/staff"' in detail.data
@@ -561,7 +567,7 @@ def test_notification_switches_save_as_they_flip(cast, db):
   Mara, Mara_user = cast["Mara"]
   main = Mara.get("/settings").data.decode()
   main = main[main.index("settings-main") :]
-  assert "Save notifications" in main, "a bare browser needs a way out"
+  assert 'aria-label="Save notifications"' in main, "a bare browser needs a way out"
   assert "data-save" in main
   css = Mara.get("/static/app.css").data.decode()
   assert "form.is-auto [data-save] { display: none; }" in css, (
@@ -594,4 +600,4 @@ def test_the_frozen_demo_keeps_the_save_button(tmp_path):
   body = _demo_app(tmp_path).test_client().get("/settings").data
   main = body[body.index(b"settings-main") :]
   assert b"data-autosave action" not in main
-  assert b"Save notifications" in main
+  assert b"Save notifications" in main, "the control still names its action"

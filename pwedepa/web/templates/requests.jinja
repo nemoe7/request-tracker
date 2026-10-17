@@ -11,12 +11,12 @@
   {% if selected %}
   <section class="client-dash is-open is-main">
     <div class="panel inspector is-main">
-      <a class="back-to-list" href="{{ url_for('records.requests') }}">Back to the list</a>
+      <a class="back-to-list" href="{{ url_for('records.requests') }}" aria-label="Back to the list" title="Back to the list"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#arrow-left"/></svg></a>
       <p class="eyebrow">Request #{{ selected.id }} · by {{ names.get(selected.requester_id, "—") }}</p>
       <h2>{{ selected.title }}</h2>
       <p>{{ pill(selected.status) }}<span class="vis">{{ selected.visibility.value | capitalize }}</span></p>
-      <p class="desc">{{ selected.description or "No description." }}</p>
-      <a class="btn" href="{{ record_path(selected) }}">Open request</a>
+      <div class="desc prose">{{ selected.description | prose if selected.description else "No description." }}</div>
+      <a class="btn" href="{{ request_open_path(selected) }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#arrow-right"/></svg>Open request</a>
     </div>
   </section>
   {% else %}
@@ -40,12 +40,12 @@
     {% for record in mine %}
     <li class="record-row">
       <div class="record-row-main">
-        <h2><a href="{{ record_path(record) }}">{{ record.title }}</a></h2>
+        <h2><a href="{{ request_open_path(record) }}">{{ record.title }}</a></h2>
         <p class="meta">#{{ record.id }} · {{ record.visibility.value | capitalize }}{% if record.domains %} · {{ record.domains | join(", ") }}{% endif %}</p>
       </div>
       <div class="record-row-side">
         {{ pill(record.status) }}
-        <a class="mini" href="{{ url_for('records.requests', selected=record.id) }}">Open the card</a>
+        <a class="mini" href="{{ url_for('records.requests', selected=record.id) }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#arrow-right"/></svg>Open the card</a>
       </div>
     </li>
     {% endfor %}
@@ -54,7 +54,7 @@
   <div class="empty panel">
     <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="48" height="48">
     <p>You have no requests yet.</p>
-    <a class="btn primary" href="{{ url_for('records.request_new') }}">Make your first request</a>
+    <a class="btn primary" href="{{ url_for('records.request_new') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Make your first request</a>
   </div>
   {% endif %}
   {% endif %}
@@ -65,12 +65,12 @@
     {% for record in public %}
     <li class="record-row">
       <div class="record-row-main">
-        <h2><a href="{{ record_path(record) }}">{{ record.title }}</a></h2>
+        <h2><a href="{{ request_open_path(record) }}">{{ record.title }}</a></h2>
         <p class="meta">#{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
       </div>
       <div class="record-row-side">
         {{ pill(record.status) }}
-        <a class="mini" href="{{ url_for('records.requests', selected=record.id) }}">Open the card</a>
+        <a class="mini" href="{{ url_for('records.requests', selected=record.id) }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#arrow-right"/></svg>Open the card</a>
       </div>
     </li>
     {% endfor %}

@@ -348,18 +348,147 @@ document.querySelector("#add-passkey")?.addEventListener("click", async () => {
   }
 });
 
-document.querySelectorAll("[data-revoke-passkey]").forEach((button) => {
-  button.addEventListener("click", async () => {
-    try {
-      await postJson(`/auth/passkeys/${button.dataset.revokePasskey}/revoke`, {});
-      window.location.reload();
-    } catch (error) {
-      setStatus(error.message);
-    }
+const fontForm = document.querySelector("[data-font-size-form]");
+
+if (fontForm) {
+  const range = fontForm.querySelector("[data-font-size-range]");
+  const number = fontForm.querySelector("[data-font-size-number]");
+  const note = document.querySelector("[data-font-size-status]");
+  const apply = (value) => {
+    document.documentElement.style.setProperty("--font-scale", String(value / 100));
+  };
+  const valid = (value) => Number.isInteger(value) && value >= 85 && value <= 130;
+  range.addEventListener("input", () => {
+    number.value = range.value;
+    apply(Number(range.value));
   });
-});
+  number.addEventListener("input", () => {
+    const value = Number(number.value);
+    if (valid(value)) apply(value);
+  });
+  const settle = async () => {
+    const value = Math.min(130, Math.max(85, Number(number.value) || 100));
+    number.value = value;
+    range.value = value;
+    apply(value);
+    try {
+      const body = new FormData(fontForm);
+      body.set("font_size", String(value));
+      const response = await fetch(fontForm.action, {
+        method: "POST",
+        body,
+        headers: { "X-Requested-With": "fetch" },
+      });
+      if (!response.ok) throw new Error("The text size did not save.");
+      if (note) note.textContent = `Text size ${value}%.`;
+    } catch (error) {
+      if (note) note.textContent = error.message;
+    }
+  };
+  range.addEventListener("change", settle);
+  number.addEventListener("change", settle);
+}
 
 document.querySelector("#logout-button")?.addEventListener("click", async () => {
   const done = await postJson("/logout", {}).catch(() => ({ redirect: "/" }));
   window.location.assign(done.redirect || "/");
 });
+
+document.querySelectorAll("form[data-auto-submit]").forEach((form) => {
+  form.addEventListener("change", () => form.requestSubmit());
+});
+
+/* Modal: one manager for every custom dialog. An opener carries
+   data-modal-open="<id>", and a close control carries data-modal-close. */
+(() => {
+  let active = null;
+  let returnFocus = null;
+
+  function focusable(modal) {
+    return [
+      ...modal.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      ),
+    ].filter((node) => !node.disabled && node.offsetParent !== null);
+  }
+
+  function open(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    active = modal;
+    returnFocus = document.activeElement;
+    modal.hidden = false;
+    document.body.classList.add("has-modal");
+    const first = focusable(modal)[0];
+    if (first) first.focus();
+  }
+
+  function close() {
+    if (!active) return;
+    active.hidden = true;
+    document.body.classList.remove("has-modal");
+    active = null;
+    if (returnFocus && returnFocus.isConnected) returnFocus.focus();
+    returnFocus = null;
+  }
+
+  document.addEventListener("click", (event) => {
+    const opener = event.target.closest("[data-modal-open]");
+    if (opener) {
+      event.preventDefault();
+      open(opener.dataset.modalOpen);
+      return;
+    }
+    if (event.target.closest("[data-modal-close]")) {
+      event.preventDefault();
+      close();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (!active) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      close();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const items = focusable(active);
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+
+  window.PwedePaModal = { open, close };
+})();
+
+// Textareas grow with their wrapped text, so a drag handle never shows.
+(() => {
+  const fit = (element) => {
+    if (!(element instanceof HTMLTextAreaElement) || !element.offsetParent) return;
+    element.style.height = "auto";
+    const border = element.offsetHeight - element.clientHeight;
+    element.style.height = `${element.scrollHeight + border}px`;
+  };
+  const fitAll = () => document.querySelectorAll("textarea").forEach(fit);
+
+  document.addEventListener("input", (event) => {
+    if (event.target instanceof HTMLTextAreaElement) fit(event.target);
+  });
+  document.addEventListener("focusin", (event) => {
+    if (event.target instanceof HTMLTextAreaElement) fit(event.target);
+  });
+  window.addEventListener("resize", fitAll);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", fitAll);
+  } else {
+    fitAll();
+  }
+})();

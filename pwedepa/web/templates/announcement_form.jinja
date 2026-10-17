@@ -15,7 +15,7 @@
       <p class="help">{{ domain.name }} sees this announcement on its Domain page.</p>
     </div>
     <div class="form-actions">
-      <button class="btn primary" type="submit">{% if announcement %}Save announcement{% else %}Publish announcement{% endif %}</button>
+      {% if announcement %}<button class="btn primary icon-only" type="submit" aria-label="Save announcement" title="Save announcement"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button>{% else %}<button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#megaphone"/></svg>Publish announcement</button>{% endif %}
       <a class="btn" href="{{ url_for('records.domain_page', slug=domain.slug) }}">Cancel</a>
     </div>
   </form>

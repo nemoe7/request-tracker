@@ -4,6 +4,10 @@ CLOCKS = ("12", "24")
 THEMES = ("system", "light", "dark")
 DEFAULT_CLOCK = "12"
 DEFAULT_THEME = "system"
+MIN_FONT_SIZE = 85
+MAX_FONT_SIZE = 130
+FONT_SIZES = tuple(range(MIN_FONT_SIZE, MAX_FONT_SIZE + 1))
+DEFAULT_FONT_SIZE = 100
 
 
 def get_clock(db: Connection, user_id: int) -> str:
@@ -42,5 +46,25 @@ def set_theme(db: Connection, user_id: int, theme: str) -> None:
     "INSERT INTO user_preferences (user_id, theme) VALUES (?, ?) "
     "ON CONFLICT(user_id) DO UPDATE SET theme = excluded.theme",
     (user_id, theme),
+  )
+  db.commit()
+
+
+def get_font_size(db: Connection, user_id: int) -> int:
+  row = db.exec_driver_sql(
+    "SELECT font_size FROM user_preferences WHERE user_id = ?", (user_id,)
+  ).fetchone()
+  if row is None:
+    return DEFAULT_FONT_SIZE
+  return row._mapping["font_size"] or DEFAULT_FONT_SIZE
+
+
+def set_font_size(db: Connection, user_id: int, size: int) -> None:
+  if size not in FONT_SIZES:
+    raise ValueError(f"unknown font size: {size}")
+  db.exec_driver_sql(
+    "INSERT INTO user_preferences (user_id, font_size) VALUES (?, ?) "
+    "ON CONFLICT(user_id) DO UPDATE SET font_size = excluded.font_size",
+    (user_id, size),
   )
   db.commit()

@@ -24,3 +24,40 @@
   <span class="event-meta">{{ names.get(event.actor_id, "Someone") }} · {{ event.at | stamp(clock) }}</span>
 </li>
 {%- endmacro %}
+
+{% macro confirm_modal(id, action, title, body, submit) -%}
+{% call modal(id, title) %}
+<form class="modal-form" method="post" action="{{ action }}">
+  <p>{{ body }}</p>
+  <div class="modal-actions">
+    <button class="btn" type="button" data-modal-close>Cancel</button>
+    <button class="btn danger" type="submit">{{ submit }}</button>
+  </div>
+</form>
+{% endcall %}
+{%- endmacro %}
+
+{% macro modal(id, title) -%}
+<div class="modal" id="{{ id }}" hidden>
+  <div class="modal-scrim" data-modal-close></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="{{ id }}-title">
+    <h2 id="{{ id }}-title">{{ title }}</h2>
+    {{ caller() }}
+  </div>
+</div>
+{%- endmacro %}
+
+{% macro reason_modal(id, action, fields, next_href, title="Revoke this?", submit="Revoke", hint="Why this is revoked") -%}
+{% call modal(id, title) %}
+<form class="modal-form" method="post" action="{{ action }}">
+  {% for name, value in fields.items() %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+  {% if next_href %}<input type="hidden" name="next" value="{{ next_href }}">{% endif %}
+  <label for="{{ id }}-reason">Reason</label>
+  <textarea id="{{ id }}-reason" name="reason" rows="3" required placeholder="{{ hint }}"></textarea>
+  <div class="modal-actions">
+    <button class="btn" type="button" data-modal-close>Cancel</button>
+    <button class="btn danger" type="submit">{{ submit }}</button>
+  </div>
+</form>
+{% endcall %}
+{%- endmacro %}

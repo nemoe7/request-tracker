@@ -59,6 +59,28 @@ def clock() -> Response:
   return redirect(url_for("settings.settings"))
 
 
+@bp.post("/settings/font-size")
+def font_size() -> Response:
+  user = current_user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  try:
+    picked = int(request.form.get("font_size", ""))
+  except ValueError:
+    picked = 0
+  if picked not in preferences_data.FONT_SIZES:
+    flash(
+      "Pick a text size from "
+      f"{preferences_data.MIN_FONT_SIZE} to {preferences_data.MAX_FONT_SIZE} percent."
+    )
+    return redirect(url_for("settings.settings"))
+  preferences_data.set_font_size(db(), user.id, picked)
+  if request.headers.get("X-Requested-With") == "fetch":
+    return Response("", status=204)
+  flash("Text size saved.")
+  return redirect(url_for("settings.settings"))
+
+
 @bp.post("/settings/theme")
 def theme() -> Response:
   user = current_user()

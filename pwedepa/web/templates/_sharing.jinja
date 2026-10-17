@@ -1,3 +1,4 @@
+{% from "_parts.jinja" import reason_modal %}
 {% if can_share %}
 <section class="share-panel" aria-label="Sharing">
   <h2>Share</h2>
@@ -9,6 +10,7 @@
   </div>
   {% endif %}
   <form class="share-form" method="post" action="{{ url_for('sharing.create', object_type=object_type, object_id=record.id) }}">
+    {% if next_href %}<input type="hidden" name="next" value="{{ next_href }}">{% endif %}
     <div class="field">
       <label for="share-permission-{{ record.id }}">Access</label>
       <select id="share-permission-{{ record.id }}" name="permission">
@@ -21,7 +23,7 @@
       <label for="share-days-{{ record.id }}">Expires in days</label>
       <input id="share-days-{{ record.id }}" type="number" name="expires_days" min="1" placeholder="No expiry">
     </div>
-    <button class="btn" type="submit">Create link</button>
+    <button class="btn" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#link"/></svg>Create link</button>
   </form>
   {% if share_links %}
   <ul class="share-list">
@@ -30,8 +32,10 @@
       <span>Link #{{ link.id }} · {{ link.permissions | join(", ") }}{% if link.expires_at %} · expires {{ link.expires_at.strftime("%b %-d, %Y") }}{% endif %}{% if link.revoked_at %} · revoked{% elif link.view_consumed_at %} · view used{% endif %}</span>
       {% if not link.revoked_at %}
       <form method="post" action="{{ url_for('sharing.revoke', link_id=link.id) }}">
-        <button class="btn danger" type="submit">Revoke</button>
+        {% if next_href %}<input type="hidden" name="next" value="{{ next_href }}">{% endif %}
+        <button class="btn danger" type="submit" data-modal-open="revoke-share-{{ link.id }}">Revoke</button>
       </form>
+      {{ reason_modal("revoke-share-" ~ link.id, url_for('sharing.revoke', link_id=link.id), {}, next_href) }}
       {% endif %}
     </li>
     {% endfor %}

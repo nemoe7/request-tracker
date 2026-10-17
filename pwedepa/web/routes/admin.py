@@ -70,11 +70,15 @@ def _names() -> dict[int, str]:
 
 
 @bp.get("/admin")
-def overview() -> str | Response:
+def overview() -> Response:
+  return redirect(url_for("settings.settings", _anchor="admin"))
+
+
+@bp.get("/admin/site")
+def site() -> str | Response:
   return render_template(
     "admin.jinja",
     users=list_users(db(), include_archived=True),
-    share_links=sharing_data.list_all(db()),
     site_messages=site_data.list_messages(db()),
     priorities=[priority.value for priority in Priority],
     domains=domains_data.load(current_app.config["DATABASE"]),
@@ -251,7 +255,13 @@ def issue_token() -> Response:
 
 @bp.post("/admin/users/<int:user_id>/archive")
 def archive(user_id: int) -> Response:
-  archive_user(db(), user_id, at=now(), actor_id=g.admin_user.id)
+  archive_user(
+    db(),
+    user_id,
+    at=now(),
+    actor_id=g.admin_user.id,
+    reason=request.form.get("reason") or None,
+  )
   flash("User archived.")
   return redirect(url_for("admin.users"))
 

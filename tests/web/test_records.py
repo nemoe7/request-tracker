@@ -141,14 +141,14 @@ def test_request_transitions_follow_the_core(cast, db):
   assert moved.status_code == 302
   assert requests_data.get(db, 1).status.value == "PENDING"
 
-  revoked = admin.post("/requests/1/transition", data={"target": "REVOKED"})
-  assert revoked.status_code == 302
+  rejected = admin.post("/requests/1/transition", data={"target": "REJECTED"})
+  assert rejected.status_code == 302
   assert requests_data.get(db, 1).status.value == "PENDING"
   admin.post(
     "/requests/1/transition",
-    data={"target": "REVOKED", "reason": "Duplicate of #9"},
+    data={"target": "REJECTED", "reason": "Duplicate of #9"},
   )
-  assert requests_data.get(db, 1).status.value == "REVOKED"
+  assert requests_data.get(db, 1).status.value == "REJECTED"
 
 
 def test_a_value_the_page_cannot_send_gets_a_sentence(cast, db):
@@ -360,7 +360,7 @@ def test_workspace_queues_counts_and_inspector(cast, db):
   page = admin.get("/")
   assert b"queue=triage" in page.data
   assert mine.title.encode() in page.data
-  assert issue.title.encode() in page.data
+  assert issue.title.encode() not in page.data, "the requests list carries no issue"
 
   blocked = admin.get("/?queue=blocked")
   assert issue.title.encode() in blocked.data

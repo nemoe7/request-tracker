@@ -13,7 +13,7 @@ from flask import (
 )
 from werkzeug.wrappers import Response
 
-from pwedepa.auth import Role, actor_for_user, list_roles, list_users
+from pwedepa.auth import actor_for_user, list_users
 from pwedepa.core import (
   Actor,
   ConfirmationRequired,
@@ -51,7 +51,9 @@ from ._helpers import (
   current_user,
   db,
   domain_matches,
+  is_staff,
   record_path,
+  safe_next,
 )
 
 bp = Blueprint("records", __name__)
@@ -62,7 +64,6 @@ REQUEST_LABELS = {
   RequestStatus.RAISED: "Raise to issue",
   RequestStatus.REJECTED: "Reject",
   RequestStatus.FULFILLED: "Fulfill",
-  RequestStatus.REVOKED: "Revoke",
 }
 STATUS_WORDS = {
   RequestStatus.OPEN: "New, not yet reviewed",
@@ -71,7 +72,6 @@ STATUS_WORDS = {
   RequestStatus.RAISED: "Turned into work",
   RequestStatus.REJECTED: "Not accepted",
   RequestStatus.FULFILLED: "Done",
-  RequestStatus.REVOKED: "Withdrawn",
 }
 
 
@@ -227,7 +227,6 @@ def _request_actions(actor, record) -> list[tuple[str, str]]:
       RequestStatus.RAISED: "raise",
       RequestStatus.REJECTED: "reject",
       RequestStatus.FULFILLED: "fulfill",
-      RequestStatus.REVOKED: "revoke",
     }[target]
     if _can(actor, f"request.{verb}", record):
       actions.append((target.value, REQUEST_LABELS[target]))
@@ -337,21 +336,15 @@ def workspace() -> str | Response:
   selected = None
   selected_id = request.args.get("selected", type=int)
   if row_kind == "request" and selected_id:
-    selected = next((r for r in rows if r.id == selected_id), None)
+    # A move can filter the row out. The open request keeps its pane either way.
+    selected = next((r for r in all_requests if r.id == selected_id), None)
   if selected is not None:
     workspace_reads.mark(db(), user.id, "request", selected.id, at=now())
   read_ids = workspace_reads.read_ids(db(), user.id, row_kind)
-  unread_rows = [row for row in rows if row.id not in read_ids]
-  opened_rows = [row for row in rows if row.id in read_ids]
-  board = {
-    status: [i for i in all_issues if i.status is status and in_domain(i)]
-    for status in (
-      IssueStatus.OPEN,
-      IssueStatus.BLOCKED,
-      IssueStatus.RESOLVED,
-      IssueStatus.CLOSED,
-    )
-  }
+  # Gmail keeps one list. Unread work still leads, and the row itself reads bold.
+  rows = [row for row in rows if row.id not in read_ids] + [
+    row for row in rows if row.id in read_ids
+  ]
   domains = sorted({d for r in all_requests + all_issues for d in r.domains})
   return render_template(
     "workspace.jinja",
@@ -364,15 +357,23 @@ def workspace() -> str | Response:
     domains=domains,
     counts=counts,
     rows=rows,
-    unread_rows=unread_rows,
-    opened_rows=opened_rows,
     row_kind=row_kind,
-    board=board,
+    read_ids=read_ids,
     selected=selected,
     selected_actions=_request_actions(actor, selected) if selected else [],
     selected_events=(
-      events_data.list_for(db(), "request", selected.id, limit=2) if selected else []
+      events_data.list_for(db(), "request", selected.id) if selected else []
     ),
+    selected_can_edit=selected is not None and _can(actor, "request.edit", selected),
+    selected_can_comment=(
+      selected is not None and _can(actor, "request.comment", selected)
+    ),
+    selected_share_links=(
+      sharing_data.list_for_object(db(), "request", selected.id) if selected else []
+    ),
+    selected_can_share=selected is not None and can_share(user, selected),
+    selected_token=_issued_token("request", selected.id) if selected else None,
+    return_to=request.full_path if request.query_string else request.path,
     names=_names(),
   )
 
@@ -514,7 +515,6 @@ def request_detail(slug: str, request_id: int) -> str | Response:
     can_edit=_can(actor, "request.edit", record) and not read_only,
     can_comment=_can(actor, "request.comment", record) and not read_only,
     events=events,
-    comments=[e for e in events if e.event_type == "request.comment"],
     share_links=sharing_data.list_for_object(db(), "request", record.id),
     can_share=can_share(user, record) and not read_only,
     object_type="request",
@@ -556,7 +556,7 @@ def request_transition(request_id: int) -> Response:
     _append_all("request", record, change)
   except CoreError as error:
     flash(str(error))
-  return redirect(record_path(record))
+  return redirect(safe_next() or record_path(record))
 
 
 @bp.post("/requests/<int:request_id>/comment")
@@ -573,7 +573,7 @@ def request_comment(request_id: int) -> Response:
     _notify_event("request", record, event)
   elif text:
     flash("You cannot comment on this request.")
-  return redirect(record_path(record))
+  return redirect(safe_next() or record_path(record))
 
 
 @bp.get("/requests/<int:request_id>/edit")
@@ -796,9 +796,3 @@ def issue_edit_save(issue_id: int) -> Response:
   issues_data.save(db(), change.object)
   _append_all("issue", record, change)
   return redirect(record_path(record, "issue"))
-
-
-def is_staff(user) -> bool:
-  """True when the user holds a staff role (admin or assignee)."""
-  roles = list_roles(db(), user.id)
-  return Role.ADMIN in roles or Role.ASSIGNEE in roles

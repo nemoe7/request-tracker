@@ -14,7 +14,7 @@ from pwedepa.auth import (
   sessions,
   users,
 )
-from pwedepa.core import Issue, Request
+from pwedepa.core import Issue, Request, RequestStatus, Visibility
 from pwedepa.data import db as data_db
 from pwedepa.data import issues as issues_data
 from pwedepa.data import notifications as notifications_data
@@ -107,7 +107,7 @@ def test_the_phone_reserves_no_room_for_a_staff_bar(app, db):
 
 
 def test_the_phone_workspace_folds_its_filters(app, db):
-  """On a phone the list leads, and one row opens the rail."""
+  """On a phone the filters sit above the list, and one row opens them."""
   client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   page = client.get("/").get_data(as_text=True)
   rail = page[
@@ -123,8 +123,16 @@ def test_the_phone_workspace_folds_its_filters(app, db):
   )
   phone = css[phone_at:]
   assert ".filters-toggle:not(:checked) ~ .filters-body { display: none; }" in phone
-  orders = dict(re.findall(r"\.workspace-grid \.(\w+) \{ order: (\d)", phone))
-  assert int(orders["records"]) < int(orders["filters"]), "the list leads on a phone"
+  orders = dict(re.findall(r"\.workspace-grid \.([\w-]+) \{\s*order: (\d)", phone))
+  list_orders = re.findall(
+    r"\.workspace-grid \.records > \.([\w-]+) \{\s*order: (\d)", phone
+  )
+  assert int(orders["list-toolbar"]) < int(orders["filters"]), (
+    "the filters sit above the list"
+  )
+  assert int(orders["filters"]) < min(int(order) for _, order in list_orders), (
+    "the filters sit above the list"
+  )
 
 
 def test_the_stylesheet_holds_one_phone_block(app):
@@ -133,6 +141,20 @@ def test_the_stylesheet_holds_one_phone_block(app):
   assert len(re.findall(r"@media \(max-width: 899px\)", css)) == 1, (
     "phones read in one place"
   )
+
+
+def test_the_phone_list_reads_as_three_line_rows(app):
+  """A phone row keeps the Gmail lines: who and when, the title, the preview."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  phone = css[css.index("@media (max-width: 639px)") :]
+  assert ".mail-table tr.mail-row {" in phone, "a phone row is its own grid"
+  assert 'grid-template-areas: "from time" "title title" "snippet status"' in phone, (
+    "the row reads in three lines"
+  )
+  assert ".mail-table .mail-title { display: contents; }" in phone, (
+    "the title cell feeds the row grid"
+  )
+  assert "grid-area: time;" in phone and "grid-area: status;" in phone
 
 
 def test_the_brand_tile_holds_the_bare_face(app):
@@ -146,6 +168,18 @@ def test_the_brand_tile_holds_the_bare_face(app):
   assert image is not None, "the face image has a rule"
   assert "inset: 0" in image.group(1), "the face fills the tile"
   assert "calc(" not in image.group(1), "nothing shrinks the face"
+
+
+def test_the_brand_swap_never_fades_through_the_page(app):
+  """A crossfade lets the bar show through, so the swap flips at once."""
+  css = app.test_client().get("/static/app.css").data.decode()
+
+  image = re.search(r"\.app-icon img \{(.*?)\}", css, re.DOTALL)
+  assert image is not None, "the face image has a rule"
+  assert "transition" not in image.group(1), "a fade would show the bar between faces"
+  assert ".app-icon .icon-animated { visibility: hidden; }" in css
+  assert ".app-icon:hover.is-ready .icon-static { visibility: hidden; }" in css
+  assert ".app-icon:hover.is-ready .icon-animated { visibility: visible; }" in css
 
 
 def test_the_row_link_reaches_the_card_handler(app, db):
@@ -484,7 +518,7 @@ def test_workspace_puts_the_reading_pane_right_of_the_list(app, db):
 
 
 def test_the_workspace_list_carries_one_toolbar(app, db):
-  """One row over the list holds the title, the status filter, and the action."""
+  """One row over the list holds the title and the status filter."""
   client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   requests_data.save(
     db,
@@ -499,47 +533,183 @@ def test_the_workspace_list_carries_one_toolbar(app, db):
   )
   page = client.get("/").get_data(as_text=True)
   assert '<div class="page-head">' not in page, "the list owns its one row"
-  toolbar = page[page.index('class="list-toolbar"') : page.index('class="group-title"')]
+  toolbar = page[page.index('class="list-toolbar"') : page.index("<table")]
   assert "<h1>Workspace</h1>" in toolbar
   assert 'id="status-filter"' in toolbar, "the status filter sits in the row"
-  assert 'class="btn primary"' in toolbar, "the action sits in the row"
-  assert page.index('class="list-toolbar"') < page.index('<table class="record-table')
+  assert "New request" not in toolbar, "staff triage keeps the client action out"
+  top = page[page.index('class="top-actions"') : page.index("</header>")]
+  assert 'aria-label="New request"' in top, "the top bar carries the action"
+  assert page.index('class="list-toolbar"') < page.index(
+    '<table class="record-table mail-table"'
+  )
   rail = page[page.index('class="panel filters"') : page.index('class="panel records"')]
   assert 'id="status-filter"' not in rail, "the rail keeps no second filter row"
 
 
-def test_the_workspace_rows_read_like_a_dense_list(app, db):
-  """Unread rows hold bold titles, the open row holds a clear marker."""
+def test_the_status_filter_applies_on_the_pick(app, db):
+  """A picked status sends at once, and the field reads as a select."""
   client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
-  record = Request(
-    id=1,
-    title="Broken projector",
-    description="The projector in Room 4 is dead.",
-    requester_id=users.get_user_by_username(db, "sam").id,
-    created_at=AT,
-    updated_at=AT,
-  )
-  requests_data.save(db, record)
+
   page = client.get("/").get_data(as_text=True)
-  assert '<table class="record-table is-unread">' in page
+  opening = page.index('class="list-toolbar"')
+  toolbar = page[opening : page.index("</div>", opening)]
+  form = toolbar[toolbar.index('class="filter-form"') :]
+  form = form[: form.index("</form>")]
+  assert "data-auto-submit" in form, "a changed pick sends the form"
+  assert 'id="status-filter"' in form
+  assert form.index("<noscript>") < form.index("Apply status"), (
+    "the button waits for a reader without JavaScript"
+  )
+
+  script = client.get("/static/app.js").data.decode()
+  assert "form[data-auto-submit]" in script, "the script sends on a change"
+  assert "requestSubmit" in script, "the send keeps the form's own rules"
+
+  css = client.get("/static/app.css").data.decode()
+  toolbar_rule = css[css.index(".list-toolbar .filter-form select {") :].split("}", 1)[
+    0
+  ]
+  assert "padding: 6px 32px 6px 10px" in toolbar_rule, "the chevron clears the text"
+  base = css[css.index("\n.filter-form select {") :].split("}", 1)[0]
+  assert "background-color: var(--surface)" in base, "a shorthand would drop the arrow"
+
+
+def test_the_workspace_reads_as_one_mail_table(app, db):
+  """Gmail shows one list. Unread stays bold, the open row keeps one edge."""
+  client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  requester_id = users.get_user_by_username(db, "sam").id
+  for number, title in ((1, "Broken projector"), (2, "Ladder audit")):
+    requests_data.save(
+      db,
+      Request(
+        id=number,
+        title=title,
+        description="The projector in Room 4 is dead.",
+        requester_id=requester_id,
+        created_at=AT,
+        updated_at=AT,
+      ),
+    )
+
+  page = client.get("/?selected=1").get_data(as_text=True)
+
+  assert page.count('<table class="record-table mail-table">') == 1, "one list"
+  assert 'class="group-title"' not in page, "no group headings"
+  assert "Issue strip" not in page, "the strip is gone"
+  assert 'class="mail-from"' in page and 'class="mail-title"' in page
+  assert 'class="mail-status"' in page and 'class="mail-time"' in page
+  assert "The projector in Room 4 is dead." in page, "the row carries a snippet"
+  assert 'class="is-unread' in page or " is-unread" in page, "unread rows read bold"
+  assert "is-selected" in page, "the open row keeps its marker"
 
   css = client.get("/static/app.css").data.decode()
   row = re.search(r"\.record-table td \{([^}]*)\}", css)
   assert row and "padding: 5px 8px" in row.group(1), "the row keeps one dense height"
-  assert ".record-table.is-unread td:first-child > a { font-weight: 700; }" in css
+  assert ".mail-table tr.is-unread .mail-title a { font-weight: 700; }" in css
   selected = re.search(r"\.record-table tr\.is-selected td \{([^}]*)\}", css)
-  assert selected and "inset 3px 0 0 var(--accent)" in selected.group(1), (
-    "the open row holds a clear edge"
+  assert selected and "box-shadow" not in selected.group(1), (
+    "the edge cannot repeat on every column"
+  )
+  first = re.search(r"\.record-table tr\.is-selected td:first-child \{([^}]*)\}", css)
+  assert first and "inset 3px 0 0 var(--accent)" in first.group(1), (
+    "only the first column holds the edge"
   )
 
   grid = re.search(r"\.workspace-grid \{([^}]*)\}", css)
   assert grid and "240px minmax(0, 1fr) 0" in grid.group(1), (
     "the closed list takes the free track"
   )
-  wide = css[css.index("@media (min-width: 1200px)") :]
-  assert re.search(
-    r"\.workspace-grid\.is-open[^{]*\{[^}]*240px minmax\(0, 1fr\) 360px", wide
-  ), "the reading pane keeps the right edge"
+  assert "max-width" in grid.group(1) and "margin" in grid.group(1), (
+    "the page stays a centered column"
+  )
+
+
+def test_the_workspace_pane_carries_the_request_view(app, db):
+  """The reading pane is the request page, controls and all."""
+  client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  requester_id = users.get_user_by_username(db, "sam").id
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title="Broken projector",
+      description="The projector in Room 4 is dead.",
+      requester_id=requester_id,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+
+  page = client.get("/?selected=1").get_data(as_text=True)
+  pane = page[page.index('class="panel inspector') :]
+
+  assert 'class="issue-head"' in pane, "the pane leads with the record header"
+  assert "#1" in pane and "Broken projector" in pane
+  assert 'class="timeline"' in pane, "the pane holds the timeline"
+  assert 'class="issue-side"' in pane, "the pane holds the facts sidebar"
+  assert 'class="actions"' in pane, "the pane holds the state controls"
+  assert 'class="comment-form"' in pane, "the pane holds the comment box"
+  assert 'name="next"' in pane, "a control returns to the pane"
+  assert "selected=1" in pane
+
+
+def test_a_form_can_return_to_the_pane(app, db):
+  """A control sends its own page back only when the path is local."""
+  client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  requester_id = users.get_user_by_username(db, "sam").id
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title="Broken projector",
+      description="The projector in Room 4 is dead.",
+      requester_id=requester_id,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+
+  back = "/?queue=triage&selected=1"
+  answer = client.post(
+    "/requests/1/transition",
+    data={"target": "PENDING", "next": back},
+    follow_redirects=False,
+  )
+  assert answer.headers["Location"] == back
+
+  away = client.post(
+    "/requests/1/transition",
+    data={"target": "DELAYED", "next": "//evil.example/x"},
+    follow_redirects=False,
+  )
+  assert "evil.example" not in away.headers["Location"]
+
+
+def test_a_move_keeps_the_request_open_in_the_pane(app, db):
+  """A status change that filters the row out still leaves its view open."""
+  _client(app, db, "sam", "Sam Cruz")
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  requester_id = users.get_user_by_username(db, "sam").id
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title="Broken projector",
+      description="The projector in Room 4 is dead.",
+      requester_id=requester_id,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+
+  page = client.post(
+    "/requests/1/transition",
+    data={"target": "PENDING", "next": "/?queue=triage&selected=1"},
+    follow_redirects=True,
+  ).get_data(as_text=True)
+  assert requests_data.get(db, 1).status is RequestStatus.PENDING, "the move lands"
+  assert 'class="issue-page is-pane"' in page, "the moved request keeps its pane"
+  assert "Broken projector" in page, "the pane still names the request"
 
 
 def test_the_record_pages_read_like_a_github_issue(app, db):
@@ -588,7 +758,82 @@ def test_the_record_pages_read_like_a_github_issue(app, db):
       assert f"<h2>{label}</h2>" in side, f"{path} misses {label} in its sidebar"
 
 
-def test_workspace_opens_the_reading_pane_beside_the_list(app, db):
+def test_a_staff_request_link_opens_in_the_workspace(app, db):
+  """A staff page keeps the workspace around an opened request."""
+  _client(app, db, "sam", "Sam Cruz")
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  requester_id = users.get_user_by_username(db, "sam").id
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title="Broken projector",
+      description="The projector in Room 4 is dead.",
+      requester_id=requester_id,
+      visibility=Visibility.PUBLIC,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+
+  page = client.get("/requests").get_data(as_text=True)
+  assert 'href="/?selected=1"' in page, "staff open a request in the workspace"
+
+
+def test_reject_asks_for_a_reason_in_a_modal(app, db):
+  """The reject trigger opens a custom modal, and the form carries a reason."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title="Broken projector",
+      description="The projector in Room 4 is dead.",
+      requester_id=users.get_user_by_username(db, "Ada").id,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+
+  client.post("/records/request/1/share", data={"permission": "VIEW"})
+  page = client.get("/?selected=1").get_data(as_text=True)
+  assert 'data-modal-open="reject-request-1"' in page
+  assert 'id="reject-request-1"' in page
+  assert 'role="dialog"' in page
+  assert 'name="reason"' in page
+  assert "<noscript>" in page, "a browser without JS keeps a reason field"
+  assert re.search(r'data-modal-open="revoke-share-\d+"', page), (
+    "a share link uses the same modal"
+  )
+  assert re.search(r'id="revoke-share-\d+"', page)
+  css = client.get("/static/app.css").data.decode()
+  assert ".modal .modal-card h2" in css, "the dialog title keeps its own top margin"
+
+  closed = client.get("/").get_data(as_text=True)
+  assert "reject-request-1" not in closed
+
+
+def test_prose_in_the_workspace_renders_safe_html(app, db):
+  """A description reads as markdown, and a script never reaches the page."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title="Broken projector",
+      description="**Dead** bulb <script>alert(1)</script>",
+      requester_id=users.get_user_by_username(db, "Ada").id,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+
+  page = client.get("/?selected=1").get_data(as_text=True)
+  assert "<strong>Dead</strong>" in page
+  assert "<script>alert(1)</script>" not in page
+
+
+def test_the_workspace_keeps_the_rail_when_a_request_opens(app, db):
   client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   record = Request(
     id=1,
@@ -606,8 +851,8 @@ def test_workspace_opens_the_reading_pane_beside_the_list(app, db):
   assert f"selected={record.id}" in closed, "a row keeps a real link to its card"
 
   opened = client.get(f"/?selected={record.id}").data.decode()
-  # The page keeps the open mark while the reading pane fills the right track.
   assert 'class="workspace-grid is-open is-main"' in opened
+  assert "Back to the list" in opened, "a way back to the table"
 
   css = app.test_client().get("/static/app.css").data.decode()
   grid = css[css.index(".workspace-grid {") :].split("}", 1)[0]
@@ -616,10 +861,20 @@ def test_workspace_opens_the_reading_pane_beside_the_list(app, db):
   assert ".workspace-grid:not(.is-open) .inspector {" in css, (
     "the closed card leaves the row"
   )
-  wide = css[css.index("@media (min-width: 1200px)") :]
   assert re.search(
-    r"\.workspace-grid\.is-open[^{]*\{[^}]*minmax\(0, 1fr\) 360px", wide
-  ), "the design doc holds the reading pane at 360px"
+    r"\.workspace-grid\.is-open \{[^}]*grid-template-columns: 240px minmax\(0, 1fr\)",
+    css,
+  ), "the rail stays beside the open request"
+  assert re.search(
+    r"\.workspace-grid\.is-open \.records \{ display: none;",
+    css,
+  ), "the list steps aside for the request"
+  assert ".workspace-grid.is-open .filters { display: none; }" in css, (
+    "a phone hides the folded rail"
+  )
+  assert ".workspace-grid.is-open.is-main .inspector {" in css, (
+    "the open request drops the card frame"
+  )
 
   assert ".workspace-grid .inspector { scroll-margin-top" in css, (
     "on a phone the card must land below the top bar"
@@ -668,7 +923,9 @@ def test_the_share_row_gives_every_control_one_height(app):
   )
   button = rules.get(".share-form .btn", "")
   assert "min-height: var(--control-h)" in button, "Create link must match the fields"
-  assert "font-size: 14px" in button, "Create link must match the field text"
+  assert "font-size: calc(14px * var(--font-scale))" in button, (
+    "Create link must match the field text"
+  )
 
 
 def test_settings_rows_share_grouped_lists(app, db):
@@ -729,7 +986,7 @@ def test_the_admin_user_page_caps_its_width(app, db):
 def test_the_four_admin_pages_share_one_width(app, db):
   """A page left out of the wrapper would stretch wider than its neighbours."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
-  for path in ("/admin", "/admin/users", "/admin/shares", "/admin/audit"):
+  for path in ("/admin/site", "/admin/users", "/admin/shares", "/admin/audit"):
     body = client.get(path).data
     assert b'class="admin-page"' in body, path
 
@@ -807,8 +1064,8 @@ def test_admin_row_buttons_match_their_fields(app):
   assert "min-height: var(--control-h)" in button, "the button must not stand shorter"
   tokens = app.test_client().get("/static/tokens.css").data.decode()
   assert "--control-h: 44px" in tokens
-  assert "font-size: 14px" in field
-  assert "font-size: 14px" in button
+  assert "font-size: calc(14px * var(--font-scale))" in field
+  assert "font-size: calc(14px * var(--font-scale))" in button
 
 
 def test_the_role_forms_offer_only_sensible_roles(app, db):
@@ -887,17 +1144,24 @@ def test_the_issues_page_lists_the_work_in_status_groups(app, db):
   assert "Projector repair plan" in page
 
 
-def test_the_admin_home_lists_its_sections_as_rows(app, db):
-  """Four equal cards waste the width a dense list uses."""
+def test_the_admin_home_is_a_settings_group(app, db):
+  """The hub moved into Settings, so /admin hands over to the group."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
 
-  page = client.get("/admin").data.decode()
+  response = client.get("/admin")
+  assert response.status_code == 302
+  assert response.headers["Location"].endswith("/settings#admin")
 
-  assert 'class="admin-links"' in page, "the sections read as one list"
-  assert page.count('class="admin-link"') == 4, "each section keeps one row"
-  assert 'class="cards"' not in page
-  for path in ("/admin/users", "/admin/shares", "/admin/audit", "/admin/config"):
-    assert f'href="{path}"' in page, f"the list misses {path}"
+  page = client.get("/settings").data.decode()
+  group = page[page.index('id="admin"') :]
+  for path in (
+    "/admin/users",
+    "/admin/shares",
+    "/admin/audit",
+    "/admin/config",
+    "/admin/site",
+  ):
+    assert f'href="{path}"' in group, f"the group misses {path}"
 
 
 def test_the_admin_lists_read_as_dense_rows(app, db):
@@ -947,3 +1211,23 @@ def test_the_inbox_reads_as_one_list_of_rows(app, db):
   assert 'class="notice-top"' not in inbox, "the row holds its own dismiss control"
   assert "Request #1 moved to Pending." in inbox
   assert 'aria-label="Dismiss notification"' in inbox
+
+
+def test_the_settings_page_sets_a_text_size(app, db):
+  from pwedepa.data import preferences
+
+  person = users.create_user(db, "Ada", "Ada Admin", at=AT)
+  token = sessions.create_session(db, person.id, at=AT).token
+  client = app.test_client()
+  client.set_cookie(SESSION_COOKIE, token)
+
+  body = client.get("/settings").data
+  assert b"data-font-size-form" in body
+  assert b'min="85" max="130"' in body
+
+  response = client.post("/settings/font-size", data={"font_size": "130"})
+  assert response.status_code == 302
+  assert preferences.get_font_size(db, person.id) == 130
+
+  client.post("/settings/font-size", data={"font_size": "84"})
+  assert preferences.get_font_size(db, person.id) == 130
