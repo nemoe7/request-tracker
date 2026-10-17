@@ -65,9 +65,9 @@
           <span class="ios-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg></span>
           <span class="ios-label">Theme</span>
           <span class="seg-control" role="group" aria-label="Theme">
-            <button type="button" data-theme-set="system">System</button>
-            <button type="button" data-theme-set="light">Light</button>
-            <button type="button" data-theme-set="dark">Dark</button>
+            <button type="button" data-theme-set="system" aria-label="System" title="System"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#monitor"/></svg></button>
+            <button type="button" data-theme-set="light" aria-label="Light" title="Light"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#sun"/></svg></button>
+            <button type="button" data-theme-set="dark" aria-label="Dark" title="Dark"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#moon"/></svg></button>
           </span>
         </div>
       </div>
@@ -130,7 +130,7 @@
         <div class="ios-row">
           <span class="ios-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#key-round"/></svg></span>
           <span class="ios-label">Passkey<span class="ios-sub">Added {{ key.created_at.strftime("%b %d, %Y") if key.created_at else "" }}</span></span>
-          <button class="btn danger-quiet" type="button" data-revoke-passkey="{{ key.id }}">Revoke</button>
+          <button class="btn danger-quiet icon-only" type="button" data-revoke-passkey="{{ key.id }}" aria-label="Revoke passkey" title="Revoke passkey"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#trash"/></svg></button>
         </div>
         {% endfor %}
         <div class="ios-row ios-action"><button class="btn" id="add-passkey" type="button">Add a passkey</button></div>

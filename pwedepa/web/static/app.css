@@ -61,6 +61,7 @@ textarea { resize: none; }
 }
 .btn.primary { background: var(--accent-fill); color: var(--on-accent); border-color: transparent; }
 .btn.danger { color: var(--danger); }
+.btn.icon-only { padding: 6px 9px; gap: 0; }
 .btn.big { min-height: 44px; padding: 8px 18px; font-size: 16px; }
 .btn:focus-visible, a:focus-visible, input:focus-visible,
 select:focus-visible, textarea:focus-visible {
@@ -468,6 +469,7 @@ form.ios-split { background: none; border: 0; overflow: visible; }
 .switch:checked { background: var(--accent-fill); }
 .switch:checked::after { transform: translateX(20px); }
 .seg-control { display: inline-flex; background: var(--surface-2); border-radius: 10px; padding: 2px; gap: 2px; }
+.seg-control .icon { width: 16px; height: 16px; }
 .seg-control button { border: 0; background: transparent; color: var(--text); font: inherit; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; min-height: 32px; }
 .seg-control button.is-active { background: var(--surface); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); }
 .btn.danger-quiet { color: var(--danger); background: none; border-color: transparent; }
