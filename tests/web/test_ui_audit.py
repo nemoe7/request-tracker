@@ -806,6 +806,8 @@ def test_reject_asks_for_a_reason_in_a_modal(app, db):
     "a share link uses the same modal"
   )
   assert re.search(r'id="revoke-share-\d+"', page)
+  css = client.get("/static/app.css").data.decode()
+  assert ".modal .modal-card h2" in css, "the dialog title keeps its own top margin"
 
   closed = client.get("/").get_data(as_text=True)
   assert "reject-request-1" not in closed
