@@ -64,7 +64,7 @@ def list_audit_events(
   object_id: int | None = None,
   limit: int | None = None,
 ) -> list[AuditEvent]:
-  """List audit events oldest first. A limit takes the newest of them."""
+  """Oldest first. A limit keeps the newest of them."""
   query = "SELECT * FROM audit_events"
   clauses = []
   params: list = []

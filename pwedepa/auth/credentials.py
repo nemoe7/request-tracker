@@ -114,7 +114,6 @@ def start_enrollment_registration(
   *,
   at: datetime,
 ) -> CeremonyStart:
-  """Verify an enrollment token and start a first registration for a new account."""
   validate_enrollment_token(db, token, at=at)
   name = username.strip()
   if not name:
@@ -150,7 +149,7 @@ def finish_enrollment_registration(
   *,
   at: datetime,
 ) -> Passkey:
-  """Verify the first passkey, then create the account and claim the token."""
+  """The account exists only after the passkey verifies."""
   validate_enrollment_token(db, token, at=at)
   challenge, _ = _claim_challenge(db, flow_id, "registration", at=at)
   try:

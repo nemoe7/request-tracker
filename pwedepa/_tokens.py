@@ -1,4 +1,4 @@
-"""Bearer tokens and the hashes the database stores. One rule, one place."""
+"""Bearer tokens and the hashes the database stores."""
 
 import hashlib
 import secrets

@@ -490,7 +490,7 @@ def test_a_share_expiry_is_clamped(cast, db):
 
 
 def test_a_staff_member_can_check_the_client_view(cast, db):
-  """The toggle drops the staff controls and refuses every record write."""
+  """The toggle drops the staff controls and refuses every item write."""
   admin, admin_user = cast["admin"]
   _request(db, cast["Mara"][1].id)
 

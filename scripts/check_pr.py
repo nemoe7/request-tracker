@@ -290,7 +290,7 @@ def _git(*arguments: str) -> str:
 
 
 def commits_in_range(revision_range: str) -> list[tuple[str, str]]:
-  """Read each real commit message without treating its bytes as record markers."""
+  """Read each real commit message without treating its bytes as separators."""
   shas = _git("rev-list", "--reverse", revision_range).splitlines()
   return [
     (sha, _git("show", "--no-patch", "--format=%B", sha).rstrip("\n")) for sha in shas
