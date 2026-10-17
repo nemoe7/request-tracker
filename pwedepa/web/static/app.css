@@ -310,14 +310,32 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .inline-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin: 10px 0; }
 .inline-form input[type="text"], .inline-form select { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; min-height: var(--control-h); }
 .inline-form .btn { min-height: var(--control-h); font-size: 14px; padding-block: 10px; }
-.admin-user-list { display: grid; gap: 16px; margin-top: 18px; }
+.admin-page > .record-list { margin-top: 18px; }
+.admin-user-list, .admin-domain-list { list-style: none; margin: 18px 0 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.admin-user + .admin-user, .admin-domain + .admin-domain { border-top: 1px solid var(--line); }
+.admin-user > details > summary, .admin-domain > details > summary { display: flex; align-items: center; gap: 16px; padding: 12px 16px; cursor: pointer; list-style: none; }
+.admin-user > details > summary::-webkit-details-marker, .admin-domain > details > summary::-webkit-details-marker { display: none; }
+.admin-user > details > summary:hover, .admin-domain > details > summary:hover { background: var(--surface-2); }
+.admin-user-who { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.admin-user-name, .admin-domain-name { font-weight: 600; }
+.admin-user-name { font-size: 15px; }
+.admin-user-roles { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.admin-user-chevron { color: var(--muted); transition: transform 0.15s ease; flex: none; }
+.admin-user details[open] > summary .admin-user-chevron, .admin-domain details[open] > summary .admin-user-chevron { transform: rotate(90deg); }
+.admin-user-body, .admin-domain-body { border-top: 1px solid var(--line); padding: 6px 16px 16px; }
+.admin-user-actions { display: flex; justify-content: flex-end; }
+.admin-user-actions form { margin-top: 10px; }
+.admin-domain-row .meta { flex: 1; margin: 0; }
+.admin-domain-body form + form { border-top: 1px solid var(--line); padding-top: 12px; }
+.admin-config-forms { display: grid; gap: 16px; margin-top: 18px; }
+.admin-config-forms .admin-section { margin-top: 0; }
+.admin-config-forms .panel > p { margin-bottom: 12px; }
 
 /* The admin cards cap their width, so a wide window leaves no long empty card. */
 .admin-page { max-width: 1100px; margin: 0 auto; }
 .admin-section .create-token .field { flex: 1 1 220px; }
 .admin-section .create-token input, .admin-section .create-token select { width: 100%; box-sizing: border-box; }
 .admin-user h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 18px 0 8px; }
-.admin-user h2 { font-size: 20px; text-transform: none; letter-spacing: -0.02em; color: var(--text); }
 .admin-user .compact-list li { border-top: 1px solid var(--line); border-bottom: 0; }
 .chip-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .compact-list form { display: inline; }
@@ -450,6 +468,9 @@ form.is-auto [data-save] { display: none; }
       color: #fff;
     }
   }
+  .admin-config-forms { grid-template-columns: 1fr 1fr; align-items: start; }
+  .admin-domain-rename { grid-template-columns: 1fr 1fr; max-width: 640px; align-items: end; }
+  .admin-domain-rename .form-actions { grid-column: 1 / -1; }
 }
 
 /* Narrow desktop: one compact header row. */
@@ -478,6 +499,13 @@ form.is-auto [data-save] { display: none; }
   .issue-head h1 { font-size: 24px; }
   .issue-actions { margin-left: 0; }
   .record-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .admin-page .record-row { flex-direction: row; align-items: center; }
+  .admin-user > details > summary, .admin-domain > details > summary {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; row-gap: 4px;
+  }
+  .admin-user-who, .admin-domain-row .meta { grid-column: 1; }
+  .admin-user-chevron { grid-column: 2; grid-row: 1; }
+  .admin-user-roles { grid-column: 1 / -1; justify-content: flex-start; }
   .issue-row a { flex-direction: column; gap: 4px; }
   .issue-row-meta { white-space: normal; }
   .client-dash.is-main ~ * { display: none; }

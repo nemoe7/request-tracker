@@ -7,62 +7,72 @@
   <a class="btn" href="{{ url_for('admin.overview') }}">Admin home</a>
 </div>
 
-<section class="panel admin-section">
-  <h2>In force</h2>
-  <p class="meta">{{ active }}</p>
-  {% if imported_exists %}<p class="muted">Last import: <code>{{ imported }}</code></p>{% endif %}
-  <ul class="compact-list">
-    {% for domain in domains %}
-    <li>
-      <form class="form" method="post" action="{{ url_for('admin.domain_config_rename') }}">
-        <input type="hidden" name="slug" value="{{ domain.slug }}">
-        <div class="field">
-          <label for="name-{{ domain.slug }}">Name</label>
-          <input id="name-{{ domain.slug }}" name="name" value="{{ domain.name }}" required>
-        </div>
-        <div class="field">
-          <label for="slug-{{ domain.slug }}">URL slug</label>
-          <input id="slug-{{ domain.slug }}" name="new_slug" value="{{ domain.slug }}">
-        </div>
-        <button class="button" type="submit">Save</button>
-      </form>
-      <span class="muted">{{ domain.description or "No description." }}</span>
-      <form class="form" method="post" action="{{ url_for('admin.domain_config_remove') }}">
-        <input type="hidden" name="slug" value="{{ domain.slug }}">
-        <label><input type="checkbox" name="confirm" value="yes"> Delete its Requests and Issues too</label>
-        <button class="button" type="submit">Remove</button>
-      </form>
-    </li>
-    {% endfor %}
-  </ul>
-</section>
+<h2 class="section-title">In force</h2>
+<p class="meta">{{ active }}</p>
+{% if imported_exists %}<p class="muted">Last import: <code>{{ imported }}</code></p>{% endif %}
+{% if domains %}
+<ul class="admin-domain-list">
+  {% for domain in domains %}
+  <li class="admin-domain">
+    <details>
+      <summary class="admin-domain-row">
+        <span class="admin-domain-name">{{ domain.name }}</span>
+        <span class="meta">/{{ domain.slug }} · {{ domain.description or "No description." }}</span>
+        <svg class="icon admin-user-chevron" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
+      </summary>
+      <div class="admin-domain-body">
+        <form class="form admin-domain-rename" method="post" action="{{ url_for('admin.domain_config_rename') }}">
+          <input type="hidden" name="slug" value="{{ domain.slug }}">
+          <div class="field">
+            <label for="name-{{ domain.slug }}">Name</label>
+            <input id="name-{{ domain.slug }}" name="name" type="text" value="{{ domain.name }}" required>
+          </div>
+          <div class="field">
+            <label for="slug-{{ domain.slug }}">URL slug</label>
+            <input id="slug-{{ domain.slug }}" name="new_slug" type="text" value="{{ domain.slug }}">
+          </div>
+          <div class="form-actions"><button class="btn" type="submit">Save</button></div>
+        </form>
+        <form class="form" method="post" action="{{ url_for('admin.domain_config_remove') }}">
+          <input type="hidden" name="slug" value="{{ domain.slug }}">
+          <label class="check"><input type="checkbox" name="confirm" value="yes"> Delete its Requests and Issues too</label>
+          <div class="form-actions"><button class="btn danger" type="submit">Remove</button></div>
+        </form>
+      </div>
+    </details>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
 
-<section class="panel admin-section">
-  <h2>Add a Domain</h2>
-  <form class="form" method="post" action="{{ url_for('admin.domain_config_add') }}">
-    <div class="field">
-      <label for="domain-name">Name</label>
-      <input id="domain-name" name="name" required>
-    </div>
-    <div class="field">
-      <label for="domain-description">Description</label>
-      <input id="domain-description" name="description">
-    </div>
-    <button class="button" type="submit">Add Domain</button>
-  </form>
-</section>
+<div class="admin-config-forms">
+  <section class="panel admin-section">
+    <h2>Add a Domain</h2>
+    <form class="form" method="post" action="{{ url_for('admin.domain_config_add') }}">
+      <div class="field">
+        <label for="domain-name">Name</label>
+        <input id="domain-name" name="name" type="text" required>
+      </div>
+      <div class="field">
+        <label for="domain-description">Description</label>
+        <input id="domain-description" name="description" type="text">
+      </div>
+      <div class="form-actions"><button class="btn" type="submit">Add Domain</button></div>
+    </form>
+  </section>
 
-<section class="panel admin-section">
-  <h2>Import</h2>
-  <p class="muted">An import reads the file you choose, then the app reads that copy before <code>config.yml</code>.</p>
-  <form class="form" method="post" action="{{ url_for('admin.domain_config_import') }}" enctype="multipart/form-data">
-    <div class="field">
-      <label for="config-file">Config file</label>
-      <input id="config-file" type="file" name="config" accept=".yaml,.yml">
-      <p class="help">The file holds a domains list. Each entry needs a name and may hold a description.</p>
-    </div>
-    <div class="form-actions"><button class="btn primary" type="submit">Import config</button></div>
-  </form>
-</section>
+  <section class="panel admin-section">
+    <h2>Import</h2>
+    <p class="muted">An import reads the file you choose, then the app reads that copy before <code>config.yml</code>.</p>
+    <form class="form" method="post" action="{{ url_for('admin.domain_config_import') }}" enctype="multipart/form-data">
+      <div class="field">
+        <label for="config-file">Config file</label>
+        <input id="config-file" type="file" name="config" accept=".yaml,.yml">
+        <p class="help">The file holds a domains list. Each entry needs a name and may hold a description.</p>
+      </div>
+      <div class="form-actions"><button class="btn primary" type="submit">Import config</button></div>
+    </form>
+  </section>
+</div>
 </div>
 {% endblock %}

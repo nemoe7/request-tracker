@@ -5,11 +5,20 @@ import pytest
 from _paths import record_url
 
 from pwedepa import build_label
-from pwedepa.auth import Role, assign_role, list_roles, sessions, users
+from pwedepa.auth import (
+  Role,
+  assign_role,
+  list_audit_events,
+  list_roles,
+  record_audit,
+  sessions,
+  users,
+)
 from pwedepa.core import Issue, Request
 from pwedepa.data import db as data_db
 from pwedepa.data import issues as issues_data
 from pwedepa.data import requests as requests_data
+from pwedepa.data import sharing
 from pwedepa.web import SESSION_COOKIE, create_app
 
 AT = datetime(2026, 10, 16, 12, 0, tzinfo=UTC)
@@ -888,3 +897,34 @@ def test_the_admin_home_lists_its_sections_as_rows(app, db):
   assert 'class="cards"' not in page
   for path in ("/admin/users", "/admin/shares", "/admin/audit", "/admin/config"):
     assert f'href="{path}"' in page, f"the list misses {path}"
+
+
+def test_the_admin_lists_read_as_dense_rows(app, db):
+  """Each admin list keeps one row per item, so the page scans like a queue."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  person = users.get_user_by_username(db, "Ada")
+  sharing.create(db, "request", 1, ("VIEW",), person.id, at=AT)
+  record_audit(
+    db, "request.viewed", at=AT, actor_id=person.id, object_type="request", object_id=1
+  )
+
+  users_page = client.get("/admin/users").data.decode()
+  assert 'class="admin-user-list"' in users_page
+  assert users_page.count('class="admin-user"') == 1, "one row per person"
+  assert 'class="admin-user-row"' in users_page, "the row holds the name and roles"
+  assert 'class="admin-user-body"' in users_page, "the controls wait under the row"
+
+  shares_page = client.get("/admin/shares").data.decode()
+  assert 'class="record-list"' in shares_page, "shares read as rows"
+  assert shares_page.count('class="record-row"') == 1
+  assert "Request #1" in shares_page
+  assert "Active" in shares_page
+  assert 'class="record-table"' not in shares_page
+
+  audit_page = client.get("/admin/audit").data.decode()
+  assert 'class="record-list"' in audit_page
+  assert audit_page.count('class="record-row"') == len(list_audit_events(db)), (
+    "one row per event"
+  )
+  assert "request.viewed" in audit_page
+  assert 'class="record-table"' not in audit_page

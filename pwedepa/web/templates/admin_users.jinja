@@ -23,77 +23,85 @@
   </form>
 </section>
 
-<div class="admin-user-list">
+<ul class="admin-user-list">
   {% for person in people %}
-  <article class="panel admin-user">
-    <div class="card-top">
-      <div>
-        <h2>{{ person.display_name }}</h2>
-        <p class="meta">@{{ person.username }} · #{{ person.id }} · {{ person.status.value | capitalize }}</p>
-      </div>
-      <div class="actions">
-        {% if person.status.value == "ACTIVE" %}
-        <form method="post" action="{{ url_for('admin.archive', user_id=person.id) }}"><button class="btn danger" type="submit">Archive</button></form>
-        {% else %}
-        <form method="post" action="{{ url_for('admin.reactivate', user_id=person.id) }}"><button class="btn" type="submit">Reactivate</button></form>
-        {% endif %}
-      </div>
-    </div>
+  <li class="admin-user">
+    <details>
+      <summary class="admin-user-row">
+        <span class="admin-user-who">
+          <span class="admin-user-name">{{ person.display_name }}</span>
+          <span class="meta">@{{ person.username }} · #{{ person.id }} · {{ person.status.value | capitalize }}</span>
+        </span>
+        <span class="admin-user-roles">
+          {% for role in details[person.id].roles %}<span class="pill st-open"><span class="dot"></span>{{ role.value | capitalize }}</span>{% else %}<span class="muted">No roles</span>{% endfor %}
+        </span>
+        <svg class="icon admin-user-chevron" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
+      </summary>
+      <div class="admin-user-body">
+        <div class="admin-user-actions">
+          {% if person.status.value == "ACTIVE" %}
+          <form method="post" action="{{ url_for('admin.archive', user_id=person.id) }}"><button class="btn danger" type="submit">Archive</button></form>
+          {% else %}
+          <form method="post" action="{{ url_for('admin.reactivate', user_id=person.id) }}"><button class="btn" type="submit">Reactivate</button></form>
+          {% endif %}
+        </div>
 
-    <h3>Roles</h3>
-    <div class="chip-list">
-      {% for role in details[person.id].roles %}<span class="pill st-open"><span class="dot"></span>{{ role.value | capitalize }}</span>{% else %}<span class="muted">No roles</span>{% endfor %}
-    </div>
-    {% set held = details[person.id].roles %}
-    {% set free_roles = roles | reject("in", held) | list %}
-    {% if free_roles %}
-    <form class="inline-form" method="post" action="{{ url_for('admin.change_role', user_id=person.id) }}">
-      <select name="role" aria-label="Role to assign" required><option value="" selected>Choose a role</option>{% for role in free_roles %}<option value="{{ role }}">{{ role | capitalize }}</option>{% endfor %}</select>
-      <button class="btn" type="submit" name="action" value="assign">Assign</button>
-    </form>
-    {% else %}<p class="muted">This person holds every role.</p>{% endif %}
-    {% set revocable = held | rejectattr("value", "equalto", "ADMIN") | list if person.id == g.admin_user.id else held %}
-    {% if revocable %}
-    <form class="inline-form" method="post" action="{{ url_for('admin.change_role', user_id=person.id) }}">
-      <select name="role" aria-label="Role to revoke" required><option value="" selected>Choose a role to remove</option>{% for role in revocable %}<option value="{{ role.value }}">{{ role.value | capitalize }}</option>{% endfor %}</select>
-      <button class="btn danger" type="submit" name="action" value="revoke">Revoke</button>
-    </form>
-    {% endif %}
-
-    <h3>Direct grants</h3>
-    {% if details[person.id].grants %}
-    <ul class="compact-list">
-      {% for grant in details[person.id].grants %}
-      <li>
-        <code>{{ grant.permission }}</code> · {{ grant.effect.value }}
-        <form method="post" action="{{ url_for('admin.change_grant', user_id=person.id) }}">
-          <input type="hidden" name="permission" value="{{ grant.permission }}">
-          <input type="hidden" name="effect" value="{{ grant.effect.value }}">
+        <h3>Roles</h3>
+        <div class="chip-list">
+          {% for role in details[person.id].roles %}<span class="pill st-open"><span class="dot"></span>{{ role.value | capitalize }}</span>{% else %}<span class="muted">No roles</span>{% endfor %}
+        </div>
+        {% set held = details[person.id].roles %}
+        {% set free_roles = roles | reject("in", held) | list %}
+        {% if free_roles %}
+        <form class="inline-form" method="post" action="{{ url_for('admin.change_role', user_id=person.id) }}">
+          <select name="role" aria-label="Role to assign" required><option value="" selected>Choose a role</option>{% for role in free_roles %}<option value="{{ role }}">{{ role | capitalize }}</option>{% endfor %}</select>
+          <button class="btn" type="submit" name="action" value="assign">Assign</button>
+        </form>
+        {% else %}<p class="muted">This person holds every role.</p>{% endif %}
+        {% set revocable = held | rejectattr("value", "equalto", "ADMIN") | list if person.id == g.admin_user.id else held %}
+        {% if revocable %}
+        <form class="inline-form" method="post" action="{{ url_for('admin.change_role', user_id=person.id) }}">
+          <select name="role" aria-label="Role to revoke" required><option value="" selected>Choose a role to remove</option>{% for role in revocable %}<option value="{{ role.value }}">{{ role.value | capitalize }}</option>{% endfor %}</select>
           <button class="btn danger" type="submit" name="action" value="revoke">Revoke</button>
         </form>
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}<p class="muted">No direct grants.</p>{% endif %}
-    <form class="inline-form" method="post" action="{{ url_for('admin.change_grant', user_id=person.id) }}">
-      <input type="text" name="permission" placeholder="issue.1.comment" aria-label="Permission">
-      <select name="effect" aria-label="Effect"><option value="ALLOW">Allow</option><option value="DENY">Deny</option></select>
-      <button class="btn" type="submit">Add grant</button>
-    </form>
+        {% endif %}
 
-    <h3>Passkeys</h3>
-    {% if details[person.id].passkeys %}
-    <ul class="compact-list">
-      {% for passkey in details[person.id].passkeys %}
-      <li>
-        <span>Passkey #{{ passkey.id }}{% if passkey.revoked_at %} · revoked{% endif %}</span>
-        {% if not passkey.revoked_at %}<form method="post" action="{{ url_for('admin.passkey_revoke', passkey_id=passkey.id) }}"><button class="btn danger" type="submit">Revoke</button></form>{% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}<p class="muted">No passkeys.</p>{% endif %}
-  </article>
+        <h3>Direct grants</h3>
+        {% if details[person.id].grants %}
+        <ul class="compact-list">
+          {% for grant in details[person.id].grants %}
+          <li>
+            <code>{{ grant.permission }}</code> · {{ grant.effect.value }}
+            <form method="post" action="{{ url_for('admin.change_grant', user_id=person.id) }}">
+              <input type="hidden" name="permission" value="{{ grant.permission }}">
+              <input type="hidden" name="effect" value="{{ grant.effect.value }}">
+              <button class="btn danger" type="submit" name="action" value="revoke">Revoke</button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}<p class="muted">No direct grants.</p>{% endif %}
+        <form class="inline-form" method="post" action="{{ url_for('admin.change_grant', user_id=person.id) }}">
+          <input type="text" name="permission" placeholder="issue.1.comment" aria-label="Permission">
+          <select name="effect" aria-label="Effect"><option value="ALLOW">Allow</option><option value="DENY">Deny</option></select>
+          <button class="btn" type="submit">Add grant</button>
+        </form>
+
+        <h3>Passkeys</h3>
+        {% if details[person.id].passkeys %}
+        <ul class="compact-list">
+          {% for passkey in details[person.id].passkeys %}
+          <li>
+            <span>Passkey #{{ passkey.id }}{% if passkey.revoked_at %} · revoked{% endif %}</span>
+            {% if not passkey.revoked_at %}<form method="post" action="{{ url_for('admin.passkey_revoke', passkey_id=passkey.id) }}"><button class="btn danger" type="submit">Revoke</button></form>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}<p class="muted">No passkeys.</p>{% endif %}
+      </div>
+    </details>
+  </li>
   {% endfor %}
-</div>
+</ul>
 </div>
 {% endblock %}
