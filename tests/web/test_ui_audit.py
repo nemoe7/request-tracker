@@ -578,3 +578,20 @@ def test_the_four_admin_pages_share_one_width(app, db):
   for path in ("/admin", "/admin/users", "/admin/shares", "/admin/audit"):
     body = client.get(path).data
     assert b'class="admin-page"' in body, path
+
+
+def test_wide_screens_show_one_settings_pane(app, db):
+  """Mac Settings shows one pane. The phone keeps every group stacked."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  body = client.get("/settings").data.decode()
+  rail = body[body.index("settings-rail") : body.index("settings-main")]
+  for pane in ("profile", "appearance", "notifications", "passkeys", "admin"):
+    assert f'href="#{pane}"' in rail
+    assert f'id="{pane}"' in body
+  css = client.get("/static/app.css").data.decode()
+  wide = css.index("@media (min-width: 900px)")
+  hide = css.index(".settings-main > .ios-group { display: none; }")
+  phone = css.index("@media (max-width: 899px)")
+  assert wide < hide < phone, "the pane switch belongs to the wide screen only"
+  assert ".settings-main > .ios-group:target { display: block; }" in css
+  assert ".settings-main > .ios-group#profile," in css

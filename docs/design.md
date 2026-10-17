@@ -16,6 +16,9 @@ pick.
   alone. The client surface stays one 720 px column.
 - Settings follow the Apple Settings pattern: grouped rows, label left, control
   right, and a chevron only when the row navigates. The pattern stays inside Settings.
+  A wide screen works like the Mac pane: the rail picks one group and only that
+  group shows. A phone stacks every group, as iOS does. A switch saves the moment
+  it flips, so a group of switches carries no Save button.
 
 ## Domains
 

@@ -84,5 +84,7 @@ def notification_preferences() -> Response:
       inbox_enabled=f"{category}_inbox" in request.form,
       pip_enabled=f"{category}_pip" in request.form,
     )
+  if request.headers.get("X-Autosave"):
+    return Response("", status=204)
   flash("Notification settings saved.")
   return redirect(url_for("settings.settings"))

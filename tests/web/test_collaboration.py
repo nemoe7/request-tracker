@@ -550,3 +550,35 @@ def test_a_staff_member_can_sign_out_from_the_client_view(cast):
   assert signed_out.status_code == 200
   with admin.session_transaction() as flask_session:
     assert "view_as" not in flask_session
+
+
+def test_notification_switches_save_as_they_flip(cast, db):
+  Mara, Mara_user = cast["Mara"]
+  main = Mara.get("/settings").data.decode()
+  main = main[main.index("settings-main") :]
+  marker = main.index("data-autosave")
+  fallback = main.index("<noscript>", marker)
+  assert "Save notifications" not in main[marker:fallback], (
+    "a browser with JS saves on the flip, so it needs no button"
+  )
+  assert "Save notifications" in main[fallback:], "a bare browser needs a way out"
+
+  answer = Mara.post(
+    "/settings/notifications",
+    data={"activity_enabled": "on", "comments_inbox": "on"},
+    headers={"X-Autosave": "1"},
+  )
+  assert answer.status_code == 204
+  saved = {
+    pref.category: pref for pref in notifications_data.preferences(db, Mara_user.id)
+  }
+  assert saved["activity"].enabled is True
+  assert saved["comments"].inbox_enabled is True
+  assert saved["sharing"].enabled is False
+
+
+def test_settings_has_no_shortcut_to_notifications(cast, db):
+  Mara, _ = cast["Mara"]
+  main = Mara.get("/settings").data.decode()
+  main = main[main.index("settings-main") :]
+  assert 'href="/notifications"' not in main

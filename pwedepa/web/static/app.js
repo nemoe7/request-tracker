@@ -23,6 +23,18 @@ function setTheme(theme) {
     }).catch(() => {});
   }
   markThemeButtons();
+
+/* Notification switches save as they flip, the way iOS Settings does, so the
+   page never reloads and the button only exists for a browser without JS. */
+document.querySelectorAll("form[data-autosave]").forEach((form) => {
+  form.addEventListener("change", () => {
+    fetch(form.action, {
+      method: "POST",
+      headers: { "X-Autosave": "1" },
+      body: new URLSearchParams(new FormData(form)),
+    }).catch(() => {});
+  });
+});
 }
 
 themeButtons.forEach((button) => {

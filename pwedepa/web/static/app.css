@@ -312,7 +312,7 @@ select:focus-visible, textarea:focus-visible {
 .settings-nav .ios-chip .icon { width: 15px; height: 15px; }
 .settings-nav .chev { display: none; width: 18px; height: 18px; margin-left: auto; }
 .settings-main h1 { margin: 4px 0 18px; }
-.ios-group { margin-bottom: 26px; }
+.ios-group { margin-bottom: 26px; scroll-margin-top: 68px; }
 .ios-group > h2, .ios-fieldset > legend { font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0 0 8px 16px; font-weight: 600; }
 .ios-group form, .ios-list { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
 .ios-list { margin-bottom: 14px; }
@@ -343,6 +343,26 @@ form.ios-split { background: none; border: 0; overflow: visible; }
 .seg-control button { border: 0; background: transparent; color: var(--text); font: inherit; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; min-height: 32px; }
 .seg-control button.is-active { background: var(--surface); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); }
 .btn.danger-quiet { color: var(--danger); background: none; border-color: transparent; }
+
+/* Settings on a wide screen: the rail picks one pane, as Mac Settings does.
+   The phone keeps every group stacked, as iOS does. */
+@media (min-width: 900px) {
+  @supports selector(:has(*)) {
+    .settings-main > .ios-group { display: none; }
+    .settings-main > .ios-group#profile,
+    .settings-main > .ios-group:target { display: block; }
+    .settings-main:has(> .ios-group:target) > .ios-group#profile:not(:target) { display: none; }
+    .settings-shell:has(#profile:target) .settings-nav a[href="#profile"],
+    .settings-shell:has(#appearance:target) .settings-nav a[href="#appearance"],
+    .settings-shell:has(#notifications:target) .settings-nav a[href="#notifications"],
+    .settings-shell:has(#passkeys:target) .settings-nav a[href="#passkeys"],
+    .settings-shell:has(#client-view:target) .settings-nav a[href="#client-view"],
+    .settings-shell:has(#admin:target) .settings-nav a[href="#admin"] {
+      background: var(--surface-2);
+      font-weight: 600;
+    }
+  }
+}
 
 /* Narrow desktop: one compact header row. */
 @media (max-width: 1199px) {
