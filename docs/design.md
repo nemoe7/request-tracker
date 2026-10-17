@@ -9,8 +9,10 @@ pick.
   inspector, and an issue strip. No sidebar.
 - The staff workspace is the one staff page. Unread items come first, then the
   opened ones. Each staff member keeps their own read list, and new activity returns
-  an item to the unread group. The opened item is the wide middle card, and the list
-  moves right. On a phone the item fills the page, with a Back to the list link.
+  an item to the unread group. One toolbar over the list holds the title, the status
+  filter, and the new-request action. Rows stay dense, unread titles are bold, and
+  the open row carries an accent edge. The opened item reads on the right. On a
+  phone the item fills the page, with a Back to the list link.
 - A client sees a mini dashboard at the top of the Requests page: their own requests
   and the public board. A selected item opens as the wide card, and a phone shows it
   alone. The client surface stays one 720 px column.

@@ -462,16 +462,76 @@ def test_wide_screens_stretch_the_shell(app):
   assert "1100px" not in block
 
 
-def test_workspace_centers_the_inspector(app, db):
+def test_workspace_puts_the_reading_pane_right_of_the_list(app, db):
+  """The list comes first, and the record card reads on its right."""
   client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   body = client.get("/").data
-  assert body.index(b"panel inspector") < body.index(b"panel records")
+  assert body.index(b"panel records") < body.index(b"panel inspector")
   assert b"<th>Requester</th>" not in body
   assert b"<th>Domain</th>" not in body
   assert b'class="client-dash"' not in body
 
 
-def test_workspace_opens_two_cards_then_swaps_the_centre_one(app, db):
+def test_the_workspace_list_carries_one_toolbar(app, db):
+  """One row over the list holds the title, the status filter, and the action."""
+  client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title="Broken projector",
+      description="The projector in Room 4 is dead.",
+      requester_id=users.get_user_by_username(db, "sam").id,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+  page = client.get("/").get_data(as_text=True)
+  assert '<div class="page-head">' not in page, "the list owns its one row"
+  toolbar = page[page.index('class="list-toolbar"') : page.index('class="group-title"')]
+  assert "<h1>Workspace</h1>" in toolbar
+  assert 'id="status-filter"' in toolbar, "the status filter sits in the row"
+  assert 'class="btn primary"' in toolbar, "the action sits in the row"
+  assert page.index('class="list-toolbar"') < page.index('<table class="record-table')
+  rail = page[page.index('class="panel filters"') : page.index('class="panel records"')]
+  assert 'id="status-filter"' not in rail, "the rail keeps no second filter row"
+
+
+def test_the_workspace_rows_read_like_a_dense_list(app, db):
+  """Unread rows hold bold titles, the open row holds a clear marker."""
+  client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  record = Request(
+    id=1,
+    title="Broken projector",
+    description="The projector in Room 4 is dead.",
+    requester_id=users.get_user_by_username(db, "sam").id,
+    created_at=AT,
+    updated_at=AT,
+  )
+  requests_data.save(db, record)
+  page = client.get("/").get_data(as_text=True)
+  assert '<table class="record-table is-unread">' in page
+
+  css = client.get("/static/app.css").data.decode()
+  row = re.search(r"\.record-table td \{([^}]*)\}", css)
+  assert row and "padding: 5px 8px" in row.group(1), "the row keeps one dense height"
+  assert ".record-table.is-unread td:first-child > a { font-weight: 700; }" in css
+  selected = re.search(r"\.record-table tr\.is-selected td \{([^}]*)\}", css)
+  assert selected and "inset 3px 0 0 var(--accent)" in selected.group(1), (
+    "the open row holds a clear edge"
+  )
+
+  grid = re.search(r"\.workspace-grid \{([^}]*)\}", css)
+  assert grid and "240px minmax(0, 1fr) 0" in grid.group(1), (
+    "the closed list takes the free track"
+  )
+  wide = css[css.index("@media (min-width: 1200px)") :]
+  assert re.search(
+    r"\.workspace-grid\.is-open[^{]*\{[^}]*240px minmax\(0, 1fr\) 360px", wide
+  ), "the reading pane keeps the right edge"
+
+
+def test_workspace_opens_the_reading_pane_beside_the_list(app, db):
   client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   record = Request(
     id=1,
@@ -489,20 +549,20 @@ def test_workspace_opens_two_cards_then_swaps_the_centre_one(app, db):
   assert f"selected={record.id}" in closed, "a row keeps a real link to its card"
 
   opened = client.get(f"/?selected={record.id}").data.decode()
-  # The opened card is the widest track, so the grid carries both marks.
+  # The page keeps the open mark while the reading pane fills the right track.
   assert 'class="workspace-grid is-open is-main"' in opened
 
   css = app.test_client().get("/static/app.css").data.decode()
   grid = css[css.index(".workspace-grid {") :].split("}", 1)[0]
-  assert "240px 0" in grid, "the closed grid collapses the centre track"
+  assert "240px minmax(0, 1fr) 0" in grid, "the closed grid collapses the pane"
   assert "transition: grid-template-columns" in grid
   assert ".workspace-grid:not(.is-open) .inspector {" in css, (
     "the closed card leaves the row"
   )
   wide = css[css.index("@media (min-width: 1200px)") :]
-  assert re.search(r"\.workspace-grid\.is-open \{[^}]*240px 360px", wide), (
-    "the design doc holds the inspector at 360px"
-  )
+  assert re.search(
+    r"\.workspace-grid\.is-open[^{]*\{[^}]*minmax\(0, 1fr\) 360px", wide
+  ), "the design doc holds the reading pane at 360px"
 
   assert ".workspace-grid .inspector { scroll-margin-top" in css, (
     "on a phone the card must land below the top bar"

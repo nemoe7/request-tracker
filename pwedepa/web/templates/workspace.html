@@ -2,10 +2,6 @@
 {% from "_parts.html" import pill, event_line %}
 {% block title %}PwedePa | Workspace{% endblock %}
 {% block content %}
-<div class="page-head">
-  <h1>Workspace</h1>
-  <a class="btn primary" href="{{ url_for('records.request_new') }}">New request</a>
-</div>
 <div class="workspace-grid{% if selected %} is-open is-main{% endif %}">
   <aside class="panel filters" aria-label="Queue filters">
     <input class="filters-toggle" type="checkbox" id="filters-toggle">
@@ -26,7 +22,12 @@
         <a{% if visibility == "PUBLIC" %} class="is-active"{% endif %} href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility='PUBLIC', status=status_filter) }}">Public</a>
         <a{% if visibility == "PRIVATE" %} class="is-active"{% endif %} href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility='PRIVATE', status=status_filter) }}">Private</a>
       </div>
-      <h2>Status</h2>
+    </div>
+  </aside>
+
+  <section class="panel records" aria-label="Records">
+    <div class="list-toolbar">
+      <h1>Workspace</h1>
       <form class="filter-form" method="get" action="{{ url_for('records.workspace') }}">
         <input type="hidden" name="queue" value="{{ queue }}">
         <input type="hidden" name="domain" value="{{ domain }}">
@@ -40,8 +41,50 @@
         </select>
         <button class="btn" type="submit">Apply status</button>
       </form>
+      <a class="btn primary" href="{{ url_for('records.request_new') }}">New request</a>
     </div>
-  </aside>
+
+    {% for group, group_rows, group_id in [("Unread", unread_rows, "group-unread"), ("Opened", opened_rows, "group-opened")] %}
+    <h2 class="group-title" id="{{ group_id }}">{{ group }}<span class="count">{{ group_rows | length }}</span></h2>
+    {% if group_rows %}
+    <table class="record-table{% if group == "Unread" %} is-unread{% endif %}">
+      <thead>
+        <tr><th>Title</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for row in group_rows %}
+        <tr{% if selected and row.id == selected.id %} class="is-selected"{% endif %}>
+          <td>
+            {% if row_kind == "request" %}
+            <a href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter, selected=row.id) }}"{% if selected and row.id == selected.id %} aria-current="true"{% endif %}>{{ row.title }}</a>
+            <span class="row-sub"><a href="{{ record_path(row) }}">Open #{{ row.id }}</a> · {{ names.get(row.requester_id, "—") }} · {{ row.domains | join(", ") or "—" }}</span>
+            {% else %}
+            <a href="{{ record_path(row, 'issue') }}">{{ row.title }}</a>
+            <span class="row-sub">Issue #{{ row.id }} · {{ names.get(row.requester_id, "—") }} · {{ row.domains | join(", ") or "—" }}</span>
+            {% endif %}
+          </td>
+          <td>{{ pill(row.status) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="muted">{{ "Nothing unread." if group == "Unread" else "Nothing opened yet." }}</p>
+    {% endif %}
+    {% endfor %}
+
+    <h2 class="strip-title">Issue strip</h2>
+    <div class="strip">
+      {% for status, issues in board.items() %}
+      <div class="strip-col">
+        <h3>{{ pill(status) }}<span class="count">{{ issues | length }}</span></h3>
+        {% for issue in issues %}
+        <a class="mini" href="{{ record_path(issue, 'issue') }}">{{ issue.title }}<span>#{{ issue.id }} · {{ issue.priority.value | capitalize }}</span></a>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
 
   <aside class="panel inspector{% if selected %} is-main{% endif %}" aria-label="Inspector">
     {% if selected %}
@@ -74,49 +117,5 @@
     </div>
     {% endif %}
   </aside>
-
-  <section class="panel records" aria-label="Records">
-    {% for group, group_rows, group_id in [("Unread", unread_rows, "group-unread"), ("Opened", opened_rows, "group-opened")] %}
-    <h2 class="group-title" id="{{ group_id }}">{{ group }}<span class="count">{{ group_rows | length }}</span></h2>
-    {% if group_rows %}
-    <table class="record-table">
-      <thead>
-        <tr><th>Title</th><th>Status</th></tr>
-      </thead>
-      <tbody>
-        {% for row in group_rows %}
-        <tr{% if selected and row.id == selected.id %} class="is-selected"{% endif %}>
-          <td>
-            {% if row_kind == "request" %}
-            <a href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter, selected=row.id) }}">{{ row.title }}</a>
-            <span class="row-sub"><a href="{{ record_path(row) }}"> Open #{{ row.id }}</a> · {{ names.get(row.requester_id, "—") }} · {{ row.domains | join(", ") or "—" }}</span>
-            {% else %}
-            <a href="{{ record_path(row, 'issue') }}">{{ row.title }}</a>
-            <span class="row-sub">Issue #{{ row.id }} · {{ names.get(row.requester_id, "—") }} · {{ row.domains | join(", ") or "—" }}</span>
-            {% endif %}
-          </td>
-          <td>{{ pill(row.status) }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <p class="muted">{{ "Nothing unread." if group == "Unread" else "Nothing opened yet." }}</p>
-    {% endif %}
-    {% endfor %}
-
-    <h2 class="strip-title">Issue strip</h2>
-    <div class="strip">
-      {% for status, issues in board.items() %}
-      <div class="strip-col">
-        <h3>{{ pill(status) }}<span class="count">{{ issues | length }}</span></h3>
-        {% for issue in issues %}
-        <a class="mini" href="{{ record_path(issue, 'issue') }}">{{ issue.title }}<span>#{{ issue.id }} · {{ issue.priority.value | capitalize }}</span></a>
-        {% endfor %}
-      </div>
-      {% endfor %}
-    </div>
-  </section>
-
 </div>
 {% endblock %}

@@ -124,7 +124,7 @@ def _relative(
 
 
 def _status_list(html: str, frozen, source: str, views, page: str) -> str:
-  """Swap the status form for one link per status, so a file host serves it."""
+  """Swap the status form for one link per status in the rail, so a file host serves it."""
   form = STATUS_FORM_RE.search(html)
   if not form:
     return html
@@ -133,7 +133,12 @@ def _status_list(html: str, frozen, source: str, views, page: str) -> str:
     target = _relative(f"/?status={value}", frozen, source, views, None, page)
     mark = " is-active" if selected else ""
     links.append(f'<a class="queue-item{mark}" href="{target}">{label}</a>')
-  return f"{html[: form.start()]}{''.join(links)}{html[form.end() :]}"
+  html = f"{html[: form.start()]}{html[form.end() :]}"
+  rail_start = html.index('class="panel filters"')
+  aside_end = html.index("</aside>", rail_start)
+  body_close = html.rindex("</div>", rail_start, aside_end)
+  block = f"<h2>Status</h2>{''.join(links)}"
+  return f"{html[:body_close]}{block}{html[body_close:]}"
 
 
 def rewrite(
