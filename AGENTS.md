@@ -45,6 +45,14 @@ One root `AGENTS.md` only. Do not add nested `AGENTS.md` files unless a package 
 - All human-facing prose gets two passes before it ships: the STE pass in `scripts/lint_prose.py`, and a humanizer pass. Keep sentences short, with one meaning each.
 - Add a code comment only when the method is complex enough to need one.
 
+## Docs
+
+- Write only facts that the code or a source shows. State the fact and leave out the story.
+- For each point that needs the owner's words or decision, add a `> Q:` line with the question. The owner writes the answer. Keep the question until the owner answers it.
+- Use a neutral voice, lists, and tables. Write at most four sentences in a paragraph.
+- Keep each subject in its own short section: what it does, where it runs, what it stores, and the config names it reads.
+- `README.md` covers install, run, and images. `docs/deploy.md` covers deployment, `docs/design.md` the settled design calls, and `CHANGELOG.md` what changed per version.
+
 ## Testing
 
 - The pull request gate is `.github/workflows/ci.yml`. Run the same steps locally before every push.
