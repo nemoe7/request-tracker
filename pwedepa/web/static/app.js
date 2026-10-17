@@ -278,10 +278,12 @@ document.querySelector("#login-button")?.addEventListener("click", async () => {
 document.querySelector("#enroll-form")?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const token = document.querySelector("#token").value.trim();
+  const username = document.querySelector("#username").value.trim();
+  const display_name = document.querySelector("#display-name").value.trim();
   setStatus("Waiting for your passkey…");
   try {
     const done = await runCeremony(
-      "/enroll/options", "/enroll/finish", { token }, true,
+      "/enroll/options", "/enroll/finish", { token, username, display_name }, true,
     );
     window.location.assign(done.redirect || "/home");
   } catch (error) {

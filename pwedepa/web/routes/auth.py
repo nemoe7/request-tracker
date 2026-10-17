@@ -77,8 +77,8 @@ def login_finish() -> Response:
 def enroll_options() -> Response:
   """Start the first-passkey ceremony for an enrollment token."""
   payload = request.get_json(force=True)
-  _, start = start_enrollment_registration(
-    db(), payload["token"], webauthn_config(), at=now()
+  start = start_enrollment_registration(
+    db(), payload["token"], payload.get("username", ""), webauthn_config(), at=now()
   )
   return _ceremony_payload(start)
 
@@ -92,6 +92,8 @@ def enroll_finish() -> Response:
     payload["token"],
     payload["flow_id"],
     _credential(),
+    payload.get("username", ""),
+    payload.get("display_name", ""),
     webauthn_config(),
     at=now(),
   )

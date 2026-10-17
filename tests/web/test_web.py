@@ -12,7 +12,7 @@ from webauthn.helpers.structs import (
 )
 from webauthn.registration.verify_registration_response import VerifiedRegistration
 
-from pwedepa.auth import credentials, enrollment, sessions, users
+from pwedepa.auth import Role, credentials, enrollment, grants, sessions, users
 from pwedepa.data import db as data_db
 from pwedepa.web import create_app
 
@@ -153,10 +153,18 @@ def test_login_finish_rejects_an_unknown_flow(client, db, user, monkeypatch):
   assert "error" in response.get_json()
 
 
-def test_enrollment_flow_creates_a_session(client, db, user, monkeypatch):
-  issued = enrollment.issue_enrollment_token(db, user.id, at=AT)
+def test_the_enroll_page_asks_for_a_name(client):
+  body = client.get("/enroll").data
+  assert b'id="username"' in body
+  assert b'name="display_name"' in body
 
-  start = client.post("/enroll/options", json={"token": issued.token})
+
+def test_enrollment_flow_creates_a_session(client, db, monkeypatch):
+  issued = enrollment.issue_enrollment_token(db, role=Role.REQUESTER, at=AT)
+
+  start = client.post(
+    "/enroll/options", json={"token": issued.token, "username": "mara"}
+  )
   assert start.status_code == 200
   options = start.get_json()["options"]
   assert options["rp"]["id"] == "example.com"
@@ -168,13 +176,21 @@ def test_enrollment_flow_creates_a_session(client, db, user, monkeypatch):
       "token": issued.token,
       "flow_id": start.get_json()["flow_id"],
       "credential": CREDENTIAL,
+      "username": "mara",
+      "display_name": "Mara Reyes",
     },
   )
   assert finish.status_code == 200
   assert "HttpOnly" in finish.headers["Set-Cookie"]
   assert client.get("/home").status_code == 200
+  created = users.get_user_by_username(db, "mara")
+  assert created is not None
+  assert created.display_name == "Mara Reyes"
+  assert Role.REQUESTER in grants.list_roles(db, created.id)
 
-  replay = client.post("/enroll/options", json={"token": issued.token})
+  replay = client.post(
+    "/enroll/options", json={"token": issued.token, "username": "mara"}
+  )
   assert replay.status_code == 400
 
 

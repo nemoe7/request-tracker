@@ -105,7 +105,7 @@ Table webauthn_challenges {
 
 Table enrollment_tokens {
   id integer [pk, increment]
-  user_id integer [not null]
+  role text [not null]
   token_hash text [not null, unique]
   created_at text [not null]
   expires_at text [not null]
@@ -193,7 +193,6 @@ Ref: user_roles.user_id > users.id
 Ref: permission_grants.user_id > users.id
 Ref: passkeys.user_id > users.id
 Ref: webauthn_challenges.user_id > users.id
-Ref: enrollment_tokens.user_id > users.id
 Ref: sessions.user_id > users.id
 Ref: sessions.replaced_by_id > sessions.id
 Ref: share_links.created_by_id > users.id

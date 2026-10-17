@@ -113,13 +113,13 @@ def test_roles_and_direct_grants_make_an_actor(db, user):
   assert grants.actor_for_user(db, user.id).is_admin
 
 
-def test_enrollment_token_is_hashed_single_use_and_expiring(db, user):
-  issued = enrollment.issue_enrollment_token(db, user.id, at=AT)
+def test_enrollment_token_is_hashed_single_use_and_expiring(db):
+  issued = enrollment.issue_enrollment_token(db, role=Role.REQUESTER, at=AT)
   row = db.exec_driver_sql("SELECT token_hash FROM enrollment_tokens").fetchone()
   assert row[0] != issued.token
   assert row[0] == hashlib.sha256(issued.token.encode()).hexdigest()
   assert (
-    enrollment.validate_enrollment_token(db, issued.token, at=AT).user_id == user.id
+    enrollment.validate_enrollment_token(db, issued.token, at=AT).role is Role.REQUESTER
   )
 
   consumed = enrollment.consume_enrollment_token(db, issued.token, at=LATER)
@@ -128,7 +128,7 @@ def test_enrollment_token_is_hashed_single_use_and_expiring(db, user):
     enrollment.consume_enrollment_token(db, issued.token, at=LATER)
 
   expired = enrollment.issue_enrollment_token(
-    db, user.id, at=AT, ttl=timedelta(minutes=5)
+    db, role=Role.REQUESTER, at=AT, ttl=timedelta(minutes=5)
   )
   with pytest.raises(InvalidToken):
     enrollment.validate_enrollment_token(
@@ -281,12 +281,11 @@ def test_passkey_challenges_are_single_use_and_revocation_blocks_login(
     credentials.start_authentication(db, CONFIG, at=LATER, user=user)
 
 
-def test_enrollment_registration_consumes_the_token(db, user, monkeypatch):
-  issued = enrollment.issue_enrollment_token(db, user.id, at=AT)
-  owner, start = credentials.start_enrollment_registration(
-    db, issued.token, CONFIG, at=AT
+def test_enrollment_registration_consumes_the_token(db, monkeypatch):
+  issued = enrollment.issue_enrollment_token(db, role=Role.ASSIGNEE, at=AT)
+  start = credentials.start_enrollment_registration(
+    db, issued.token, "sam", CONFIG, at=AT
   )
-  assert owner == user
   monkeypatch.setattr(
     credentials,
     "verify_registration_response",
@@ -297,27 +296,46 @@ def test_enrollment_registration_consumes_the_token(db, user, monkeypatch):
     issued.token,
     start.flow_id,
     {"id": "Y3JlZC0x"},
+    "sam",
+    "Sam Lee",
     CONFIG,
     at=AT,
   )
-  assert passkey.user_id == user.id
+  owner = users.get_user(db, passkey.user_id)
+  assert owner.username == "sam"
+  assert owner.display_name == "Sam Lee"
+  assert Role.ASSIGNEE in grants.list_roles(db, owner.id)
   with pytest.raises(InvalidToken):
     enrollment.validate_enrollment_token(db, issued.token, at=AT)
 
 
-def test_admin_cli_creates_an_admin_and_prints_a_token_once(db, tmp_path, capsys):
-  database = tmp_path / "cli.db"
-  code = cli_main(
-    [
-      "create-admin",
-      "--database",
-      str(database),
-      "--username",
-      "root",
-      "--display-name",
-      "Root User",
-    ]
+def test_a_taken_username_keeps_the_token(db, user, monkeypatch):
+  issued = enrollment.issue_enrollment_token(db, role=Role.REQUESTER, at=AT)
+  monkeypatch.setattr(
+    credentials,
+    "verify_registration_response",
+    lambda **kwargs: _verified_registration(),
   )
+  start = credentials.start_enrollment_registration(
+    db, issued.token, "fresh", CONFIG, at=AT
+  )
+  with pytest.raises(AuthError):
+    credentials.finish_enrollment_registration(
+      db,
+      issued.token,
+      start.flow_id,
+      {"id": "Y3JlZC0y"},
+      user.username,
+      "Someone Else",
+      CONFIG,
+      at=AT,
+    )
+  assert enrollment.validate_enrollment_token(db, issued.token, at=AT).used_at is None
+
+
+def test_admin_cli_issues_an_admin_token(tmp_path, capsys):
+  database = tmp_path / "cli.db"
+  code = cli_main(["create-admin", "--database", str(database)])
   output = capsys.readouterr().out
   assert code == 0
   token = next(
@@ -327,12 +345,7 @@ def test_admin_cli_creates_an_admin_and_prints_a_token_once(db, tmp_path, capsys
   )
 
   connection = data_db.connect(database)
-  root = users.get_user_by_username(connection, "root")
-  assert grants.actor_for_user(connection, root.id).is_admin
-  assert (
-    enrollment.validate_enrollment_token(
-      connection, token, at=datetime.now(UTC)
-    ).user_id
-    == root.id
-  )
+  found = enrollment.validate_enrollment_token(connection, token, at=datetime.now(UTC))
+  assert found.role is Role.ADMIN
+  assert users.count_users(connection) == 0
   connection.close()

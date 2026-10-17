@@ -29,7 +29,8 @@ from pwedepa.data._rows import pack_time, unpack_time
 from .audit import record_audit
 from .enrollment import consume_enrollment_token, validate_enrollment_token
 from .errors import AuthenticationFailed, AuthError
-from .users import User, UserStatus, get_user
+from .grants import assign_role
+from .users import User, UserStatus, create_user, get_user, get_user_by_username
 
 CHALLENGE_TTL = timedelta(minutes=5)
 
@@ -110,16 +111,34 @@ def finish_registration(
 def start_enrollment_registration(
   db: Connection,
   token: str,
+  username: str,
   config: WebAuthnConfig,
   *,
   at: datetime,
-) -> tuple[User, CeremonyStart]:
-  """Verify an enrollment token and start its user's first registration."""
-  record = validate_enrollment_token(db, token, at=at)
-  user = get_user(db, record.user_id)
-  if user is None:
-    raise AuthenticationFailed("the enrollment user does not exist")
-  return user, start_registration(db, user, config, at=at)
+) -> CeremonyStart:
+  """Verify an enrollment token and start a first registration for a new account."""
+  validate_enrollment_token(db, token, at=at)
+  name = username.strip()
+  if not name:
+    raise AuthError("a sign-up needs a username")
+  if get_user_by_username(db, name) is not None:
+    raise AuthError("the username is already in use")
+  options = generate_registration_options(
+    rp_id=config.rp_id,
+    rp_name=config.rp_name,
+    user_id=secrets.token_bytes(32),
+    user_name=name,
+    user_display_name=name,
+    challenge=_new_challenge(),
+    timeout=config.timeout_ms,
+    authenticator_selection=AuthenticatorSelectionCriteria(
+      resident_key=ResidentKeyRequirement.REQUIRED,
+      require_resident_key=True,
+      user_verification=UserVerificationRequirement.REQUIRED,
+    ),
+  )
+  flow_id = _store_challenge(db, None, "registration", options.challenge, config, at)
+  return CeremonyStart(flow_id, options_to_json(options))
 
 
 def finish_enrollment_registration(
@@ -127,16 +146,32 @@ def finish_enrollment_registration(
   token: str,
   flow_id: str,
   credential: Any,
+  username: str,
+  display_name: str,
   config: WebAuthnConfig,
   *,
   at: datetime,
 ) -> Passkey:
-  """Consume an enrollment token, then verify and store the passkey."""
+  """Verify the first passkey, then create the account and claim the token."""
+  validate_enrollment_token(db, token, at=at)
+  challenge, _ = _claim_challenge(db, flow_id, "registration", at=at)
+  try:
+    verified = verify_registration_response(
+      credential=credential,
+      expected_challenge=challenge,
+      expected_rp_id=config.rp_id,
+      expected_origin=config.origin,
+      require_user_verification=True,
+    )
+  except Exception as exc:
+    raise AuthenticationFailed("passkey registration failed") from exc
+  # A taken name must not burn the token, so check it before the claim.
+  if get_user_by_username(db, username.strip()) is not None:
+    raise AuthError("the username is already in use")
   record = consume_enrollment_token(db, token, at=at)
-  user = get_user(db, record.user_id)
-  if user is None:
-    raise AuthenticationFailed("the enrollment user does not exist")
-  return _finish_registration(db, user, flow_id, credential, config, at=at)
+  user = create_user(db, username, display_name, at=at)
+  assign_role(db, user.id, record.role, at=at)
+  return _store_passkey(db, user, verified, at=at)
 
 
 def start_authentication(
@@ -292,6 +327,13 @@ def _finish_registration(
   except Exception as exc:
     raise AuthenticationFailed("passkey registration failed") from exc
 
+  return _store_passkey(db, user, verified, at=at)
+
+
+def _store_passkey(
+  db: Connection, user: User, verified: Any, *, at: datetime
+) -> Passkey:
+  """Store one verified credential for a user."""
   try:
     cursor = db.exec_driver_sql(
       "INSERT INTO passkeys "

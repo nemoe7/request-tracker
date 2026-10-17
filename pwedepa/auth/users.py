@@ -29,6 +29,12 @@ class User:
   archived_at: datetime | None
 
 
+def count_users(db: Connection) -> int:
+  """Return how many accounts the database holds."""
+  row = db.exec_driver_sql("SELECT COUNT(*) AS count FROM users").fetchone()
+  return row._mapping["count"]
+
+
 def create_user(
   db: Connection,
   username: str,

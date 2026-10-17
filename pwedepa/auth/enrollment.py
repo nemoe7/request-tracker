@@ -9,8 +9,8 @@ from pwedepa._tokens import hash_token, new_token
 from pwedepa.data._rows import pack_time, unpack_time
 
 from .audit import record_audit
-from .errors import AuthenticationFailed, InvalidToken
-from .users import UserStatus, get_user
+from .errors import InvalidToken
+from .grants import Role
 
 ENROLLMENT_TOKEN_TTL = timedelta(hours=24)
 
@@ -18,7 +18,7 @@ ENROLLMENT_TOKEN_TTL = timedelta(hours=24)
 @dataclass(frozen=True)
 class EnrollmentToken:
   id: int
-  user_id: int
+  role: Role
   created_at: datetime | None
   expires_at: datetime | None
   used_at: datetime | None
@@ -32,33 +32,40 @@ class IssuedEnrollmentToken:
 
 def issue_enrollment_token(
   db: Connection,
-  user_id: int,
   *,
+  role: Role,
   at: datetime,
   ttl: timedelta = ENROLLMENT_TOKEN_TTL,
   actor_id: int | None = None,
 ) -> IssuedEnrollmentToken:
   """Issue the plaintext token once. The database stores only its hash."""
-  user = get_user(db, user_id)
-  if user is None or user.status is UserStatus.ARCHIVED:
-    raise AuthenticationFailed("an enrollment token needs an active user")
   token = new_token()
   cursor = db.exec_driver_sql(
-    "INSERT INTO enrollment_tokens (user_id, token_hash, created_at, expires_at) "
+    "INSERT INTO enrollment_tokens (role, token_hash, created_at, expires_at) "
     "VALUES (?, ?, ?, ?)",
-    (user_id, hash_token(token), pack_time(at), pack_time(at + ttl)),
+    (role.value, hash_token(token), pack_time(at), pack_time(at + ttl)),
   )
   record_audit(
     db,
     "enrollment_token.issued",
     at=at,
     actor_id=actor_id,
-    object_type="user",
-    object_id=user_id,
+    object_type="enrollment_token",
+    object_id=cursor.lastrowid,
+    data={"role": role.value},
     commit=False,
   )
   db.commit()
   return IssuedEnrollmentToken(_get_record(db, cursor.lastrowid), token)
+
+
+def has_waiting(db: Connection, *, at: datetime) -> bool:
+  """True when one unused token is still in its lifetime."""
+  row = db.exec_driver_sql(
+    "SELECT 1 FROM enrollment_tokens WHERE used_at IS NULL AND expires_at > ? LIMIT 1",
+    (pack_time(at),),
+  ).fetchone()
+  return row is not None
 
 
 def validate_enrollment_token(
@@ -89,9 +96,10 @@ def consume_enrollment_token(
     db,
     "enrollment_token.consumed",
     at=at,
-    actor_id=record.user_id,
-    object_type="user",
-    object_id=record.user_id,
+    actor_id=None,
+    object_type="enrollment_token",
+    object_id=record.id,
+    data={"role": record.role.value},
     commit=False,
   )
   db.commit()
@@ -115,7 +123,7 @@ def _get_record(db: Connection, token_id: int) -> EnrollmentToken:
 def _from_row(row: Row) -> EnrollmentToken:
   return EnrollmentToken(
     id=row._mapping["id"],
-    user_id=row._mapping["user_id"],
+    role=Role(row._mapping["role"]),
     created_at=unpack_time(row._mapping["created_at"]),
     expires_at=unpack_time(row._mapping["expires_at"]),
     used_at=unpack_time(row._mapping["used_at"]),

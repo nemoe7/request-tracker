@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS webauthn_challenges (
 );
 CREATE TABLE IF NOT EXISTS enrollment_tokens (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER NOT NULL REFERENCES users(id),
+  role TEXT NOT NULL,
   token_hash TEXT NOT NULL UNIQUE,
   created_at TEXT NOT NULL,
   expires_at TEXT NOT NULL,

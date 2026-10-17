@@ -64,6 +64,23 @@ def initialize(db: Connection) -> None:
     db.exec_driver_sql(
       "ALTER TABLE user_preferences ADD COLUMN theme TEXT NOT NULL DEFAULT 'system'"
     )
+  tokens = {
+    row._mapping["name"]
+    for row in db.exec_driver_sql("PRAGMA table_info(enrollment_tokens)")
+  }
+  if "user_id" in tokens:
+    # A token now names a role, not a person. Old tokens bound a user, so drop them.
+    db.exec_driver_sql("ALTER TABLE enrollment_tokens RENAME TO enrollment_tokens_old")
+    db.exec_driver_sql(
+      "CREATE TABLE enrollment_tokens ("
+      "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+      "role TEXT NOT NULL, "
+      "token_hash TEXT NOT NULL UNIQUE, "
+      "created_at TEXT NOT NULL, "
+      "expires_at TEXT NOT NULL, "
+      "used_at TEXT)"
+    )
+    db.exec_driver_sql("DROP TABLE enrollment_tokens_old")
   db.commit()
 
 

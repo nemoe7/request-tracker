@@ -4,10 +4,14 @@
 <section class="auth-card panel">
   <p class="eyebrow">First time</p>
   <h1>Enroll a passkey</h1>
-  <p class="muted">Paste the one-time token from your admin. The token dies as soon as your passkey lands, and we sign you in right away.</p>
+  <p class="muted">Paste the one-time token from your admin, then pick the name you want. The token dies as soon as your passkey lands, and we sign you in right away.</p>
   <form id="enroll-form">
     <label for="token">Enrollment token</label>
     <input id="token" name="token" type="text" autocomplete="off" required placeholder="Paste your token">
+    <label for="username">Username</label>
+    <input id="username" name="username" type="text" autocomplete="username" required placeholder="Your username">
+    <label for="display-name">Display name</label>
+    <input id="display-name" name="display_name" type="text" autocomplete="name" required placeholder="Your display name">
     <button class="btn primary big" type="submit">Create my passkey</button>
   </form>
   <p class="status" id="status" role="status"></p>
