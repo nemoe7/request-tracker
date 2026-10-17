@@ -8,16 +8,20 @@
     <a class="btn primary" href="{{ url_for('records.request_new') }}">New request</a>
   </div>
 
-  <section class="client-dash{% if selected %} is-open is-main{% endif %}">
-    <div class="panel inspector{% if selected %} is-main{% endif %}">
-      {% if selected %}
+  {% if selected %}
+  <section class="client-dash is-open is-main">
+    <div class="panel inspector is-main">
       <a class="back-to-list" href="{{ url_for('records.requests') }}">Back to the list</a>
       <p class="eyebrow">Request #{{ selected.id }} · by {{ names.get(selected.requester_id, "—") }}</p>
       <h2>{{ selected.title }}</h2>
       <p>{{ pill(selected.status) }}<span class="vis">{{ selected.visibility.value | capitalize }}</span></p>
       <p class="desc">{{ selected.description or "No description." }}</p>
       <a class="btn" href="{{ record_path(selected) }}">Open request</a>
-      {% else %}
+    </div>
+  </section>
+  {% else %}
+  <section class="client-dash">
+    <div class="panel inspector">
       <p class="eyebrow" id="today">Today</p>
       <h2>Your requests and the public board</h2>
       {% if recent %}
@@ -29,23 +33,23 @@
       {% else %}
       <p class="muted">No requests yet.</p>
       {% endif %}
-      {% endif %}
     </div>
   </section>
   {% if mine %}
-  <div class="card-list">
+  <ul class="record-list">
     {% for record in mine %}
-    <article class="card is-linked">
-      <div class="card-top">
+    <li class="record-row">
+      <div class="record-row-main">
         <h2><a href="{{ record_path(record) }}">{{ record.title }}</a></h2>
-        {{ pill(record.status) }}
+        <p class="meta">#{{ record.id }} · {{ record.visibility.value | capitalize }}{% if record.domains %} · {{ record.domains | join(", ") }}{% endif %}</p>
       </div>
-      <p class="status-word">{{ status_words[record.status] }}</p>
-      <p><a class="mini" href="{{ url_for('records.requests', selected=record.id) }}">Open the card</a></p>
-      <p class="meta">#{{ record.id }} · {{ record.visibility.value | capitalize }}{% if record.domains %} · {{ record.domains | join(", ") }}{% endif %}</p>
-    </article>
+      <div class="record-row-side">
+        {{ pill(record.status) }}
+        <a class="mini" href="{{ url_for('records.requests', selected=record.id) }}">Open the card</a>
+      </div>
+    </li>
     {% endfor %}
-  </div>
+  </ul>
   {% else %}
   <div class="empty panel">
     <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="48" height="48">
@@ -53,21 +57,24 @@
     <a class="btn primary" href="{{ url_for('records.request_new') }}">Make your first request</a>
   </div>
   {% endif %}
+  {% endif %}
 
   <h2 class="section-title" id="public">Public board</h2>
   {% if public %}
-  <div class="card-list">
+  <ul class="record-list">
     {% for record in public %}
-    <article class="card is-linked">
-      <div class="card-top">
+    <li class="record-row">
+      <div class="record-row-main">
         <h2><a href="{{ record_path(record) }}">{{ record.title }}</a></h2>
-        {{ pill(record.status) }}
+        <p class="meta">#{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
       </div>
-      <p class="meta">#{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
-      <p><a class="mini" href="{{ url_for('records.requests', selected=record.id) }}">Open the card</a></p>
-    </article>
+      <div class="record-row-side">
+        {{ pill(record.status) }}
+        <a class="mini" href="{{ url_for('records.requests', selected=record.id) }}">Open the card</a>
+      </div>
+    </li>
     {% endfor %}
-  </div>
+  </ul>
   {% else %}
   <p class="muted">No public requests from other people yet.</p>
   {% endif %}

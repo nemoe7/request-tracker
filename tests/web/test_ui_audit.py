@@ -269,7 +269,7 @@ def test_page_switches_do_not_animate_the_whole_page(app):
     )
 
 
-def test_client_cards_open_the_record_from_anywhere(app, db):
+def test_client_rows_open_the_record_from_the_title(app, db):
   client = _client(app, db, "mara", "Mara Reyes", roles=(Role.REQUESTER,))
   record = Request(
     id=1,
@@ -283,7 +283,7 @@ def test_client_cards_open_the_record_from_anywhere(app, db):
 
   body = client.get("/requests").data.decode()
   assert f'href="{record_url(record.id)}"' in body
-  assert 'class="card is-linked"' in body, "a client card only opens from its title"
+  assert 'class="record-row"' in body, "the client list reads as dense rows"
 
   css = app.test_client().get("/static/app.css").data.decode()
   rules = {sel.strip(): body for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)}

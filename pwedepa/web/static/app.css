@@ -208,6 +208,16 @@ body.is-guest .auth-card { margin: 0 auto; }
 .card h2 a { color: var(--text); text-decoration: none; }
 .card.is-linked { position: relative; }
 .card.is-linked h2 a::after { content: ""; position: absolute; inset: 0; }
+.record-list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.record-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 14px; }
+.record-row + .record-row { border-top: 1px solid var(--line); }
+.record-row:hover { background: var(--surface-2); }
+.record-row-main { min-width: 0; }
+.record-row h2 { margin: 0; font-size: 15px; }
+.record-row h2 a { color: var(--text); text-decoration: none; }
+.record-row .meta { margin: 2px 0 0; }
+.record-row-side { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.record-row-side .mini { font-size: 13px; }
 .status-word { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
 .meta { color: var(--muted); font-size: 12px; font-family: ui-monospace, "SF Mono", Menlo, monospace; margin: 6px 0 0; }
 .muted { color: var(--muted); font-size: 14px; }
@@ -454,6 +464,7 @@ form.is-auto [data-save] { display: none; }
   .issue-layout { grid-template-columns: 1fr; gap: 20px; }
   .issue-head h1 { font-size: 24px; }
   .issue-actions { margin-left: 0; }
+  .record-row { flex-direction: column; align-items: flex-start; gap: 6px; }
   .issue-row a { flex-direction: column; gap: 4px; }
   .issue-row-meta { white-space: normal; }
   .client-dash.is-main ~ * { display: none; }

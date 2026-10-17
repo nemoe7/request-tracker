@@ -18,9 +18,10 @@ pick.
   comments. A right sidebar holds the people, labels, priority, and details.
 - The Issues page groups issues by state. A row shows the number, title, priority, and
   assignee, and an empty state group stays out of the list.
-- A client sees a mini dashboard at the top of the Requests page: their own requests
-  and the public board. A selected item opens as the wide card, and a phone shows it
-  alone. The client surface stays one 720 px column.
+- A client sees a mini dashboard at the top of the Requests page. Their own requests
+  and the public board read as dense rows, each with its state and a card link. A
+  selected item opens as the wide card, and a phone shows it alone. The client
+  surface stays one 720 px column.
 - Settings follow the Apple Settings pattern: grouped rows, label left, control
   right, and a chevron only when the row navigates. The pattern stays inside Settings.
   A wide screen works like the Mac pane: the rail picks one group and only that
