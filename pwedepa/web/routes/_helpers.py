@@ -85,11 +85,17 @@ def client_view() -> bool:
 
 
 def safe_next() -> str | None:
-  """Read the return path a form carries, or None to keep the default page."""
+  """Read the return path a form carries, or None to keep the default page.
+
+  The path is rebuilt on a constant slash. A value that survives the check
+  cannot change the host.
+  """
   path = request.form.get("next", "").strip()
   if not path.startswith("/") or path.startswith("//") or "\\" in path:
     return None
-  return path
+  if any(ord(char) < 0x20 or ord(char) == 0x7F for char in path):
+    return None
+  return "/" + path[1:]
 
 
 def db_path():
