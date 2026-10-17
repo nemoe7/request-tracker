@@ -26,6 +26,45 @@ def _status(kind: str, raw: str):
     raise SeedError(f"an issue has no status {raw}") from error
 
 
+def _known_domains(settings: dict) -> set[str]:
+  """Return the Domain names the config lists, so a typo can stop the seed."""
+  listed = settings.get("domains") or []
+  if not isinstance(listed, list):
+    raise SeedError("the domains block needs a list")
+  return {
+    str(entry["name"]).strip()
+    for entry in listed
+    if isinstance(entry, dict) and entry.get("name")
+  }
+
+
+def _check_domains(entries: list, settings: dict) -> None:
+  """Raise when a seed row names a Domain the config does not hold."""
+  names = _known_domains(settings)
+  if not names:
+    return
+  for entry in entries:
+    if not isinstance(entry, dict):
+      continue
+    domain = str(entry.get("domain", "")).strip()
+    if domain and domain not in names:
+      raise SeedError(f"a seed row names no Domain {domain}")
+
+
+def _count_line(entries: list) -> str:
+  """Return the kinds the seed wrote, as a phrase the log can print."""
+  requests = sum(
+    1 for entry in entries if str(entry.get("kind", "request")).lower() == "request"
+  )
+  issues = len(entries) - requests
+  parts = []
+  if requests:
+    parts.append(f"{requests} request" if requests == 1 else f"{requests} requests")
+  if issues:
+    parts.append(f"{issues} issue" if issues == 1 else f"{issues} issues")
+  return " and ".join(parts)
+
+
 def _add(db, entry: dict, at: datetime) -> None:
   if not isinstance(entry, dict):
     raise SeedError("each seed row needs a kind, a title, a description, and a domain")
@@ -93,6 +132,7 @@ def seed_from_config(db_path, settings: dict, *, at: datetime) -> int:
     return 0
   if not isinstance(entries, list):
     raise SeedError("the seed block needs a list of rows")
+  _check_domains(entries, settings)
   from . import db as data_db
 
   connection = data_db.connect(db_path)
@@ -101,7 +141,7 @@ def seed_from_config(db_path, settings: dict, *, at: datetime) -> int:
   finally:
     connection.close()
   if added:
-    print(f"Seed: {added} records added.", file=sys.stderr, flush=True)
+    print(f"Seed: {_count_line(entries)} added.", file=sys.stderr, flush=True)
   return added
 
 

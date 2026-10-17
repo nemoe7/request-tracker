@@ -8,9 +8,8 @@
 # The SQLite file for a local run. Default: pwedepa.db.
 # database: pwedepa.db
 
-# Records to insert on a first start, when the requests and issues tables are
-# both empty. kind is request or issue, and status takes the values that kind
-# knows.
+# Rows to insert on a first start, when the requests and issues tables are both
+# empty. kind is request or issue, and status takes the values that kind knows.
 seed:
   - kind: request
     title: The kitchen tap drips all night

@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 import pytest
 
 from pwedepa.data import db, issues, requests
-from pwedepa.data.seed import SeedError, seed
+from pwedepa.data.seed import SeedError, seed, seed_from_config
 
 AT = datetime(2026, 10, 17, 12, 0, tzinfo=UTC)
 ROWS = [
@@ -61,4 +61,25 @@ def test_a_bad_status_stops_the_seed(tmp_path):
   with pytest.raises(SeedError):
     seed(connection, broken, at=AT)
 
+  assert requests.list_requests(connection) == []
+
+
+def test_a_seed_domain_must_be_in_the_config(tmp_path):
+  settings = {
+    "domains": [{"name": "Gym", "description": "Training plans."}],
+    "seed": [
+      {
+        "kind": "request",
+        "title": "Lift the bench",
+        "description": "The legs wobble.",
+        "domain": "Gimm",
+      }
+    ],
+  }
+
+  with pytest.raises(SeedError) as error:
+    seed_from_config(tmp_path / "seed.db", settings, at=AT)
+
+  assert "Gimm" in str(error.value)
+  connection = db.connect(tmp_path / "seed.db")
   assert requests.list_requests(connection) == []

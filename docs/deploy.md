@@ -43,7 +43,7 @@ docker compose -f compose.dev.yml up -d --build
 
 The dev file supplies a sample secret and a localhost origin, so it needs no
 `.env`. It sets `PWEDEPA_ENV=dev`, so the app reads `config.dev.yml` over
-`config.yml`, and that file seeds two records on a first start.
+`config.yml`, and that file seeds a demo request and a demo issue on a first start.
 
 ## Tailscale Funnel
 
