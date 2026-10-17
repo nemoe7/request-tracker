@@ -23,7 +23,7 @@
       <label for="share-days-{{ record.id }}">Expires in days</label>
       <input id="share-days-{{ record.id }}" type="number" name="expires_days" min="1" placeholder="No expiry">
     </div>
-    <button class="btn" type="submit">Create link</button>
+    <button class="btn" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#link"/></svg>Create link</button>
   </form>
   {% if share_links %}
   <ul class="share-list">

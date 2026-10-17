@@ -46,7 +46,7 @@
       <form class="comment-form" method="post" action="{{ url_for('records.issue_comment', issue_id=record.id) }}">
         <label for="issue-comment-text">Add a comment</label>
         <textarea id="issue-comment-text" name="text" rows="3" required></textarea>
-        <button class="btn primary" type="submit">Post comment</button>
+        <button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#message-square"/></svg>Post comment</button>
       </form>
       {% endif %}
 

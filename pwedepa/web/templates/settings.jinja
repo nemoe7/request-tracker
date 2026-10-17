@@ -133,7 +133,7 @@
           <button class="btn danger-quiet icon-only" type="button" data-revoke-passkey="{{ key.id }}" aria-label="Revoke passkey" title="Revoke passkey"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#trash"/></svg></button>
         </div>
         {% endfor %}
-        <div class="ios-row ios-action"><button class="btn" id="add-passkey" type="button">Add a passkey</button></div>
+        <div class="ios-row ios-action"><button class="btn" id="add-passkey" type="button"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Add a passkey</button></div>
       </div>
       <p class="ios-note" id="status" role="status"></p>
     </section>

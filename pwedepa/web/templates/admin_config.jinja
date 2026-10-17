@@ -57,7 +57,7 @@
         <label for="domain-description">Description</label>
         <input id="domain-description" name="description" type="text">
       </div>
-      <div class="form-actions"><button class="btn" type="submit">Add Domain</button></div>
+      <div class="form-actions"><button class="btn" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Add Domain</button></div>
     </form>
   </section>
 
@@ -70,7 +70,7 @@
         <input id="config-file" type="file" name="config" accept=".yaml,.yml">
         <p class="help">The file holds a domains list. Each entry needs a name and may hold a description.</p>
       </div>
-      <div class="form-actions"><button class="btn primary" type="submit">Import config</button></div>
+      <div class="form-actions"><button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#upload"/></svg>Import config</button></div>
     </form>
   </section>
 </div>

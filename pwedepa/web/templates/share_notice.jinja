@@ -7,7 +7,7 @@
     <h1>One view of "{{ record.title }}"</h1>
     <p>This link gives one signed-out view. Open it only when you are ready to read the record.</p>
     <form method="post" action="{{ url_for('sharing.consume_view', token=token) }}">
-      <button class="btn primary big" type="submit">View record once</button>
+      <button class="btn primary big" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#eye"/></svg>View record once</button>
     </form>
   </div>
 </div>

@@ -19,7 +19,7 @@
   <p class="muted">The person who enrols picks their own username and display name.</p>
   <form class="form inline-form create-token" method="post" action="{{ url_for('admin.issue_token') }}">
     <div class="field"><label for="new-role">Role</label><select id="new-role" name="role">{% for role in roles %}<option value="{{ role }}">{{ role | capitalize }}</option>{% endfor %}</select></div>
-    <button class="btn primary" type="submit">Create token</button>
+    <button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#key-round"/></svg>Create token</button>
   </form>
 </section>
 
@@ -84,7 +84,7 @@
         <form class="inline-form" method="post" action="{{ url_for('admin.change_grant', user_id=person.id) }}">
           <input type="text" name="permission" placeholder="issue.1.comment" aria-label="Permission">
           <select name="effect" aria-label="Effect"><option value="ALLOW">Allow</option><option value="DENY">Deny</option></select>
-          <button class="btn" type="submit">Add grant</button>
+          <button class="btn" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Add grant</button>
         </form>
 
         <h3>Passkeys</h3>

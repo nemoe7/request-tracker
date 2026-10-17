@@ -7,7 +7,7 @@
     <div class="page-actions">
       {% if notices %}
       <form method="post" action="{{ url_for('notifications.clear') }}">
-        <button class="btn danger-quiet" type="submit">Clear all</button>
+        <button class="btn danger-quiet" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#trash"/></svg>Clear all</button>
       </form>
       {% endif %}
       <a class="btn" href="{{ url_for('settings.settings') }}">Notification settings</a>
