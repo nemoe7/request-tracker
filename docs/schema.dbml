@@ -185,6 +185,38 @@ Table site_messages {
   created_by_id integer
 }
 
+Table announcements {
+  id integer [pk, increment]
+  domain text [not null]
+  title text [not null]
+  body text [not null]
+  author_id integer [not null]
+  published_at text [not null]
+  edited_at text
+
+  Note: 'domain holds the Domain slug, so a rename keeps every post.'
+}
+
+Table domain_subscriptions {
+  user_id integer [not null]
+  domain text [not null]
+
+  indexes {
+    (user_id, domain) [pk]
+  }
+}
+
+Table workspace_reads {
+  user_id integer [not null]
+  object_type text [not null]
+  object_id integer [not null]
+  read_at text [not null]
+
+  indexes {
+    (user_id, object_type, object_id) [pk]
+  }
+}
+
 Ref: requests.requester_id > users.id
 Ref: issues.source_request_id > requests.id
 Ref: issues.requester_id > users.id
@@ -200,3 +232,6 @@ Ref: notifications.user_id > users.id
 Ref: notification_preferences.user_id > users.id
 Ref: user_preferences.user_id > users.id
 Ref: site_messages.created_by_id > users.id
+Ref: announcements.author_id > users.id
+Ref: domain_subscriptions.user_id > users.id
+Ref: workspace_reads.user_id > users.id
