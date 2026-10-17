@@ -212,7 +212,7 @@ body.is-guest.is-share { display: block; }
 body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .issue-page { max-width: 1100px; margin: 0 auto; }
 .issue-page.is-pane { max-width: none; }
-.workspace-grid .inspector .is-pane h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 6px; }
+.workspace-grid .inspector .is-pane .side-block h2, .workspace-grid .inspector .is-pane .share-panel h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 6px; }
 .is-pane .share-panel { margin-top: 18px; }
 .workspace-grid .inspector .is-pane .share-panel h2 { margin: 8px 0 6px; }
 .is-pane .share-form { grid-template-columns: 1fr; }
@@ -616,3 +616,15 @@ html { background: var(--bg); scrollbar-gutter: stable; }
 .user-menu-item { display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; padding: 9px 10px; border: 0; border-radius: 8px; background: none; color: var(--text); font: inherit; font-size: 14px; text-decoration: none; text-align: left; cursor: pointer; }
 .user-menu-item:hover { background: var(--surface-2); }
 select:not([multiple]) { appearance: none; -webkit-appearance: none; min-height: 40px; padding-top: 8px; padding-bottom: 8px; padding-right: 34px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238A94A6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+
+/* Modal: one custom dialog for a confirmation that needs a reason. */
+.modal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; }
+.modal[hidden] { display: none; }
+.modal-scrim { position: absolute; inset: 0; background: rgb(0 0 0 / 0.55); }
+.modal-card { position: relative; width: min(420px, 100%); padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: 0 24px 60px rgb(0 0 0 / 0.35); }
+.modal-card h2 { margin: 0 0 10px; font-size: 17px; text-transform: none; letter-spacing: 0; color: var(--text); }
+.modal-form { display: grid; gap: 8px; }
+.modal-form label { font-size: 13px; color: var(--muted); }
+.modal-form textarea { min-height: 84px; resize: vertical; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+body.has-modal { overflow: hidden; }

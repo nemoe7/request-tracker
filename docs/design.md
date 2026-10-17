@@ -28,6 +28,8 @@ pick.
   comments. A right sidebar holds the people, labels, priority, and details.
 - Prose blocks read as markdown with inline html, the way a mail client reads a
   message. A sanitizer drops every unsafe tag, attribute, and url scheme.
+- Revoke opens one custom modal that asks for a reason. Cancel, Escape, and the
+  scrim close it, and focus returns to the trigger.
 - The public share page keeps that shape. It holds one timeline and a facts
   sidebar, and no write control.
 - The Issues page groups issues by state. A row shows the number, title, priority, and

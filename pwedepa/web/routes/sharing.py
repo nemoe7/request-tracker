@@ -121,9 +121,14 @@ def revoke(link_id: int) -> Response:
   if not (is_admin or user.id == link.created_by_id or can_share(user, record)):
     abort(404)
   sharing_data.revoke(db(), link_id, at=now())
+  reason = (request.form.get("reason") or "").strip()[:500]
+  extra = {"reason": reason} if reason else {}
   if record is not None:
     event = Event(
-      f"{link.object_type}.share_revoked", user.id, now(), {"link_id": link_id}
+      f"{link.object_type}.share_revoked",
+      user.id,
+      now(),
+      {"link_id": link_id, **extra},
     )
     events_data.append(db(), link.object_type, link.object_id, event)
     _notify_share(
@@ -139,7 +144,7 @@ def revoke(link_id: int) -> Response:
     actor_id=user.id,
     object_type=link.object_type,
     object_id=link.object_id,
-    data={"link_id": link_id},
+    data={"link_id": link_id, **extra},
   )
   flash("Share link revoked.")
   return redirect(safe_next() or _detail_url(record, link.object_type))

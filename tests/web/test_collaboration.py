@@ -154,9 +154,15 @@ def test_authenticated_share_grants_only_the_picked_access(cast, db):
   )
   assert requests_data.get(db, 1).title == "Changed by Sam"
 
-  admin.post("/share-links/2/revoke")
+  admin.post("/share-links/2/revoke", data={"reason": "The link leaked."})
   assert Sam.get(record_url(1)).status_code == 404
   assert Sam.get(f"/share/{edit_token}").status_code == 404
+  revoked = next(
+    event
+    for event in events_data.list_for(db, "request", 1)
+    if event.event_type == "request.share_revoked"
+  )
+  assert revoked.data["reason"] == "The link leaked."
 
 
 def _demo_app(tmp_path, name: str = "demo.db", switch: bool = False):

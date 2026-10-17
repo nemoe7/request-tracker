@@ -24,3 +24,28 @@
   <span class="event-meta">{{ names.get(event.actor_id, "Someone") }} · {{ event.at | stamp(clock) }}</span>
 </li>
 {%- endmacro %}
+
+{% macro modal(id, title) -%}
+<div class="modal" id="{{ id }}" hidden>
+  <div class="modal-scrim" data-modal-close></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="{{ id }}-title">
+    <h2 id="{{ id }}-title">{{ title }}</h2>
+    {{ caller() }}
+  </div>
+</div>
+{%- endmacro %}
+
+{% macro revoke_modal(id, action, fields, next_href) -%}
+{% call modal(id, "Revoke this?") %}
+<form class="modal-form" method="post" action="{{ action }}">
+  {% for name, value in fields.items() %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+  {% if next_href %}<input type="hidden" name="next" value="{{ next_href }}">{% endif %}
+  <label for="{{ id }}-reason">Reason</label>
+  <textarea id="{{ id }}-reason" name="reason" rows="3" required placeholder="Why this is revoked"></textarea>
+  <div class="modal-actions">
+    <button class="btn" type="button" data-modal-close>Cancel</button>
+    <button class="btn danger" type="submit">Revoke</button>
+  </div>
+</form>
+{% endcall %}
+{%- endmacro %}
