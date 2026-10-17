@@ -13,7 +13,7 @@
       <textarea id="f-description" name="description" rows="5">{{ record.description if record else '' }}</textarea>
       <p class="help">Say what you need and what done looks like.</p>
     </div>
-    <fieldset class="field">
+    <fieldset class="field field-checks">
       <legend>Domains</legend>
       {% for domain in domains %}
       <label class="check"><input id="f-domains-{{ loop.index }}" type="checkbox" name="domains" value="{{ domain.name }}"{% if record and domain.name in record.domains %} checked{% endif %}> {{ domain.name }}</label>
