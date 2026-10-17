@@ -276,11 +276,12 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .comment-form { display: grid; gap: 8px; margin-top: 14px; }
 .comment-form label { font-size: 13px; font-weight: 600; }
 .detail h2 { font-size: 18px; margin: 24px 0 8px; }
-@media (min-width: 1200px) {
+@media (min-width: 1360px) {
   .workspace-grid.is-open, .workspace-grid.is-open.is-main { grid-template-columns: 240px minmax(0, 1fr) minmax(430px, 520px); }
 }
-@media (max-width: 1199px) {
-  .workspace-grid.is-open { grid-template-columns: 240px minmax(0, 1.4fr) minmax(280px, 340px); }
+@media (max-width: 1359px) {
+  .workspace-grid.is-open { grid-template-columns: 240px minmax(0, 1fr); }
+  .workspace-grid.is-open .inspector { grid-column: 2; }
 }
 @media (max-width: 639px) {
   .strip { grid-template-columns: 1fr; }
