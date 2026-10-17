@@ -4,7 +4,7 @@
 <div class="admin-page">
 <div class="page-head">
   <h1>Share links</h1>
-  <a class="btn" href="{{ url_for('admin.overview') }}">Admin home</a>
+  <a class="btn" href="{{ url_for('admin.overview') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#arrow-left"/></svg>Admin home</a>
 </div>
 {% if share_links %}
 <ul class="record-list">

@@ -10,7 +10,7 @@
         <button class="btn danger-quiet" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#trash"/></svg>Clear all</button>
       </form>
       {% endif %}
-      <a class="btn" href="{{ url_for('settings.settings') }}">Notification settings</a>
+      <a class="btn" href="{{ url_for('settings.settings') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg>Notification settings</a>
     </div>
   </div>
   {% if notices %}
