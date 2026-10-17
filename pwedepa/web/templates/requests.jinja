@@ -15,7 +15,7 @@
       <p class="eyebrow">Request #{{ selected.id }} · by {{ names.get(selected.requester_id, "—") }}</p>
       <h2>{{ selected.title }}</h2>
       <p>{{ pill(selected.status) }}<span class="vis">{{ selected.visibility.value | capitalize }}</span></p>
-      <p class="desc">{{ selected.description or "No description." }}</p>
+      <div class="desc prose">{{ selected.description | prose if selected.description else "No description." }}</div>
       <a class="btn" href="{{ request_open_path(selected) }}">Open request</a>
     </div>
   </section>
