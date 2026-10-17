@@ -434,7 +434,6 @@ def requests() -> str | Response:
     mine=mine,
     public=public,
     visible=visible,
-    open_count=sum(1 for r in visible if r.status is RequestStatus.OPEN),
     recent=visible[:3],
     selected=selected,
     status_words=STATUS_WORDS,
