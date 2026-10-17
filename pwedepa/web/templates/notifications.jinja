@@ -17,14 +17,16 @@
   <ul class="notice-list">
     {% for notice in notices %}
     <li class="notice">
-      <div class="notice-top">
-        <p>{{ notice.message }}</p>
+      <div class="notice-main">
+        <p class="notice-message">{{ notice.message }}</p>
+        <p class="event-meta">{{ notice.category | capitalize }} · {{ names.get(notice.actor_id, "Someone") }} · {{ notice.created_at | stamp(clock) }}</p>
+      </div>
+      <div class="notice-side">
+        {% if links.get(notice.id) %}<a class="btn" href="{{ links[notice.id] }}">Open {{ notice.object_type }}</a>{% endif %}
         <form method="post" action="{{ url_for('notifications.dismiss', notice_id=notice.id) }}">
           <button class="icon-btn" type="submit" aria-label="Dismiss notification"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#x"/></svg></button>
         </form>
       </div>
-      <p class="event-meta">{{ notice.category | capitalize }} · {{ names.get(notice.actor_id, "Someone") }} · {{ notice.created_at | stamp(clock) }}</p>
-      {% if links.get(notice.id) %}<a class="btn" href="{{ links[notice.id] }}">Open {{ notice.object_type }}</a>{% endif %}
     </li>
     {% endfor %}
   </ul>

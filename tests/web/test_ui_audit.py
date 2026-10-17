@@ -17,6 +17,7 @@ from pwedepa.auth import (
 from pwedepa.core import Issue, Request
 from pwedepa.data import db as data_db
 from pwedepa.data import issues as issues_data
+from pwedepa.data import notifications as notifications_data
 from pwedepa.data import requests as requests_data
 from pwedepa.data import sharing
 from pwedepa.web import SESSION_COOKIE, create_app
@@ -928,3 +929,21 @@ def test_the_admin_lists_read_as_dense_rows(app, db):
   )
   assert "request.viewed" in audit_page
   assert 'class="record-table"' not in audit_page
+
+
+def test_the_inbox_reads_as_one_list_of_rows(app, db):
+  """The inbox behaves like a mail list: one line per notice, one dismiss button."""
+  client = _client(app, db, "Mara", "Mara Reyes", roles=(Role.REQUESTER,))
+  person = users.get_user_by_username(db, "Mara")
+  for message in ("Request #1 moved to Pending.", "Ada replied to Request #1."):
+    notifications_data.notify(
+      db, person.id, "activity", message, at=AT, object_type="request", object_id=1
+    )
+
+  inbox = client.get("/notifications").data.decode()
+
+  assert 'class="notice-list"' in inbox
+  assert inbox.count('class="notice"') == 2, "each notice keeps one row"
+  assert 'class="notice-top"' not in inbox, "the row holds its own dismiss control"
+  assert "Request #1 moved to Pending." in inbox
+  assert 'aria-label="Dismiss notification"' in inbox

@@ -11,6 +11,8 @@ pick.
   holds.
 - Admin users, share links, and the audit log read as dense rows. A person or a
   Domain row opens in place for its controls.
+- The notifications inbox reads as one flat list, newest first. Each row holds its
+  message, who did it, the time, and one dismiss button.
 - The staff workspace is the one staff page. Unread items come first, then the
   opened ones. Each staff member keeps their own read list, and new activity returns
   an item to the unread group. One toolbar over the list holds the title, the status

@@ -286,12 +286,16 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .share-once label { font-size: 13px; font-weight: 600; }
 .share-list, .notice-list, .compact-list { list-style: none; margin: 0; padding: 0; }
 .share-list li, .compact-list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
-.notice { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
-.notice p { margin: 0 0 6px; }
+.notice { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 14px; }
+.notice + .notice { border-top: 1px solid var(--line); }
+.notice:hover { background: var(--surface-2); }
+.notice-main { min-width: 0; }
+.notice-message { margin: 0; font-size: 15px; }
+.notice .event-meta { margin: 2px 0 0; }
+.notice-side { display: flex; align-items: center; gap: 8px; flex: none; }
 .page-actions { display: flex; gap: 8px; align-items: center; }
 .page-actions form { margin: 0; }
-.notice-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-.notice-top form { margin: 0; }
+.notice-list { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-top: 16px; }
 .icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; flex: none; }
 .icon-btn:hover { background: var(--surface-2); color: var(--text); }
 .icon-btn .icon { width: 16px; height: 16px; }
@@ -500,6 +504,8 @@ form.is-auto [data-save] { display: none; }
   .issue-actions { margin-left: 0; }
   .record-row { flex-direction: column; align-items: flex-start; gap: 6px; }
   .admin-page .record-row { flex-direction: row; align-items: center; }
+  .notice { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .notice-side { width: 100%; justify-content: space-between; }
   .admin-user > details > summary, .admin-domain > details > summary {
     display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; row-gap: 4px;
   }
