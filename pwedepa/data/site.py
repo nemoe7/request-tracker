@@ -28,7 +28,6 @@ def save_message(
   enabled: bool = True,
   expires_at: datetime | None = None,
 ) -> SiteMessage:
-  """Replace the current message with a new one."""
   db.exec_driver_sql(
     "UPDATE site_messages SET enabled = 0, updated_at = ?", (pack_time(at),)
   )

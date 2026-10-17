@@ -1,5 +1,3 @@
-"""Append and read activity events in SQLite."""
-
 import json
 
 from sqlalchemy.engine import Connection
@@ -35,7 +33,7 @@ def append(
 def list_for(
   db: Connection, object_type: str, object_id: int, *, limit: int | None = None
 ) -> list[Event]:
-  """List a record's events oldest first. A limit takes the newest of them."""
+  """Oldest first. A limit keeps the newest of them."""
   query = "SELECT * FROM events WHERE object_type = ? AND object_id = ? ORDER BY id"
   params: tuple = (object_type, object_id)
   if limit is not None:

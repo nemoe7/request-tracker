@@ -1,5 +1,3 @@
-"""Per-user display preferences."""
-
 from sqlalchemy.engine import Connection
 
 CLOCKS = ("12", "24")

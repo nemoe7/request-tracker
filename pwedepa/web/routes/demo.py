@@ -30,7 +30,6 @@ def set_seat(role: str) -> None:
 
 
 def seat_user():
-  """Return the current demo seat user, seeding the demo on first use."""
   if not current_app.config.get("DEMO_MODE"):
     return None
   _seed()

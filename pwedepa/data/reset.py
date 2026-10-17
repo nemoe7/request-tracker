@@ -1,12 +1,11 @@
-"""Clear the records and keep the accounts, for a development reset."""
+"""Clear the requests, the issues, and the work around them. Keep the accounts."""
 
 from sqlalchemy.engine import Connection
 
 from .db import transaction
 
-# Content that a reset drops. The accounts, their roles and grants, their
-# passkeys, their settings, and the account audit trail all stay. A person
-# signs in again without a new sign-up.
+# A reset drops the work. Accounts, roles, grants, passkeys, settings, and the
+# account audit trail stay, so a person signs in again without a new sign-up.
 CLEAR = (
   "issues",
   "requests",

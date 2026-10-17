@@ -59,7 +59,6 @@ class Failure:
 
 
 def validate_subject(subject: str, where: str) -> list[Failure]:
-  """Check one Conventional Commit subject against the inline rules."""
   failures: list[Failure] = []
   if subject != subject.strip():
     failures.append(Failure(where, "subject cannot start or end with whitespace"))
@@ -91,7 +90,6 @@ def validate_subject(subject: str, where: str) -> list[Failure]:
 
 
 def validate_commit(message: str, where: str = "commit") -> list[Failure]:
-  """Check one commit message against the subject contract."""
   lines = [line for line in message.splitlines() if line.strip()]
   if len(lines) != 1:
     return [Failure(where, "use one subject line and no commit body")]
@@ -107,7 +105,6 @@ def _non_blank(entries: list[tuple[int, str]]) -> list[tuple[int, str]]:
 
 
 def validate_pr_body(text: str) -> list[Failure]:
-  """Check the locked PR body heading order and report each failing line."""
   failures: list[Failure] = []
   lines = text.splitlines()
   in_fence = False
@@ -257,7 +254,6 @@ def _check_none_or_bullets(title: str, entries: list[tuple[int, str]]) -> list[F
 
 
 def run_ste_lint(text: str) -> tuple[bool, str]:
-  """Check prose with the repository linter and return its result."""
   try:
     result = subprocess.run(
       [sys.executable, str(STE_LINT), "--json"],
@@ -302,7 +298,6 @@ def commits_in_range(revision_range: str) -> list[tuple[str, str]]:
 
 
 def breaking_section_holds_nothing(text: str) -> bool:
-  """Say whether the body omits the Breaking Changes heading or keeps it at None."""
   lines = text.splitlines()
   headings = [
     (number, match.group("title").strip())
@@ -320,7 +315,6 @@ def breaking_section_holds_nothing(text: str) -> bool:
 
 
 def validate_breaking_crosscheck(subjects: list[str], body: str) -> list[Failure]:
-  """Fail a breaking-marked commit that meets an empty Breaking Changes section."""
   banged = [
     subject
     for subject in subjects
@@ -342,7 +336,6 @@ def check(
   body_file: str | None,
   ste: bool,
 ) -> list[Failure]:
-  """Collect every contract failure for the given inputs."""
   failures: list[Failure] = []
   subjects: list[str] = []
   if revision_range:

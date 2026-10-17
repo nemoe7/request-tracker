@@ -1,5 +1,3 @@
-"""Tests for the workflow set gate."""
-
 from __future__ import annotations
 
 import copy

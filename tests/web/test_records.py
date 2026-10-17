@@ -396,7 +396,7 @@ def test_two_new_requests_keep_their_own_numbers(cast, db):
 
 
 def test_a_failed_create_leaves_no_record(cast, db, monkeypatch):
-  """One transaction: a failure after the row write leaves no half record."""
+  """One transaction: a failure after the row write leaves no half-written row."""
   from pwedepa.data import events as events_data
 
   Mara, _ = cast["Mara"]

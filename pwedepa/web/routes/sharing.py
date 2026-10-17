@@ -59,7 +59,6 @@ def _notify_share(record, object_type: str, actor_id: int, message: str) -> None
 
 @bp.post("/records/<object_type>/<int:object_id>/share")
 def create(object_type: str, object_id: int) -> Response:
-  """Create a share link for one record."""
   user = current_user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -104,7 +103,6 @@ def create(object_type: str, object_id: int) -> Response:
 
 @bp.post("/share-links/<int:link_id>/revoke")
 def revoke(link_id: int) -> Response:
-  """Revoke one share link."""
   user = current_user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -168,7 +166,7 @@ def open_link(token: str) -> str | Response:
 
 @bp.post("/share/<token>/view")
 def consume_view(token: str) -> Response:
-  """Spend the one signed-out view and open the record."""
+  """Spend the one signed-out view and open the item."""
   link = sharing_data.find_by_token(db(), token)
   if link is None or not sharing_data.is_active(link, now()):
     return render_template("share_gone.html"), 404
@@ -192,7 +190,6 @@ def consume_view(token: str) -> Response:
 
 @bp.get("/shared/<int:link_id>")
 def shared_record(link_id: int) -> str | Response:
-  """Show the one signed-out record view."""
   if session.get("anonymous_share_link_id") != link_id:
     return render_template("share_gone.html"), 404
   link = sharing_data.get(db(), link_id)

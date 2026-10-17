@@ -1,5 +1,3 @@
-"""Save, load, and list Requests in SQLite."""
-
 from dataclasses import replace
 
 from sqlalchemy.engine import Connection, Row

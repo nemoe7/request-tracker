@@ -1,5 +1,3 @@
-"""HTML pages and the service worker route."""
-
 from flask import (
   Blueprint,
   abort,
@@ -43,7 +41,6 @@ def health() -> Response:
 
 @bp.get("/")
 def landing() -> str | Response:
-  """Show the public landing page, or jump to the role home when signed in."""
   user = current_user()
   if user is not None:
     from .records import is_staff
@@ -56,7 +53,6 @@ def landing() -> str | Response:
 
 @bp.get("/login")
 def login() -> str | Response:
-  """Show the passkey sign-in page, or send a signed-in visitor to the home."""
   if current_user() is not None:
     return redirect(url_for("pages.home"))
   return render_template("login.html")
@@ -64,7 +60,6 @@ def login() -> str | Response:
 
 @bp.get("/enroll")
 def enroll() -> str | Response:
-  """Show the enrollment page, or send a signed-in visitor to the home."""
   if current_user() is not None:
     return redirect(url_for("pages.home"))
   return render_template("enroll.html")
@@ -72,7 +67,6 @@ def enroll() -> str | Response:
 
 @bp.get("/home")
 def home() -> str | Response:
-  """Show the signed-in shell: account, passkeys, and section entries."""
   user = current_user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -82,7 +76,6 @@ def home() -> str | Response:
 
 @bp.get("/view-as/<mode>")
 def view_as(mode: str) -> Response:
-  """Switch a staff user between the staff view and the read-only client view."""
   user = current_user()
   if user is None:
     return redirect(url_for("pages.login"))

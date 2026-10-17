@@ -16,7 +16,6 @@ bp = Blueprint("notifications", __name__)
 
 @bp.get("/notifications")
 def inbox() -> str | Response:
-  """Show the signed-in user's retained notices."""
   user = current_user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -43,7 +42,6 @@ def inbox() -> str | Response:
 
 @bp.post("/notifications/<int:notice_id>/dismiss")
 def dismiss(notice_id: int) -> Response:
-  """Remove one of the signed-in user's own notices."""
   user = current_user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -53,7 +51,6 @@ def dismiss(notice_id: int) -> Response:
 
 @bp.post("/notifications/clear")
 def clear() -> Response:
-  """Remove every notice the signed-in user holds."""
   user = current_user()
   if user is None:
     return redirect(url_for("pages.login"))

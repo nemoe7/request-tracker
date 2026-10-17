@@ -1,5 +1,3 @@
-"""Run the web shell: python -m pwedepa.web."""
-
 import os
 
 import uvicorn
@@ -9,7 +7,6 @@ from . import check_secret, create_app, print_first_token
 
 
 def main() -> None:
-  """Serve the app through uvicorn, in place of the Flask development server."""
   # A public host must not sign cookies with the sample secret.
   check_secret(
     os.environ.get("PWEDEPA_SECRET_KEY", "pwedepa-dev-secret"),

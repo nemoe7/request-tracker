@@ -10,7 +10,6 @@ from ._rows import pack_time
 def mark(
   db: Connection, user_id: int, object_type: str, object_id: int, *, at: datetime
 ) -> None:
-  """Remember that this person opened the item."""
   db.exec_driver_sql(
     "INSERT OR IGNORE INTO workspace_reads (user_id, object_type, object_id, read_at) "
     "VALUES (?, ?, ?, ?)",
@@ -20,7 +19,6 @@ def mark(
 
 
 def read_ids(db: Connection, user_id: int, object_type: str) -> set[int]:
-  """Return the ids of the items this person opened."""
   rows = db.exec_driver_sql(
     "SELECT object_id FROM workspace_reads WHERE user_id = ? AND object_type = ?",
     (user_id, object_type),

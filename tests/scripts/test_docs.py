@@ -1,5 +1,3 @@
-"""Project docs: the changelog names the version the package carries."""
-
 import re
 import tomllib
 from pathlib import Path

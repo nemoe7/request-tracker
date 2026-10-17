@@ -55,7 +55,6 @@ def _find(domain, announcement_id: int):
 
 @bp.get("/<slug>/announcements/new")
 def new(slug: str) -> str | Response:
-  """Show the form for a new announcement."""
   domain = _domain(slug)
   user = _staff_user()
   if user is None:
@@ -71,7 +70,6 @@ def new(slug: str) -> str | Response:
 
 @bp.post("/<slug>/announcements")
 def create(slug: str) -> str | Response:
-  """Store one announcement, then show the Domain page."""
   domain = _domain(slug)
   user = _staff_user()
   if user is None:
@@ -109,7 +107,6 @@ def create(slug: str) -> str | Response:
 
 @bp.get("/<slug>/announcements/<int:announcement_id>/edit")
 def edit(slug: str, announcement_id: int) -> str | Response:
-  """Show the form for one announcement, filled in."""
   domain = _domain(slug)
   user = _staff_user()
   if user is None:
@@ -128,7 +125,6 @@ def edit(slug: str, announcement_id: int) -> str | Response:
 
 @bp.post("/<slug>/announcements/<int:announcement_id>/edit")
 def edit_save(slug: str, announcement_id: int) -> str | Response:
-  """Save one edited announcement and mark the edit time."""
   domain = _domain(slug)
   user = _staff_user()
   if user is None:
@@ -182,7 +178,6 @@ def remove(slug: str, announcement_id: int) -> str | Response:
 
 @bp.post("/<slug>/subscribe")
 def subscribe(slug: str) -> str | Response:
-  """Follow or unfollow the Domain's announcements."""
   domain = _domain(slug)
   user = current_user()
   if user is None:

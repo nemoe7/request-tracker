@@ -76,7 +76,6 @@ def jobs_of(document: dict) -> dict:
 
 
 def guarded_from_pull_request(job: dict) -> bool:
-  """Return True when the job's `if` names an event that is not a pull request."""
   condition = job.get("if")
   if not isinstance(condition, str):
     return False
@@ -90,7 +89,6 @@ def job_text(job: object) -> str:
 
 
 def audit_document(name: str, document: object) -> list[str]:
-  """Return the contract findings for one workflow document."""
   findings: list[str] = []
   if not isinstance(document, dict):
     return [f"{name}: the workflow must be a mapping"]
@@ -149,7 +147,6 @@ def audit_document(name: str, document: object) -> list[str]:
 
 
 def audit_paths(directory: Path = WORKFLOW_DIR) -> list[str]:
-  """Return the contract findings for the workflow directory."""
   findings: list[str] = []
   files = sorted(path.name for path in directory.glob("*.y*ml"))
   audited = [name for name in files if name not in EXEMPT_FILES]

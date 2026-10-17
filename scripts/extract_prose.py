@@ -41,7 +41,6 @@ EXCLUDES = (
 
 
 def tracked_files(excludes: list[str] | tuple[str, ...] = ()) -> list[Path]:
-  """Select tracked paths by exclusion, including files in new folders."""
   listed = subprocess.run(
     ["git", "-C", str(ROOT), "ls-files", "-z"],
     capture_output=True,
@@ -87,17 +86,14 @@ def extract(path: Path) -> tuple[list[tuple[int, str, str]], list[str]]:
 
 
 def prose(path: Path) -> str:
-  """Collect Python comments and docstrings for the existing structural check."""
   return "\n".join(text for _, _, text in extract(path)[0])
 
 
 def page_files() -> list[Path]:
-  """The tracked Markdown files after the shared exclusions."""
   return [ROOT / path for path in tracked_files() if path.suffix == ".md"]
 
 
 def collect(paths: list[Path]) -> list[dict]:
-  """Return prose parts and coverage limits without running source files."""
   records = []
   for relative in paths:
     path = ROOT / relative
@@ -118,7 +114,6 @@ def collect(paths: list[Path]) -> list[dict]:
 
 
 def main() -> int:
-  """Write a JSON inventory and return 2 when files need manual review."""
   parser = argparse.ArgumentParser(description=__doc__)
   parser.add_argument(
     "--exclude",

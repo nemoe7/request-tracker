@@ -22,7 +22,7 @@ _SLUG = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
 
 
 class DomainConfigError(ValueError):
-  """The config file cannot become a list of Domains."""
+  pass
 
 
 @dataclass(frozen=True)
@@ -33,7 +33,6 @@ class Domain:
 
 
 def slugify(name: str) -> str:
-  """Return the URL segment for one Domain name."""
   return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
@@ -48,7 +47,6 @@ def imported_path(db_path: str | Path | None = None) -> Path:
 
 
 def mounted_path() -> Path | None:
-  """Return the config the operator mounts, when the operator sets one."""
   raw = os.environ.get(MOUNTED_ENV) or os.environ.get(LEGACY_MOUNTED_ENV)
   return Path(raw) if raw else None
 
@@ -72,7 +70,6 @@ def active_path(db_path: str | Path | None = None) -> Path:
 
 
 def mapping(text: str) -> dict:
-  """Return the YAML mapping in text, or an empty map."""
   try:
     raw = yaml.safe_load(text)
   except yaml.YAMLError as error:
@@ -118,7 +115,6 @@ def parse(text: str) -> tuple[Domain, ...]:
 
 
 def load(db_path: str | Path | None = None) -> tuple[Domain, ...]:
-  """Return the Domains from the file in force."""
   path = active_path(db_path)
   if not path.is_file():
     raise FileNotFoundError(
@@ -141,7 +137,6 @@ def _entry(domain: Domain) -> dict[str, str]:
 
 
 def render(found: tuple[Domain, ...]) -> str:
-  """Return canonical YAML for one imported set."""
   return yaml.safe_dump(
     {"domains": [_entry(domain) for domain in found]},
     allow_unicode=True,
@@ -163,12 +158,10 @@ def import_bytes(raw: bytes, db_path: str | Path | None = None) -> tuple[Domain,
 
 
 def starter_domains(db_path: str | Path | None = None) -> tuple[str, ...]:
-  """Return the configured Domain names, in name order."""
   return tuple(domain.name for domain in load(db_path))
 
 
 def find(slug: str, db_path: str | Path | None = None) -> Domain | None:
-  """Return the Domain for one URL segment, or None."""
   for domain in load(db_path):
     if domain.slug == slug:
       return domain

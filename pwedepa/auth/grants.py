@@ -158,7 +158,6 @@ def revoke_permission(
 
 
 def list_direct_grants(db: Connection, user_id: int) -> tuple[Grant, ...]:
-  """List active grants stored for one user, without role grants."""
   _require_user(db, user_id)
   rows = db.exec_driver_sql(
     "SELECT permission, effect FROM permission_grants "
@@ -186,7 +185,6 @@ def grants_for_user(db: Connection, user_id: int) -> tuple[Grant, ...]:
 
 
 def actor_for_user(db: Connection, user_id: int) -> Actor:
-  """Build the core actor for an active user."""
   user = get_user(db, user_id)
   if user is None:
     raise AuthenticationFailed("the user does not exist")

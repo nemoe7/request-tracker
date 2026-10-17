@@ -43,7 +43,6 @@ def create_session(
   at: datetime,
   ttl: timedelta = SESSION_TTL,
 ) -> IssuedSession:
-  """Create a session and return its plaintext token once."""
   _require_active_user(db, user_id)
   issued = _insert_session(db, user_id, at, ttl)
   record_audit(
@@ -60,7 +59,6 @@ def create_session(
 
 
 def resolve_session(db: Connection, token: str, *, at: datetime) -> Session | None:
-  """Return the active session for a token, or None when it cannot be used."""
   row = _find_token(db, token)
   if row is None or not _is_usable(db, row, at):
     return None

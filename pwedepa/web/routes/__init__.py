@@ -1,5 +1,3 @@
-"""Route blueprints for the web shell."""
-
 from flask import Flask
 
 from .admin import bp as admin_bp
@@ -13,7 +11,6 @@ from .sharing import bp as sharing_bp
 
 
 def register_blueprints(app: Flask) -> None:
-  """Attach every blueprint to the app."""
   app.register_blueprint(pages_bp)
   app.register_blueprint(auth_bp)
   app.register_blueprint(records_bp)

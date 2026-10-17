@@ -60,7 +60,7 @@ def _slug(value: str) -> str:
 
 
 def filter_views(html: str, request_ids: list[int]) -> dict[tuple[str, str], str]:
-  """Map each workspace filter and record row to a folder of its own."""
+  """Map each workspace filter and each item row to a folder of its own."""
   views = {
     ("selected", str(number)): f"workspace/record/{number}" for number in request_ids
   }

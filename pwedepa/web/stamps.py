@@ -6,7 +6,6 @@ RELATIVE_LIMIT = timedelta(hours=72)
 
 
 def format_stamp(value: datetime | None, clock: str, at: datetime) -> str:
-  """Render one timestamp for the given 12 or 24 hour clock choice."""
   if value is None:
     return ""
   delta = at - value

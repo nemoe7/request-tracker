@@ -42,7 +42,6 @@ def create(
   at: datetime,
   expires_at: datetime | None = None,
 ) -> IssuedShareLink:
-  """Create a link and return its plain token once."""
   picked = {str(value).upper() for value in permissions}
   picked.add("VIEW")
   unknown = sorted(picked - set(PERMISSIONS))
@@ -97,7 +96,6 @@ def list_all(db: Connection) -> list[ShareLink]:
 
 
 def is_active(link: ShareLink, at: datetime) -> bool:
-  """True when a link can still open its record."""
   if link.revoked_at is not None:
     return False
   return link.expires_at is None or link.expires_at > at

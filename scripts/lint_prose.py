@@ -158,7 +158,6 @@ def sentence_count(text: str) -> int:
 
 
 def long_blocks(paths: list[Path] | None = None) -> int:
-  """Count the blocks of the shipped pages that run past the sentence limit."""
   failures = 0
   for path in page_files() if paths is None else paths:
     for number, text in blocks(path):
@@ -170,7 +169,6 @@ def long_blocks(paths: list[Path] | None = None) -> int:
 
 
 def long_sentences(paths: list[Path] | None = None) -> int:
-  """Count the shipped-page sentences that run past the word limit of the linter."""
   failures = 0
   for path in page_files() if paths is None else paths:
     for number, text in blocks(path):
@@ -183,7 +181,6 @@ def long_sentences(paths: list[Path] | None = None) -> int:
 
 
 def main() -> int:
-  """Check comments, docstrings, and Markdown, or inventory them with --scan."""
   parser = argparse.ArgumentParser(description=__doc__)
   parser.add_argument(
     "--scan",

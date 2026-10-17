@@ -16,7 +16,7 @@ SCHEMA = files(__package__).joinpath("schema.sql").read_text(encoding="utf-8")
 
 
 class SchemaVersionError(RuntimeError):
-  """The database file cannot work with this code."""
+  pass
 
 
 _engines: dict[str, Engine] = {}
@@ -114,7 +114,6 @@ def _step_one(db: Connection) -> None:
 
 @contextmanager
 def transaction(db: Connection) -> Iterator[Connection]:
-  """Run every write in one transaction, or leave no write behind."""
   try:
     yield db
   except BaseException:

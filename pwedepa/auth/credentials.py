@@ -69,7 +69,6 @@ def start_registration(
   *,
   at: datetime,
 ) -> CeremonyStart:
-  """Start a passkey registration ceremony for an active user."""
   _require_active(user)
   existing = [
     PublicKeyCredentialDescriptor(id=passkey.credential_id)
@@ -103,7 +102,6 @@ def finish_registration(
   *,
   at: datetime,
 ) -> Passkey:
-  """Verify and store a passkey from a registration ceremony."""
   _require_active(user)
   return _finish_registration(db, user, flow_id, credential, config, at=at)
 
@@ -181,7 +179,6 @@ def start_authentication(
   at: datetime,
   user: User | None = None,
 ) -> CeremonyStart:
-  """Start an authentication ceremony, optionally for one known user."""
   allowed = None
   user_id = None
   if user is not None:
@@ -214,7 +211,6 @@ def finish_authentication(
   *,
   at: datetime,
 ) -> tuple[Passkey, User]:
-  """Verify an assertion, update its counter, and return its owner."""
   challenge, challenge_user_id = _claim_challenge(db, flow_id, "authentication", at=at)
   credential_id = _credential_id(credential)
   passkey = _get_by_credential_id(db, credential_id)
@@ -282,7 +278,7 @@ def revoke_passkey(
   at: datetime,
   actor_id: int | None = None,
 ) -> Passkey:
-  """Revoke one passkey while keeping its record for audit history."""
+  """Keep the row for audit history."""
   row = db.exec_driver_sql(
     "SELECT * FROM passkeys WHERE id = ?", (passkey_id,)
   ).fetchone()
@@ -333,7 +329,6 @@ def _finish_registration(
 def _store_passkey(
   db: Connection, user: User, verified: Any, *, at: datetime
 ) -> Passkey:
-  """Store one verified credential for a user."""
   try:
     cursor = db.exec_driver_sql(
       "INSERT INTO passkeys "

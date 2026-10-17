@@ -1,8 +1,6 @@
-"""Capability permissions with wildcards, object grants, and direct-deny precedence.
-
-Precedence: a matching deny beats every allow. Then an object-specific allow,
-then a namespace allow, then a global allow. Owners keep a small baseline on
-their own objects, and admins pass unless a deny matches.
+"""Capability checks: a matching deny beats every allow, then the narrowest
+allow wins. Owners hold a baseline on their own objects, and admins pass unless a
+deny matches.
 """
 
 from dataclasses import dataclass
@@ -36,7 +34,6 @@ OWNER_VERBS = {
 
 
 def matches(pattern: str, action: str) -> bool:
-  """True when a grant pattern covers an action such as `request.10.view`."""
   if pattern == "*" or pattern == action:
     return True
   if pattern.endswith(".*"):

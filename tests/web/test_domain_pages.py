@@ -1,4 +1,4 @@
-"""Domain pages and the domain-first record URLs."""
+"""Domain pages and the domain-first item URLs."""
 
 from datetime import UTC, datetime
 

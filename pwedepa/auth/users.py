@@ -1,4 +1,4 @@
-"""User records and account lifecycle."""
+"""User accounts and their lifecycle."""
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -30,7 +30,6 @@ class User:
 
 
 def count_users(db: Connection) -> int:
-  """Return how many accounts the database holds."""
   row = db.exec_driver_sql("SELECT COUNT(*) AS count FROM users").fetchone()
   return row._mapping["count"]
 
@@ -79,7 +78,6 @@ def update_display_name(
   at: datetime,
   actor_id: int | None = None,
 ) -> User:
-  """Change a display name while the username stays fixed."""
   display_name = display_name.strip()
   if not display_name:
     raise AuthError("a user needs a display name")
@@ -125,7 +123,7 @@ def list_users(db: Connection, *, include_archived: bool = False) -> list[User]:
 def archive_user(
   db: Connection, user_id: int, *, at: datetime, actor_id: int | None = None
 ) -> User:
-  """Archive a user. Historical records keep pointing at the user."""
+  """Keep the row: past work still points at this user."""
   user = _require_user(db, user_id)
   if user.status is UserStatus.ARCHIVED:
     return user

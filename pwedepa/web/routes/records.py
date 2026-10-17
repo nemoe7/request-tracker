@@ -113,7 +113,7 @@ def _can(actor, action: str, record) -> bool:
 
 
 def _actor_for_record(actor, object_type: str, record):
-  """Add the active share link grants for one record to an actor."""
+  """Add the active share link grants for one item to an actor."""
   link_id = session.get("share_link_id")
   if not link_id:
     return actor
@@ -281,7 +281,6 @@ def _load_issue(actor, issue_id: int):
 
 @bp.get("/workspace")
 def workspace() -> str | Response:
-  """Show the staff work queue with filters, records, and an inspector."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -383,7 +382,6 @@ def workspace() -> str | Response:
 
 @bp.get("/<slug>")
 def domain_page(slug: str) -> str | Response:
-  """Show one Domain page with its description and its records."""
   found = domains_data.find(slug, current_app.config["DATABASE"])
   if found is None:
     abort(404)
@@ -415,7 +413,6 @@ def domain_page(slug: str) -> str | Response:
 
 @bp.get("/requests")
 def requests() -> str | Response:
-  """Show the client view: the signed-in requests and the public board."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -447,7 +444,6 @@ def requests() -> str | Response:
 
 @bp.get("/requests/new")
 def request_new() -> str | Response:
-  """Show the create-request form."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -464,7 +460,6 @@ def request_new() -> str | Response:
 
 @bp.post("/requests")
 def request_create() -> Response:
-  """Create a request from the submitted form."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -505,7 +500,6 @@ def request_create() -> Response:
 
 @bp.get("/<slug>/requests/<int:request_id>")
 def request_detail(slug: str, request_id: int) -> str | Response:
-  """Show one request with facts, activity, comments, and actions."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -535,7 +529,6 @@ def request_detail(slug: str, request_id: int) -> str | Response:
 
 @bp.post("/requests/<int:request_id>/transition")
 def request_transition(request_id: int) -> Response:
-  """Run one request state move through the core."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -572,7 +565,6 @@ def request_transition(request_id: int) -> Response:
 
 @bp.post("/requests/<int:request_id>/comment")
 def request_comment(request_id: int) -> Response:
-  """Add a comment event to a request."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -590,7 +582,6 @@ def request_comment(request_id: int) -> Response:
 
 @bp.get("/requests/<int:request_id>/edit")
 def request_edit(request_id: int) -> str | Response:
-  """Show the edit form for a request."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -606,7 +597,6 @@ def request_edit(request_id: int) -> str | Response:
 
 @bp.post("/requests/<int:request_id>/edit")
 def request_edit_save(request_id: int) -> str | Response:
-  """Save request edits, asking first when a pending edit reopens it."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -651,7 +641,6 @@ def request_edit_save(request_id: int) -> str | Response:
 
 @bp.get("/issues")
 def issue_board() -> str | Response:
-  """Show the issue board in status columns."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -665,7 +654,6 @@ def issue_board() -> str | Response:
 
 @bp.get("/<slug>/issues/<int:issue_id>")
 def issue_detail(slug: str, issue_id: int) -> str | Response:
-  """Show one issue with facts, activity, comments, and actions."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -711,7 +699,6 @@ def issue_detail(slug: str, issue_id: int) -> str | Response:
 
 @bp.post("/issues/<int:issue_id>/transition")
 def issue_transition(issue_id: int) -> Response:
-  """Run one issue state move through the core."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -732,7 +719,6 @@ def issue_transition(issue_id: int) -> Response:
 
 @bp.post("/issues/<int:issue_id>/priority")
 def issue_priority(issue_id: int) -> Response:
-  """Change only an issue priority through the core."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -754,7 +740,6 @@ def issue_priority(issue_id: int) -> Response:
 
 @bp.post("/issues/<int:issue_id>/comment")
 def issue_comment(issue_id: int) -> Response:
-  """Add a comment event to an issue."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -772,7 +757,6 @@ def issue_comment(issue_id: int) -> Response:
 
 @bp.get("/issues/<int:issue_id>/edit")
 def issue_edit(issue_id: int) -> str | Response:
-  """Show the edit form for an issue."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -789,7 +773,6 @@ def issue_edit(issue_id: int) -> str | Response:
 
 @bp.post("/issues/<int:issue_id>/edit")
 def issue_edit_save(issue_id: int) -> Response:
-  """Save issue edits through the core."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))

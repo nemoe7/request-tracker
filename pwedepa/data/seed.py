@@ -1,4 +1,4 @@
-"""Insert the records a dev config names, when the database holds none."""
+"""Insert the rows a dev config names, when the database holds none."""
 
 import sys
 from datetime import datetime
@@ -106,7 +106,7 @@ def _add(db, entry: dict, at: datetime) -> None:
 
 
 def seed(db, entries: list, *, at: datetime) -> int:
-  """Insert the rows when both record tables are empty, and say how many."""
+  """Only when the requests and issues tables are both empty."""
   if db.exec_driver_sql("SELECT count(*) FROM requests").scalar_one():
     return 0
   if db.exec_driver_sql("SELECT count(*) FROM issues").scalar_one():

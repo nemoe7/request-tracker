@@ -15,7 +15,6 @@ bp = Blueprint("settings", __name__)
 
 @bp.get("/settings")
 def settings() -> str | Response:
-  """Render grouped settings in the Apple Settings pattern."""
   user = current_user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -29,7 +28,6 @@ def settings() -> str | Response:
 
 @bp.post("/settings/profile")
 def profile() -> Response:
-  """Save the signed-in user's display name."""
   user = current_user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -49,7 +47,6 @@ def profile() -> Response:
 
 @bp.post("/settings/clock")
 def clock() -> Response:
-  """Save the signed-in user's 12 or 24 hour clock choice."""
   user = current_user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -64,7 +61,6 @@ def clock() -> Response:
 
 @bp.post("/settings/theme")
 def theme() -> Response:
-  """Save the signed-in user's theme choice."""
   user = current_user()
   if user is None:
     return redirect(url_for("pages.login"))
@@ -76,7 +72,6 @@ def theme() -> Response:
 
 @bp.post("/settings/notifications")
 def notification_preferences() -> Response:
-  """Save the signed-in user's notification preferences."""
   user = current_user()
   if user is None:
     return redirect(url_for("pages.login"))

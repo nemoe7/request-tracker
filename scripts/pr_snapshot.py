@@ -17,7 +17,6 @@ def _git(*args: str) -> bytes:
 
 
 def fetch_head(number: int, expected: str) -> None:
-  """Fetch PR objects and reject a changed head."""
   if number < 1 or not SHA.fullmatch(expected):
     raise ValueError("Use a positive PR number and a full lowercase SHA.")
   ref = f"refs/pr-check/{number}"

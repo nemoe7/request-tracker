@@ -50,7 +50,6 @@ FOOTER = """
 def parse(
   text: str,
 ) -> tuple[list[tuple[str, list[tuple[str, str, str]]]], list[tuple]]:
-  """Return the tables with their columns, and the refs, from DBML text."""
   tables: list[tuple[str, list[tuple[str, str, str]]]] = []
   refs: list[tuple[str, str, str, str]] = []
   name = ""
@@ -95,7 +94,6 @@ def parse(
 
 
 def _flags(attributes: str) -> tuple[str, list[str]]:
-  """Return the key marker and the note parts for one column."""
   parts = [part.strip() for part in attributes.split(",") if part.strip()]
   key = ""
   notes: list[str] = []
@@ -117,7 +115,6 @@ def _flags(attributes: str) -> tuple[str, list[str]]:
 
 
 def render() -> str:
-  """Return the page for the DBML on disk."""
   tables, refs = parse(DBML.read_text(encoding="utf-8"))
   lines = [
     HEADER.rstrip("\n"),

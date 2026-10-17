@@ -20,7 +20,6 @@ def db() -> Connection:
 
 
 def webauthn_config() -> WebAuthnConfig:
-  """Return the app WebAuthn configuration."""
   return current_app.extensions["webauthn"]
 
 
@@ -67,7 +66,7 @@ def choice(enum_type, raw: str | None, default=None):
 
 
 def can_share(user, record) -> bool:
-  """Return whether this user may share this record. An admin, or its requester."""
+  """An admin, or the requester of the item."""
   if user is None or record is None:
     return False
   return actor_for_user(db(), user.id).is_admin or user.id == record.requester_id
@@ -79,17 +78,15 @@ def client_view() -> bool:
 
 
 def db_path():
-  """Return the database path in force for this request."""
   return current_app.config["DATABASE"]
 
 
 def record_slug(record) -> str:
-  """Return the Domain slug a record carries in its URL."""
   return domains_data.slug_for(record.domains, domains_data.load(db_path()))
 
 
 def record_path(record, kind: str = "request", slug: str | None = None) -> str:
-  """Return the domain-first URL for one record, under slug when given."""
+  """The domain-first URL for one item, under slug when given."""
   return f"/{slug or record_slug(record)}/{kind}s/{record.id}"
 
 
@@ -100,7 +97,6 @@ def domain_path(name: str) -> str:
 
 
 def domain_matches(record, slug: str) -> bool:
-  """True when the record belongs under this Domain URL."""
   found = domains_data.load(db_path())
   configured = {domain.slug for domain in found if domain.name in record.domains}
   return slug == domains_data.slug_for(record.domains, found) or slug in configured

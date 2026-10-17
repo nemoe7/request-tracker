@@ -1,7 +1,6 @@
-"""Seed a demo database with people, records, activity, and notices.
+"""Seed a demo database with people, items, activity, and notices.
 
-The demo seats keep the usernames the demo seat module already uses. Seeding
-an app database first keeps its own seed out of the way.
+The demo seats keep the usernames the demo seat module already uses.
 """
 
 from datetime import UTC, datetime, timedelta
@@ -378,7 +377,6 @@ def seed(db, *, now: datetime, db_path=None) -> dict:
 
 
 def seed_file(path) -> dict:
-  """Seed the database file at path. Return the demo people."""
   database = data_db.connect(path)
   try:
     return seed(database, now=datetime.now(UTC), db_path=path)

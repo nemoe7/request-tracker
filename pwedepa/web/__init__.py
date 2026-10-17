@@ -48,7 +48,6 @@ def print_first_token(app: Flask) -> None:
 
 
 def create_app(config: dict | None = None) -> Flask:
-  """Build the app from environment defaults plus explicit overrides."""
   app = Flask(__name__)
   app.secret_key = os.environ.get("PWEDEPA_SECRET_KEY", DEVELOPMENT_SECRET)
   # The public origin names the passkey, so the ID follows it unless the deploy
@@ -147,7 +146,7 @@ def create_app(config: dict | None = None) -> Flask:
 
     if not client_view() or request.method in ("GET", "HEAD", "OPTIONS"):
       return
-    # Sign-out and the settings page are not record writes.
+    # Sign-out and the settings page are not item writes.
     endpoint = request.endpoint or ""
     if endpoint == "auth.logout" or endpoint.startswith("settings."):
       return
@@ -183,7 +182,6 @@ def create_app(config: dict | None = None) -> Flask:
 
 
 def now() -> datetime:
-  """Return the current UTC time for auth calls."""
   return datetime.now(UTC)
 
 

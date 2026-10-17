@@ -27,7 +27,7 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // A page holds one person's records, so only our own static files are kept.
+        // A page holds one person's work, so only our own static files are kept.
         const url = new URL(event.request.url);
         if (response.ok && url.origin === self.location.origin && url.pathname.startsWith("/static/")) {
           const copy = response.clone();

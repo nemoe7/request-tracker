@@ -1,5 +1,3 @@
-"""Shared pytest setup."""
-
 import sys
 from pathlib import Path
 

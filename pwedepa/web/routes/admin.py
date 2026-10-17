@@ -70,7 +70,6 @@ def _names() -> dict[int, str]:
 
 @bp.get("/admin")
 def overview() -> str | Response:
-  """Show admin sections and site controls."""
   return render_template(
     "admin.html",
     users=list_users(db(), include_archived=True),
@@ -83,7 +82,6 @@ def overview() -> str | Response:
 
 @bp.get("/admin/config")
 def domain_config() -> str | Response:
-  """Show the Domain config in force, and the import control."""
   db_path = current_app.config["DATABASE"]
   mounted = domains_data.mounted_path()
   return render_template(
@@ -99,7 +97,6 @@ def domain_config() -> str | Response:
 
 @bp.post("/admin/config/import")
 def domain_config_import() -> Response:
-  """Import the mounted YAML, or the file the operator picked."""
   db_path = current_app.config["DATABASE"]
   uploaded = request.files.get("config")
   if uploaded is not None and uploaded.filename:
@@ -132,7 +129,6 @@ def domain_config_import() -> Response:
 
 @bp.get("/admin/users")
 def users() -> str | Response:
-  """List users with roles, grants, passkeys, and lifecycle actions."""
   people = list_users(db(), include_archived=True)
   details = {
     person.id: {
@@ -154,7 +150,6 @@ def users() -> str | Response:
 
 @bp.post("/admin/tokens")
 def issue_token() -> Response:
-  """Issue a sign-up token for one role and show it once."""
   try:
     issued = issue_enrollment_token(
       db(), role=Role(request.form.get("role", "")), at=now(), actor_id=g.admin_user.id
@@ -168,7 +163,6 @@ def issue_token() -> Response:
 
 @bp.post("/admin/users/<int:user_id>/archive")
 def archive(user_id: int) -> Response:
-  """Archive one user."""
   archive_user(db(), user_id, at=now(), actor_id=g.admin_user.id)
   flash("User archived.")
   return redirect(url_for("admin.users"))
@@ -176,7 +170,6 @@ def archive(user_id: int) -> Response:
 
 @bp.post("/admin/users/<int:user_id>/reactivate")
 def reactivate(user_id: int) -> Response:
-  """Reactivate one user."""
   reactivate_user(db(), user_id, at=now(), actor_id=g.admin_user.id)
   flash("User reactivated.")
   return redirect(url_for("admin.users"))
@@ -184,7 +177,6 @@ def reactivate(user_id: int) -> Response:
 
 @bp.post("/admin/users/<int:user_id>/roles")
 def change_role(user_id: int) -> Response:
-  """Assign or revoke one role."""
   role = Role(request.form["role"])
   if request.form.get("action") == "revoke":
     revoke_role(db(), user_id, role, at=now(), actor_id=g.admin_user.id)
@@ -195,7 +187,6 @@ def change_role(user_id: int) -> Response:
 
 @bp.post("/admin/users/<int:user_id>/grants")
 def change_grant(user_id: int) -> Response:
-  """Add or revoke one direct permission grant."""
   permission = request.form.get("permission", "").strip()
   effect = Effect(request.form.get("effect", "ALLOW"))
   if request.form.get("action") == "revoke":
@@ -211,7 +202,6 @@ def change_grant(user_id: int) -> Response:
 
 @bp.post("/admin/passkeys/<int:passkey_id>/revoke")
 def passkey_revoke(passkey_id: int) -> Response:
-  """Revoke any user's passkey."""
   try:
     revoke_passkey(db(), passkey_id, at=now(), actor_id=g.admin_user.id)
     flash("Passkey revoked.")
@@ -222,14 +212,12 @@ def passkey_revoke(passkey_id: int) -> Response:
 
 @bp.get("/admin/audit")
 def audit() -> str | Response:
-  """Show the latest audit events."""
   events = list_audit_events(db(), limit=200)
   return render_template("admin_audit.html", events=events, names=_names())
 
 
 @bp.get("/admin/shares")
 def shares() -> str | Response:
-  """List every share link for admin review."""
   return render_template(
     "admin_shares.html", share_links=sharing_data.list_all(db()), names=_names()
   )
@@ -237,7 +225,6 @@ def shares() -> str | Response:
 
 @bp.post("/admin/site-message")
 def site_message() -> Response:
-  """Save the one landing-page message."""
   days = expiry_days()
   site_data.save_message(
     db(),
@@ -261,7 +248,6 @@ def site_message() -> Response:
 
 @bp.post("/admin/issues")
 def create_issue() -> Response:
-  """Create an Issue directly as an admin."""
   title = request.form.get("title", "").strip()
   if not title:
     flash("An issue needs a title.")

@@ -1,9 +1,9 @@
-// PwedePa schema diagram source. Render at https://dbdiagram.io.
-// Keep this file in step with pwedepa/data/schema.sql, the schema truth.
+// PwedePa schema source of truth. scripts/render_schema.py draws docs/schema.md
+// from this file, and pwedepa/data/schema.sql must stay executable.
 
 Project pwedepa {
   database_type: 'SQLite'
-  Note: 'One database holds records, auth, sharing, and notifications.'
+  Note: 'One database holds requests, issues, auth, sharing, and notices.'
 }
 
 Table requests {

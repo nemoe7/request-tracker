@@ -41,7 +41,6 @@ def create(
   at: datetime,
   commit: bool = True,
 ) -> Announcement:
-  """Store one announcement and hand it back."""
   cursor = db.exec_driver_sql(
     "INSERT INTO announcements (domain, title, body, author_id, published_at) "
     "VALUES (?, ?, ?, ?, ?)",
@@ -63,7 +62,6 @@ def update(
   at: datetime,
   commit: bool = True,
 ) -> None:
-  """Replace the text of one announcement and mark when it changed."""
   db.exec_driver_sql(
     "UPDATE announcements SET title = ?, body = ?, edited_at = ? WHERE id = ?",
     (title, body, pack_time(at), announcement_id),
@@ -73,7 +71,6 @@ def update(
 
 
 def delete(db: Connection, announcement_id: int, *, commit: bool = True) -> None:
-  """Remove one announcement for good."""
   db.exec_driver_sql("DELETE FROM announcements WHERE id = ?", (announcement_id,))
   if commit:
     db.commit()

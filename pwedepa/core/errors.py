@@ -1,17 +1,14 @@
-"""Domain errors. HTTP and UI layers translate these into responses."""
-
-
 class CoreError(Exception):
-  """A core rule blocked the operation."""
+  pass
 
 
 class InvalidTransition(CoreError):
-  """The state machine has no move from the current state to the target."""
+  pass
 
 
 class PermissionDenied(CoreError):
-  """The actor lacks the capability for the operation."""
+  pass
 
 
 class ConfirmationRequired(CoreError):
-  """The operation needs an explicit confirmation first."""
+  pass

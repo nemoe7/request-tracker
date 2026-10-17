@@ -58,14 +58,12 @@ def _credential() -> dict:
 
 @bp.post("/login/options")
 def login_options() -> Response:
-  """Start a discoverable passkey login ceremony."""
   start = start_authentication(db(), webauthn_config(), at=now())
   return _ceremony_payload(start)
 
 
 @bp.post("/login/finish")
 def login_finish() -> Response:
-  """Verify a login assertion and open a session."""
   payload = request.get_json(force=True)
   _, user = finish_authentication(
     db(), payload["flow_id"], _credential(), webauthn_config(), at=now()
@@ -75,7 +73,6 @@ def login_finish() -> Response:
 
 @bp.post("/enroll/options")
 def enroll_options() -> Response:
-  """Start the first-passkey ceremony for an enrollment token."""
   payload = request.get_json(force=True)
   start = start_enrollment_registration(
     db(), payload["token"], payload.get("username", ""), webauthn_config(), at=now()
@@ -85,7 +82,6 @@ def enroll_options() -> Response:
 
 @bp.post("/enroll/finish")
 def enroll_finish() -> Response:
-  """Store the first passkey, consume the token, and open a session."""
   payload = request.get_json(force=True)
   passkey = finish_enrollment_registration(
     db(),
@@ -102,7 +98,6 @@ def enroll_finish() -> Response:
 
 @bp.post("/auth/register/options")
 def register_options() -> Response:
-  """Start an add-passkey ceremony for the signed-in user."""
   user = current_user()
   if user is None:
     return jsonify(error="sign in first"), 401
@@ -112,7 +107,6 @@ def register_options() -> Response:
 
 @bp.post("/auth/register/finish")
 def register_finish() -> Response:
-  """Store an added passkey for the signed-in user."""
   user = current_user()
   if user is None:
     return jsonify(error="sign in first"), 401
@@ -125,7 +119,6 @@ def register_finish() -> Response:
 
 @bp.post("/auth/passkeys/<int:passkey_id>/revoke")
 def passkey_revoke(passkey_id: int) -> Response:
-  """Revoke one of the signed-in user's passkeys."""
   user = current_user()
   if user is None:
     return jsonify(error="sign in first"), 401
@@ -138,7 +131,6 @@ def passkey_revoke(passkey_id: int) -> Response:
 
 @bp.post("/logout")
 def logout() -> Response:
-  """Revoke the current session and clear its cookie."""
   token = request.cookies.get(SESSION_COOKIE)
   if token:
     revoke_session(db(), token, at=now())

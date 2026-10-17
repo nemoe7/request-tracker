@@ -60,7 +60,6 @@ def issue_enrollment_token(
 
 
 def has_waiting(db: Connection, *, at: datetime) -> bool:
-  """Return True when one unused token is still in its lifetime."""
   row = db.exec_driver_sql(
     "SELECT 1 FROM enrollment_tokens WHERE used_at IS NULL AND expires_at > ? LIMIT 1",
     (pack_time(at),),

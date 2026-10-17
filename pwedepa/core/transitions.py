@@ -98,7 +98,6 @@ def transition_request(
   at: datetime,
   reason: str | None = None,
 ) -> Change:
-  """Move a Request, or raise the core error that blocks the move."""
   if target not in REQUEST_TRANSITIONS[request.status]:
     raise InvalidTransition(
       f"request cannot move from {request.status.value} to {target.value}"
@@ -122,7 +121,6 @@ def transition_issue(
   *,
   at: datetime,
 ) -> Change:
-  """Move an Issue, or raise the core error that blocks the move."""
   if target not in ISSUE_TRANSITIONS[issue.status]:
     raise InvalidTransition(
       f"issue cannot move from {issue.status.value} to {target.value}"
@@ -145,11 +143,7 @@ def raise_request(
   *,
   at: datetime,
 ) -> tuple[Issue, Change]:
-  """Raise a Request into a new Issue. The Request stays as a separate record.
-
-  The Issue carries no id yet. The store assigns it, so the caller writes the
-  event that names the new issue.
-  """
+  """The new Issue has no id yet. The caller writes the event that names it."""
   change = transition_request(request, RequestStatus.RAISED, actor, at=at)
   issue = Issue(
     id=0,

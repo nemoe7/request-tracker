@@ -171,7 +171,7 @@ def test_initialize_is_idempotent(db):
 
 
 def test_a_saved_request_takes_the_id_sqlite_assigns(db):
-  """Two records saved as new keep their own rows, even at the same moment."""
+  """Two items saved as new keep their own rows, even at the same moment."""
   first = requests.save(db, make_request(id=0, title="First"))
   second = requests.save(db, make_request(id=0, title="Second"))
 

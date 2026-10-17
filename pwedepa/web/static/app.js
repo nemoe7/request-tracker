@@ -45,7 +45,6 @@ if (appIcon && animatedIcon) {
   });
 }
 
-/* Account menu behind the avatar. */
 const userMenuButton = document.querySelector("#user-menu-button");
 const userMenu = document.querySelector("#user-menu");
 if (userMenuButton && userMenu) {
