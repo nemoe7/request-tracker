@@ -50,7 +50,7 @@
           <span class="ios-label">Status</span>
           <span class="ios-value">{{ user.status.value | capitalize }}</span>
         </div>
-        <div class="ios-row ios-action"><button class="btn primary" type="submit">Save profile</button></div>
+        <div class="ios-row ios-action"><button class="btn primary icon-only" type="submit" aria-label="Save profile" title="Save profile"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button></div>
       </form>
     </section>
 
@@ -112,7 +112,7 @@
             <input class="switch" type="checkbox" name="{{ pref.category }}_pip"{% if pref.pip_enabled %} checked{% endif %}>
           </label>
           {% if loop.last %}
-          <div class="ios-row ios-action" data-save><button class="btn primary" type="submit">Save notifications</button></div>
+          <div class="ios-row ios-action" data-save><button class="btn primary icon-only" type="submit" aria-label="Save notifications" title="Save notifications"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button></div>
           {% endif %}
         </fieldset>
         {% endfor %}
