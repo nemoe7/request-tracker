@@ -1,5 +1,6 @@
 """SQLAlchemy storage opening and schema loading for the data layer."""
 
+import json
 from collections.abc import Iterator
 from contextlib import contextmanager
 from importlib.resources import files
@@ -10,7 +11,7 @@ from sqlalchemy.engine import Connection, Engine
 
 # The number this code needs. A file carries its own number in PRAGMA
 # user_version, and a step in initialize() moves a lower file up one version.
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 SCHEMA = files(__package__).joinpath("schema.sql").read_text(encoding="utf-8")
 
@@ -78,6 +79,8 @@ def initialize(db: Connection, path: str | Path | None = None) -> None:
       db.exec_driver_sql(statement)
   if found < 1:
     _step_one(db)
+  if found < 2:
+    _step_two(db)
   # A later step reads the number, adds its guard, and moves the number again.
   db.exec_driver_sql(f"PRAGMA user_version = {SCHEMA_VERSION}")
   db.commit()
@@ -110,6 +113,22 @@ def _step_one(db: Connection) -> None:
       "used_at TEXT)"
     )
     db.exec_driver_sql("DROP TABLE enrollment_tokens_old")
+
+
+def _step_two(db: Connection) -> None:
+  """Reject is the one word for a declined request, so old rows move."""
+  db.exec_driver_sql("UPDATE requests SET status = 'REJECTED' WHERE status = 'REVOKED'")
+  rows = db.exec_driver_sql(
+    "SELECT id, data FROM events WHERE data LIKE '%REVOKED%'"
+  ).fetchall()
+  for row in rows:
+    data = json.loads(row._mapping["data"])
+    for key in ("from", "to"):
+      if data.get(key) == "REVOKED":
+        data[key] = "REJECTED"
+    db.exec_driver_sql(
+      "UPDATE events SET data = ? WHERE id = ?", (json.dumps(data), row._mapping["id"])
+    )
 
 
 @contextmanager

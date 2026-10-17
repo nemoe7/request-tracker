@@ -71,7 +71,6 @@ def REQUEST_TRANSITIONS_OPEN(request: Request) -> bool:
     RequestStatus.RAISED,
     RequestStatus.REJECTED,
     RequestStatus.FULFILLED,
-    RequestStatus.REVOKED,
   )
 
 

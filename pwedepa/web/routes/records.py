@@ -64,7 +64,6 @@ REQUEST_LABELS = {
   RequestStatus.RAISED: "Raise to issue",
   RequestStatus.REJECTED: "Reject",
   RequestStatus.FULFILLED: "Fulfill",
-  RequestStatus.REVOKED: "Revoke",
 }
 STATUS_WORDS = {
   RequestStatus.OPEN: "New, not yet reviewed",
@@ -73,7 +72,6 @@ STATUS_WORDS = {
   RequestStatus.RAISED: "Turned into work",
   RequestStatus.REJECTED: "Not accepted",
   RequestStatus.FULFILLED: "Done",
-  RequestStatus.REVOKED: "Withdrawn",
 }
 
 
@@ -229,7 +227,6 @@ def _request_actions(actor, record) -> list[tuple[str, str]]:
       RequestStatus.RAISED: "raise",
       RequestStatus.REJECTED: "reject",
       RequestStatus.FULFILLED: "fulfill",
-      RequestStatus.REVOKED: "revoke",
     }[target]
     if _can(actor, f"request.{verb}", record):
       actions.append((target.value, REQUEST_LABELS[target]))

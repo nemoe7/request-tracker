@@ -16,19 +16,17 @@ from .models import (
 from .permissions import Actor, authorize
 
 REQUEST_TRANSITIONS = {
-  RequestStatus.OPEN: (RequestStatus.PENDING, RequestStatus.REVOKED),
+  RequestStatus.OPEN: (RequestStatus.PENDING, RequestStatus.REJECTED),
   RequestStatus.PENDING: (
     RequestStatus.DELAYED,
     RequestStatus.RAISED,
     RequestStatus.REJECTED,
     RequestStatus.FULFILLED,
-    RequestStatus.REVOKED,
   ),
-  RequestStatus.DELAYED: (RequestStatus.PENDING, RequestStatus.REVOKED),
+  RequestStatus.DELAYED: (RequestStatus.PENDING, RequestStatus.REJECTED),
   RequestStatus.RAISED: (),
   RequestStatus.REJECTED: (),
   RequestStatus.FULFILLED: (),
-  RequestStatus.REVOKED: (),
 }
 
 ISSUE_TRANSITIONS = {
@@ -44,7 +42,6 @@ REQUEST_TARGET_VERBS = {
   RequestStatus.RAISED: "raise",
   RequestStatus.REJECTED: "reject",
   RequestStatus.FULFILLED: "fulfill",
-  RequestStatus.REVOKED: "revoke",
 }
 
 ISSUE_TARGET_VERBS = {
@@ -103,8 +100,8 @@ def transition_request(
       f"A request cannot go from {request.status.value.capitalize()} to "
       f"{target.value.capitalize()}."
     )
-  if target is RequestStatus.REVOKED and not reason:
-    raise CoreError("Give a reason to revoke.")
+  if target is RequestStatus.REJECTED and not reason:
+    raise CoreError("Give a reason to reject.")
   if not _can_move_request(actor, request, target):
     raise PermissionDenied(
       f"You cannot move this request to {target.value.capitalize()}."

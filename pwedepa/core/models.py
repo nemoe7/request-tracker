@@ -22,7 +22,6 @@ class RequestStatus(str, Enum):
   RAISED = "RAISED"
   REJECTED = "REJECTED"
   FULFILLED = "FULFILLED"
-  REVOKED = "REVOKED"
 
 
 class IssueStatus(str, Enum):
