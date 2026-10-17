@@ -92,6 +92,11 @@ def create_app(config: dict | None = None) -> Flask:
       return response
 
   data_db.connect(app.config["DATABASE"]).close()
+  # A dev run fills an empty database from its seed block, and adds nothing again.
+  if os.environ.get("PWEDEPA_ENV") == "dev":
+    from pwedepa.data.seed import seed_from_config
+
+    seed_from_config(app.config["DATABASE"], config_data.read(), at=now())
   app.extensions["webauthn"] = WebAuthnConfig(
     rp_id=app.config["WEBAUTHN_RP_ID"],
     rp_name=app.config["WEBAUTHN_RP_NAME"],

@@ -7,3 +7,17 @@
 
 # The SQLite file for a local run. Default: pwedepa.db.
 # database: pwedepa.db
+
+# Records to insert on a first start, when the requests and issues tables are
+# both empty. kind is request or issue, and status takes the values that kind
+# knows.
+seed:
+  - kind: request
+    title: The kitchen tap drips all night
+    description: It started on Monday, and the washer looks worn.
+    domain: Handyman/DIY
+  - kind: issue
+    title: Fit the new washer
+    description: The spare sits in the drawer under the sink.
+    domain: Handyman/DIY
+    status: OPEN
