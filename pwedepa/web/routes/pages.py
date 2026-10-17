@@ -55,14 +55,14 @@ def home() -> Response:
 def login() -> str | Response:
   if current_user() is not None:
     return redirect(url_for("records.workspace"))
-  return render_template("login.html", site_message=site_data.get_active(db(), now()))
+  return render_template("login.jinja", site_message=site_data.get_active(db(), now()))
 
 
 @bp.get("/enroll")
 def enroll() -> str | Response:
   if current_user() is not None:
     return redirect(url_for("records.workspace"))
-  return render_template("enroll.html")
+  return render_template("enroll.jinja")
 
 
 @bp.get("/view-as/<mode>")

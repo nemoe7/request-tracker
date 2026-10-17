@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% from "_parts.html" import pill, event_line %}
+{% extends "base.jinja" %}
+{% from "_parts.jinja" import pill, event_line %}
 {% block title %}PwedePa | Issue #{{ record.id }}{% endblock %}
 {% block content %}
 <article class="issue-page">
@@ -50,7 +50,7 @@
       </form>
       {% endif %}
 
-      {% include "_sharing.html" %}
+      {% include "_sharing.jinja" %}
     </div>
 
     <aside class="issue-side" aria-label="Issue facts">

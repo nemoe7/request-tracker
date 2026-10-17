@@ -36,7 +36,7 @@ def inbox() -> str | Response:
       found = announcements_data.get(db(), notice.object_id)
       links[notice.id] = f"/{found.slug}" if found else ""
   return render_template(
-    "notifications.html", notices=notices, names=names, links=links
+    "notifications.jinja", notices=notices, names=names, links=links
   )
 
 

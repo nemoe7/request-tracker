@@ -222,7 +222,7 @@ def create_app(config: dict | None = None) -> Flask:
   def styled_error(error):
     from flask import render_template
 
-    return render_template("error.html", error=error), error.code
+    return render_template("error.jinja", error=error), error.code
 
   @app.teardown_appcontext
   def close_db(error: BaseException | None = None) -> None:

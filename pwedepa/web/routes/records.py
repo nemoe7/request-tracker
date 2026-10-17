@@ -354,7 +354,7 @@ def workspace() -> str | Response:
   }
   domains = sorted({d for r in all_requests + all_issues for d in r.domains})
   return render_template(
-    "workspace.html",
+    "workspace.jinja",
     queue=queue,
     domain=domain,
     visibility=visibility,
@@ -397,7 +397,7 @@ def domain_page(slug: str) -> str | Response:
     if found.name in record.domains
   ]
   return render_template(
-    "domain.html",
+    "domain.jinja",
     domain=found,
     announcements=announcements_data.list_for_slug(db(), found.slug),
     subscribed=subscriptions.subscribed(db(), user.id, found.slug),
@@ -427,7 +427,7 @@ def requests() -> str | Response:
     next((r for r in visible if r.id == selected_id), None) if selected_id else None
   )
   return render_template(
-    "requests.html",
+    "requests.jinja",
     mine=mine,
     public=public,
     visible=visible,
@@ -447,7 +447,7 @@ def request_new() -> str | Response:
     flash("Your account cannot create requests.")
     return redirect(url_for("records.requests"))
   return render_template(
-    "request_form.html",
+    "request_form.jinja",
     record=None,
     priorities=[p.value for p in Priority],
     domains=_configured_domains(),
@@ -508,7 +508,7 @@ def request_detail(slug: str, request_id: int) -> str | Response:
   events = events_data.list_for(db(), "request", request_id)
   read_only = client_view()
   return render_template(
-    "request_detail.html",
+    "request_detail.jinja",
     record=record,
     actions=[] if read_only else _request_actions(actor, record),
     can_edit=_can(actor, "request.edit", record) and not read_only,
@@ -584,7 +584,7 @@ def request_edit(request_id: int) -> str | Response:
   actor = _actor(user)
   record, actor = _load_request(actor, request_id)
   return render_template(
-    "request_form.html",
+    "request_form.jinja",
     record=record,
     priorities=[p.value for p in Priority],
     domains=_configured_domains(),
@@ -626,7 +626,7 @@ def request_edit_save(request_id: int) -> str | Response:
     fields = [
       (key, value) for key in request.form for value in request.form.getlist(key)
     ]
-    return render_template("confirm_edit.html", record=record, fields=fields)
+    return render_template("confirm_edit.jinja", record=record, fields=fields)
   except CoreError as error:
     flash(str(error))
     return redirect(record_path(record))
@@ -645,7 +645,7 @@ def issue_board() -> str | Response:
   board = {
     status: [i for i in all_issues if i.status is status] for status in IssueStatus
   }
-  return render_template("issue_board.html", board=board, names=_names())
+  return render_template("issue_board.jinja", board=board, names=_names())
 
 
 @bp.get("/<slug>/issues/<int:issue_id>")
@@ -669,7 +669,7 @@ def issue_detail(slug: str, issue_id: int) -> str | Response:
     source_request = None
   read_only = client_view()
   return render_template(
-    "issue_detail.html",
+    "issue_detail.jinja",
     record=record,
     actions=[] if read_only else _issue_actions(actor, record),
     can_edit=(actor.is_admin or _can(actor, "issue.edit", record)) and not read_only,
@@ -759,7 +759,7 @@ def issue_edit(issue_id: int) -> str | Response:
   actor = _actor(user)
   record, actor = _load_issue(actor, issue_id)
   return render_template(
-    "issue_form.html",
+    "issue_form.jinja",
     record=record,
     priorities=[p.value for p in Priority],
     users=list_users(db()),

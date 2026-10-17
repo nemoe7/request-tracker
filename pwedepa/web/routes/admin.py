@@ -72,7 +72,7 @@ def _names() -> dict[int, str]:
 @bp.get("/admin")
 def overview() -> str | Response:
   return render_template(
-    "admin.html",
+    "admin.jinja",
     users=list_users(db(), include_archived=True),
     share_links=sharing_data.list_all(db()),
     site_messages=site_data.list_messages(db()),
@@ -85,7 +85,7 @@ def overview() -> str | Response:
 def domain_config() -> str | Response:
   db_path = current_app.config["DATABASE"]
   return render_template(
-    "admin_config.html",
+    "admin_config.jinja",
     domains=domains_data.load(db_path),
     active=domains_data.active_path(db_path),
     imported=domains_data.imported_path(db_path),
@@ -228,7 +228,7 @@ def users() -> str | Response:
   }
   issued = session.pop("issued_enrollment", None)
   return render_template(
-    "admin_users.html",
+    "admin_users.jinja",
     people=people,
     details=details,
     roles=[role.value for role in Role],
@@ -304,13 +304,13 @@ def passkey_revoke(passkey_id: int) -> Response:
 @bp.get("/admin/audit")
 def audit() -> str | Response:
   events = list_audit_events(db(), limit=200)
-  return render_template("admin_audit.html", events=events, names=_names())
+  return render_template("admin_audit.jinja", events=events, names=_names())
 
 
 @bp.get("/admin/shares")
 def shares() -> str | Response:
   return render_template(
-    "admin_shares.html", share_links=sharing_data.list_all(db()), names=_names()
+    "admin_shares.jinja", share_links=sharing_data.list_all(db()), names=_names()
   )
 
 

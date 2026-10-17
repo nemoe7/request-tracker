@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% from "_parts.html" import pill, event_line %}
+{% extends "base.jinja" %}
+{% from "_parts.jinja" import pill, event_line %}
 {% block title %}PwedePa | Workspace{% endblock %}
 {% block content %}
 <div class="workspace-grid{% if selected %} is-open is-main{% endif %}">

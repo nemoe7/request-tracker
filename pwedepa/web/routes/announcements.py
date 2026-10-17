@@ -60,7 +60,7 @@ def new(slug: str) -> str | Response:
   if user is None:
     return redirect(url_for("pages.login"))
   return render_template(
-    "announcement_form.html",
+    "announcement_form.jinja",
     domain=domain,
     announcement=None,
     action=url_for("announcements.create", slug=domain.slug),
@@ -78,7 +78,7 @@ def create(slug: str) -> str | Response:
   if not title or not body:
     flash("An announcement needs a title and a body.")
     return render_template(
-      "announcement_form.html",
+      "announcement_form.jinja",
       domain=domain,
       announcement=None,
       action=url_for("announcements.create", slug=domain.slug),
@@ -113,7 +113,7 @@ def edit(slug: str, announcement_id: int) -> str | Response:
     return redirect(url_for("pages.login"))
   found = _find(domain, announcement_id)
   return render_template(
-    "announcement_form.html",
+    "announcement_form.jinja",
     domain=domain,
     announcement=found,
     action=url_for(
@@ -134,7 +134,7 @@ def edit_save(slug: str, announcement_id: int) -> str | Response:
   if not title or not body:
     flash("An announcement needs a title and a body.")
     return render_template(
-      "announcement_form.html",
+      "announcement_form.jinja",
       domain=domain,
       announcement=found,
       action=url_for(
@@ -156,7 +156,7 @@ def confirm_delete(slug: str, announcement_id: int) -> str | Response:
     return redirect(url_for("pages.login"))
   found = _find(domain, announcement_id)
   return render_template(
-    "announcement_confirm.html",
+    "announcement_confirm.jinja",
     domain=domain,
     announcement=found,
     action=url_for("announcements.remove", slug=domain.slug, announcement_id=found.id),

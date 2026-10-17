@@ -19,7 +19,7 @@ def settings() -> str | Response:
   if user is None:
     return redirect(url_for("pages.login"))
   return render_template(
-    "settings.html",
+    "settings.jinja",
     passkeys=list_passkeys(db(), user.id),
     preferences=notifications_data.preferences(db(), user.id),
     is_admin=Role.ADMIN in list_roles(db(), user.id),

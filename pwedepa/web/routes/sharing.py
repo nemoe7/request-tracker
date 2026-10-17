@@ -143,10 +143,10 @@ def open_link(token: str) -> str | Response:
   """Open a share link, or show the one-view notice when signed out."""
   link = sharing_data.find_by_token(db(), token)
   if link is None or not sharing_data.is_active(link, now()):
-    return render_template("share_gone.html"), 404
+    return render_template("share_gone.jinja"), 404
   record = _record(link.object_type, link.object_id)
   if record is None:
-    return render_template("share_gone.html"), 404
+    return render_template("share_gone.jinja"), 404
   if current_user() is not None:
     session["share_link_id"] = link.id
     record_audit(
@@ -160,8 +160,8 @@ def open_link(token: str) -> str | Response:
     )
     return redirect(_detail_url(record, link.object_type))
   if link.view_consumed_at is not None:
-    return render_template("share_gone.html"), 410
-  return render_template("share_notice.html", link=link, record=record, token=token)
+    return render_template("share_gone.jinja"), 410
+  return render_template("share_notice.jinja", link=link, record=record, token=token)
 
 
 @bp.post("/share/<token>/view")
@@ -169,13 +169,13 @@ def consume_view(token: str) -> Response:
   """Spend the one signed-out view and open the item."""
   link = sharing_data.find_by_token(db(), token)
   if link is None or not sharing_data.is_active(link, now()):
-    return render_template("share_gone.html"), 404
+    return render_template("share_gone.jinja"), 404
   record = _record(link.object_type, link.object_id)
   if current_user() is not None:
     session["share_link_id"] = link.id
     return redirect(_detail_url(record, link.object_type))
   if not sharing_data.consume_view(db(), link.id, at=now()):
-    return render_template("share_gone.html"), 410
+    return render_template("share_gone.jinja"), 410
   session["anonymous_share_link_id"] = link.id
   record_audit(
     db(),
@@ -191,16 +191,16 @@ def consume_view(token: str) -> Response:
 @bp.get("/shared/<int:link_id>")
 def shared_record(link_id: int) -> str | Response:
   if session.get("anonymous_share_link_id") != link_id:
-    return render_template("share_gone.html"), 404
+    return render_template("share_gone.jinja"), 404
   link = sharing_data.get(db(), link_id)
   if link is None or not sharing_data.is_active(link, now()):
-    return render_template("share_gone.html"), 404
+    return render_template("share_gone.jinja"), 404
   record = _record(link.object_type, link.object_id)
   if record is None:
-    return render_template("share_gone.html"), 404
+    return render_template("share_gone.jinja"), 404
   events = events_data.list_for(db(), link.object_type, link.object_id)
   html = render_template(
-    "shared_record.html",
+    "shared_record.jinja",
     link=link,
     record=record,
     object_type=link.object_type,
