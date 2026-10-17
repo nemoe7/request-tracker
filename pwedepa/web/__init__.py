@@ -22,6 +22,8 @@ def check_secret(secret_key: str, origin: str) -> None:
 
 DEVELOPMENT_SECRET = "pwedepa-dev-secret"
 _RECORD_TAIL = re.compile(r"^/(?P<kind>requests|issues)/(?P<id>\d+)/?$")
+_ANNOUNCEMENT_NEW = re.compile(r"^/announcements/new/?$")
+_ANNOUNCEMENT_STEP = re.compile(r"^/announcements/(?P<id>\d+)/(?P<verb>edit|delete)/?$")
 LOCAL_HOSTS = ("localhost", "127.0.0.1", "::1")
 
 
@@ -119,7 +121,8 @@ def create_app(config: dict | None = None) -> Flask:
       return None
     # The target comes from the stored list, and the id is an int, so the
     # browser never leaves this site.
-    match = _RECORD_TAIL.match("/" + "/".join(parts[1:]))
+    tail = "/" + "/".join(parts[1:])
+    match = _RECORD_TAIL.match(tail)
     if match and match["kind"] == "requests":
       return redirect(
         url_for("records.request_detail", slug=target, request_id=int(match["id"])),
@@ -128,6 +131,17 @@ def create_app(config: dict | None = None) -> Flask:
     if match and match["kind"] == "issues":
       return redirect(
         url_for("records.issue_detail", slug=target, issue_id=int(match["id"])),
+        code=302,
+      )
+    if _ANNOUNCEMENT_NEW.match(tail):
+      return redirect(url_for("announcements.new", slug=target), code=302)
+    step = _ANNOUNCEMENT_STEP.match(tail)
+    if step:
+      page = "announcements.edit"
+      if step["verb"] == "delete":
+        page = "announcements.confirm_delete"
+      return redirect(
+        url_for(page, slug=target, announcement_id=int(step["id"])),
         code=302,
       )
     return redirect(url_for("records.domain_page", slug=target), code=302)

@@ -251,3 +251,11 @@ def test_an_old_domain_path_lands_on_the_same_page(app, admin):
   other = admin.get("/gym/announcements/9")
   assert other.status_code == 302
   assert other.headers["Location"].endswith("/fitness")
+
+  edit = admin.get("/gym/announcements/9/edit")
+  assert edit.status_code == 302
+  assert edit.headers["Location"].endswith("/fitness/announcements/9/edit")
+
+  fresh = admin.get("/gym/announcements/new")
+  assert fresh.status_code == 302
+  assert fresh.headers["Location"].endswith("/fitness/announcements/new")
