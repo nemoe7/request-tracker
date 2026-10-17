@@ -83,10 +83,6 @@ def create_app(config: dict | None = None) -> Flask:
   )
   if config:
     app.config.update(config)
-  # A template or a broken file stops the start, so no page shows the error.
-  from pwedepa.data import domains as domains_data
-
-  domains_data.load(app.config["DATABASE"])
 
   from .routes._helpers import domain_path, record_path
 

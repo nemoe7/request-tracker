@@ -334,13 +334,12 @@ def test_the_font_waits_for_no_paint(app):
   assert "font-display: optional" not in sheet
 
 
-def test_a_start_without_domains_names_the_config_file(tmp_path, monkeypatch):
+def test_a_start_reads_an_empty_config_as_no_domains_yet(tmp_path, monkeypatch):
   from pwedepa.data import domains as domains_data
 
   path = tmp_path / "config.yml"
-  path.write_text("database: app.db\n", encoding="utf-8")
+  path.write_text("# the admin adds Domains in the app\n", encoding="utf-8")
   monkeypatch.setattr(domains_data, "CONFIG", path)
 
-  with pytest.raises(domains_data.DomainConfigError) as error:
-    create_app({"DATABASE": str(tmp_path / "test.db")})
-  assert str(path) in str(error.value)
+  app = create_app({"DATABASE": str(tmp_path / "test.db")})
+  assert app.config["DATABASE"].endswith("test.db")
