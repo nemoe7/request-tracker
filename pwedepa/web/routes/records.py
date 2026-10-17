@@ -279,7 +279,7 @@ def _load_issue(actor, issue_id: int):
   return record, actor
 
 
-@bp.get("/workspace")
+@bp.get("/")
 def workspace() -> str | Response:
   user = _user()
   if user is None:

@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}PwedePa | Sign in{% endblock %}
 {% block content %}
+{% if site_message %}
+<div class="flash" role="status"><p>{{ site_message.message }}</p></div>
+{% endif %}
 <section class="auth-card panel">
   <p class="eyebrow">Welcome back</p>
   <h1>Sign in</h1>

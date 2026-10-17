@@ -27,7 +27,6 @@ from pwedepa.web import create_app
 from pwedepa.web.routes.demo import set_seat
 
 STAFF_PAGES = (
-  "workspace",
   "requests",
   "issues",
   "requests/new",
@@ -65,7 +64,7 @@ def filter_views(html: str, request_ids: list[int]) -> dict[tuple[str, str], str
     ("selected", str(number)): f"workspace/record/{number}" for number in request_ids
   }
   for key in VIEW_KEYS[1:]:
-    for query in re.findall(r'href="/workspace\?([^"]*)"', html):
+    for query in re.findall(r'href="/\?([^"]*)"', html):
       value = dict(parse_qsl(query.replace("&amp;", "&"))).get(key, "")
       if value:
         views[(key, value)] = f"workspace/{key}/{_slug(value)}"
@@ -112,7 +111,7 @@ def _relative(
       return f"home/{match.group(1)}/"
   if "?" in target:
     head, query = target.split("?", 1)
-    if head.strip("/") == "workspace":
+    if not head.strip("/"):
       folder = _view(query, source, views)
       if folder:
         return f"{folder}/"
@@ -131,7 +130,7 @@ def _status_list(html: str, frozen, source: str, views, page: str) -> str:
     return html
   links = []
   for value, selected, label in STATUS_OPTION_RE.findall(form.group(0)):
-    target = _relative(f"/workspace?status={value}", frozen, source, views, None, page)
+    target = _relative(f"/?status={value}", frozen, source, views, None, page)
     mark = " is-active" if selected else ""
     links.append(f'<a class="queue-item{mark}" href="{target}">{label}</a>')
   return f"{html[: form.start()]}{''.join(links)}{html[form.end() :]}"
@@ -236,7 +235,7 @@ def main() -> int:
   found = domains_data.load(database)
   request_rows, issue_rows = seeded_records(database)
   request_ids = [record.id for record in request_rows]
-  views = filter_views(client.get("/workspace").get_data(as_text=True), request_ids)
+  views = filter_views(client.get("/").get_data(as_text=True), request_ids)
 
   def record_folder(record, kind: str) -> str:
     return f"{domains_data.slug_for(record.domains, found)}/{kind}/{record.id}"
@@ -265,14 +264,14 @@ def main() -> int:
     target.write_text(html, encoding="utf-8")
     print(f"froze {route} -> {target.relative_to(out)}")
 
-  freeze("/workspace", "")
+  freeze("/", "")
   for folder in folders:
     freeze(f"/{folder}", folder)
   for (key, value), folder in views.items():
-    freeze(f"/workspace?{key}={value}", folder, source=f"{key}={value}")
+    freeze(f"/?{key}={value}", folder, source=f"{key}={value}")
   set_seat("client")
   nav = {"requests": "home/requests", "issues": "home/issues"}
-  client_pages = [("/home", "home")]
+  client_pages = [("/requests", "home")]
   for head, folder in (("requests", "home/requests"), ("issues", "home/issues")):
     listing = client.get(f"/{head}").get_data(as_text=True)
     client_pages.append((f"/{head}", folder))

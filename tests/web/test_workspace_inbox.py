@@ -72,7 +72,7 @@ def test_an_unopened_request_sits_above_an_opened_one(db, staff):
   _request(db, 2, person.id, "Ladder audit")
   client.get("/gym/requests/1")
 
-  body = client.get("/workspace").get_data(as_text=True)
+  body = client.get("/").get_data(as_text=True)
   unread, opened = _order(body)
   assert unread != -1 and opened != -1, "the inbox carries both groups"
   assert "/gym/requests/2" in body[unread:opened], "the unread request sits on top"
@@ -83,8 +83,8 @@ def test_opening_an_item_in_the_workspace_marks_it_read(db, staff):
   client, person = staff
   _request(db, 1, person.id, "Rope climb plan")
 
-  client.get("/workspace?selected=1")
-  body = client.get("/workspace").get_data(as_text=True)
+  client.get("/?selected=1")
+  body = client.get("/").get_data(as_text=True)
   unread, opened = _order(body)
 
   assert "/gym/requests/1" in body[opened:]
@@ -96,8 +96,8 @@ def test_each_staff_member_keeps_their_own_read_list(db, staff):
   _request(db, 1, person.id, "Rope climb plan")
   other, _ = _client(app=client.application, db=db, name="Sam", roles=(Role.ADMIN,))
 
-  client.get("/workspace?selected=1")
-  body = other.get("/workspace").get_data(as_text=True)
+  client.get("/?selected=1")
+  body = other.get("/").get_data(as_text=True)
 
   unread, opened = _order(body)
   assert "/gym/requests/1" in body[unread:opened]
@@ -107,7 +107,7 @@ def test_the_opened_item_takes_the_wide_card(db, staff):
   client, person = staff
   _request(db, 1, person.id, "Rope climb plan")
 
-  body = client.get("/workspace?selected=1").get_data(as_text=True)
+  body = client.get("/?selected=1").get_data(as_text=True)
   assert 'class="workspace-grid is-open is-main"' in body
   assert 'class="panel inspector is-main"' in body
 
@@ -116,7 +116,7 @@ def test_the_mobile_view_offers_a_way_back(db, staff):
   client, person = staff
   _request(db, 1, person.id, "Rope climb plan")
 
-  body = client.get("/workspace?selected=1").get_data(as_text=True)
+  body = client.get("/?selected=1").get_data(as_text=True)
   assert 'class="back-to-list"' in body
 
 
@@ -125,14 +125,14 @@ def test_new_activity_returns_an_opened_item_to_unread(db, staff):
   _request(db, 1, person.id, "Rope climb plan")
   client.get("/gym/requests/1")
 
-  body = client.get("/workspace").get_data(as_text=True)
+  body = client.get("/").get_data(as_text=True)
   unread, opened = _order(body)
   assert "/gym/requests/1" in body[opened:]
   assert "/gym/requests/1" not in body[unread:opened]
 
   client.post("/requests/1/comment", data={"text": "A new detail."})
 
-  body = client.get("/workspace").get_data(as_text=True)
+  body = client.get("/").get_data(as_text=True)
   unread, opened = _order(body)
   assert "/gym/requests/1" in body[unread:opened]
   assert "/gym/requests/1" not in body[opened:]

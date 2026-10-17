@@ -174,8 +174,7 @@ def _demo_app(tmp_path, name: str = "demo.db", switch: bool = False):
 
 def test_demo_mode_opens_seeded_workspace_without_credentials(tmp_path):
   client = _demo_app(tmp_path).test_client()
-  assert "/workspace" in client.get("/").headers["Location"]
-  workspace = client.get("/workspace")
+  workspace = client.get("/")
   assert workspace.status_code == 200
   assert re.search(rb'href="/[^"]*/requests/\d+"', workspace.data)
 
@@ -193,14 +192,13 @@ def test_the_demo_seat_swaps_in_code(tmp_path):
   from pwedepa.web.routes.demo import set_seat
 
   client = _demo_app(tmp_path, "demo-seat.db").test_client()
-  landing = client.get("/")
-  assert "/workspace" in landing.headers["Location"]
-  assert "/home" in client.get("/login").headers["Location"]
-  assert "/home" in client.get("/enroll").headers["Location"]
-  assert client.get("/home").status_code == 200
+  assert client.get("/").status_code == 200
+  assert client.get("/login").headers["Location"].endswith("/")
+  assert client.get("/enroll").headers["Location"].endswith("/")
+  assert client.get("/home").headers["Location"].endswith("/")
   set_seat("client")
   try:
-    assert "/requests" in client.get("/workspace").headers["Location"]
+    assert "/requests" in client.get("/").headers["Location"]
   finally:
     set_seat("staff")
 
@@ -208,11 +206,11 @@ def test_the_demo_seat_swaps_in_code(tmp_path):
 def test_the_demo_switch_shows_only_when_the_build_asks(tmp_path):
   """The live preview holds one seat, so only the frozen build shows the switch."""
   live = _demo_app(tmp_path, "demo-live.db").test_client()
-  home = live.get("/home").get_data(as_text=True)
+  home = live.get("/").get_data(as_text=True)
   assert "demo-switch" not in home, "one seat needs no switch"
   frozen = _demo_app(tmp_path, "demo-frozen.db", switch=True).test_client()
-  page = frozen.get("/home").get_data(as_text=True)
-  assert re.search(r'<a href="/workspace" class="on">Staff</a>', page)
+  page = frozen.get("/").get_data(as_text=True)
+  assert re.search(r'<a href="/" class="on">Staff</a>', page)
   assert re.search(r'<a href="/home">Client</a>', page)
 
 
@@ -227,9 +225,12 @@ def test_the_environment_cannot_open_the_demo(monkeypatch, tmp_path):
       "SESSION_COOKIE_SECURE": False,
     }
   ).test_client()
-  landing = client.get("/")
-  assert landing.status_code == 200
-  assert b'href="/login"' in landing.data
+  root = client.get("/")
+  assert root.status_code == 302
+  assert root.headers["Location"].endswith("/login")
+  page = client.get("/login")
+  assert page.status_code == 200
+  assert b"demo-switch" not in page.data
 
 
 def test_notifications_and_preferences(cast, db):
@@ -285,14 +286,18 @@ def test_notification_dismiss_and_clear(app, cast, db):
 def test_header_nav_calls_the_middle_tab_requests(cast, db):
   admin, _ = cast["admin"]
   Mara, _ = cast["Mara"]
-  staff_page = admin.get("/workspace").data
-  assert b'href="/workspace"' in staff_page
-  assert b'href="/requests"' not in staff_page
-  assert b'href="/issues"' not in staff_page
+  staff_page = admin.get("/").data
+  staff_nav = re.search(rb'<nav class="tabs".*?</nav>', staff_page, re.DOTALL).group(0)
+  assert b'href="/"' in staff_nav
+  assert b'href="/requests"' not in staff_nav
+  assert b'href="/issues"' not in staff_nav
   client_page = Mara.get("/requests").data
-  assert b'href="/requests"' in client_page
-  assert b'href="/issues"' in client_page
-  assert b'href="/workspace"' not in client_page
+  client_nav = re.search(rb'<nav class="tabs".*?</nav>', client_page, re.DOTALL).group(
+    0
+  )
+  assert b'href="/requests"' in client_nav
+  assert b'href="/issues"' in client_nav
+  assert b'href="/"' not in client_nav
 
 
 def test_clock_preference_and_stamp_rendering(cast, db):
@@ -383,7 +388,7 @@ def test_admin_site_message_and_direct_issue(app, cast, db):
   )
   anonymous = app.test_client()
   saved = site_data.list_messages(db)[0]
-  assert saved.message.encode() in anonymous.get("/").data
+  assert saved.message.encode() in anonymous.get("/login").data
 
   response = admin.post(
     "/admin/issues",
@@ -506,7 +511,7 @@ def test_a_staff_member_can_check_the_client_view(cast, db):
   assert b'href="/view-as/staff"' in detail.data
   assert b'id="client-view"' in admin.get("/settings").data
 
-  queue = admin.get("/workspace")
+  queue = admin.get("/")
   assert queue.status_code == 302
   assert "/requests" in queue.headers["Location"]
 
@@ -527,12 +532,12 @@ def test_the_staff_view_keeps_its_controls(cast, db):
   admin.get("/view-as/client")
   left = admin.get("/view-as/staff")
   assert left.status_code == 302
-  assert left.headers["Location"].endswith("/workspace")
+  assert left.headers["Location"].endswith("/")
 
   detail = admin.get(record_url(1))
   assert b'href="/requests/1/edit"' in detail.data
   assert b'id="client-view"' in admin.get("/settings").data
-  assert admin.get("/workspace").status_code == 200
+  assert admin.get("/").status_code == 200
 
 
 def test_a_client_cannot_turn_on_the_client_view(cast):
