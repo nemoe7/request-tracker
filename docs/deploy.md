@@ -23,7 +23,8 @@ Two containers run the site. `pwedepa-app` serves the app, and `pwedepa-tailscal
 
 3. Read the sign-up token in the log, or mint one.
 
-   The first start prints one admin token in the log. Run this command only when that line is gone.
+   The first start prints one admin token in the log. Run this command only when that
+   line is gone.
 
    ```sh
    docker compose exec pwedepa python -m pwedepa.auth create-admin \
@@ -32,7 +33,7 @@ Two containers run the site. `pwedepa-app` serves the app, and `pwedepa-tailscal
 
    The person who enrols picks their own username and display name.
 
-The app listens on `127.0.0.1:5000` on the host, and the sidecar reaches it at `http://pwedepa:5000` on the compose network. It reports its own health at `http://127.0.0.1:5000/health`. That route opens the database, so `docker compose ps` shows when the app can serve. The probe runs `python`, because the app image carries no `wget`.
+The app listens on `127.0.0.1:5000` on the host, and the sidecar reaches it at `http://pwedepa:5000` on the compose network. It reports its own health at `http://127.0.0.1:5000/health`. That route opens the database, so `docker compose ps` tells when the app can serve. The probe runs `python`, because the app image carries no `wget`.
 
 ## Local build
 
@@ -46,7 +47,7 @@ The dev file supplies a sample session secret and a localhost origin, so a local
 
 ## Tailscale Funnel
 
-The `tailscale` service joins your tailnet and serves the public HTTPS name with Funnel. It reports its own health at `http://127.0.0.1:9002/healthz`, so `docker compose ps` shows when the node is ready. It mounts the `tailscale` folder at `/config` and reads `serve.json` from it as `TS_SERVE_CONFIG`. The config proxies the public name to `http://pwedepa:5000`.
+The `tailscale` service joins your tailnet and serves the public HTTPS name with Funnel. It reports its own health at `http://127.0.0.1:9002/healthz`, so `docker compose ps` tells when the node is ready. It mounts the `tailscale` folder at `/config` and reads `serve.json` from it as `TS_SERVE_CONFIG`. The config proxies the public name to `http://pwedepa:5000`.
 
 1. Mint a reusable, untagged auth key in the Tailscale admin console, then put it in `.env` as `TS_AUTHKEY`. Compose stops with an error when the value is missing. The node then carries no tags, so your tailnet treats it as one of your own devices. The sidecar calls its node `pwedepa`, so the public name is `pwedepa.your-tailnet.ts.net`. Read your own tailnet name from `docker compose logs tailscale` after the first start, then set `PWEDEPA_ORIGIN` to that name.
 

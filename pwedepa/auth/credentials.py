@@ -165,7 +165,7 @@ def finish_enrollment_registration(
     )
   except Exception as exc:
     raise AuthenticationFailed("passkey registration failed") from exc
-  # A taken name must not burn the token, so check it before the claim.
+  # A taken name must not burn the token, so look it up before the claim.
   if get_user_by_username(db, username.strip()) is not None:
     raise AuthError("the username is already in use")
   record = consume_enrollment_token(db, token, at=at)
