@@ -150,3 +150,12 @@ CREATE TABLE IF NOT EXISTS site_messages (
   expires_at TEXT,
   created_by_id INTEGER REFERENCES users(id)
 );
+CREATE TABLE IF NOT EXISTS announcements (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  domain TEXT NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  author_id INTEGER NOT NULL REFERENCES users(id),
+  published_at TEXT NOT NULL,
+  edited_at TEXT
+);

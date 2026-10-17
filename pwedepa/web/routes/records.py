@@ -33,6 +33,7 @@ from pwedepa.core import (
   transition_request,
 )
 from pwedepa.core.transitions import ISSUE_TRANSITIONS, REQUEST_TRANSITIONS
+from pwedepa.data import announcements as announcements_data
 from pwedepa.data import domains as domains_data
 from pwedepa.data import events as events_data
 from pwedepa.data import issues as issues_data
@@ -395,6 +396,7 @@ def domain_page(slug: str) -> str | Response:
   return render_template(
     "domain.html",
     domain=found,
+    announcements=announcements_data.list_for_domain(db(), found.name),
     requests=requests,
     issues=issues,
     status_words=STATUS_WORDS,

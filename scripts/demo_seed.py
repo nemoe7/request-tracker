@@ -16,8 +16,8 @@ from pwedepa.core import (
   RequestStatus,
   Visibility,
 )
+from pwedepa.data import announcements, events, issues, notifications, requests
 from pwedepa.data import db as data_db
-from pwedepa.data import events, issues, notifications, requests
 from pwedepa.data.domains import domain_slot, starter_domains
 
 
@@ -357,6 +357,22 @@ def seed(db, *, now: datetime, db_path=None) -> dict:
     object_type="request",
     object_id=2,
     actor_id=Mara.id,
+  )
+  announcements.create(
+    db,
+    domain=domain_slot(names, 2),
+    title="The studio reopens on Monday",
+    body="The floor is dry. The morning session starts at 7.",
+    author_id=admin.id,
+    at=at(1),
+  )
+  announcements.create(
+    db,
+    domain=domain_slot(names, 1),
+    title="Ladder audit this week",
+    body="Label every ladder by Friday.",
+    author_id=Sam.id,
+    at=at(2),
   )
   return people
 

@@ -9,6 +9,29 @@
   </div>
   <p class="desc">{{ domain.description or "No description yet." }}</p>
 
+  <h2 class="section-title">Announcements</h2>
+  {% if is_staff and not demo_mode %}
+  <p><a class="btn" href="{{ url_for('announcements.new', slug=domain.slug) }}">New announcement</a></p>
+  {% endif %}
+  {% if announcements %}
+  <div class="card-list">
+    {% for announcement in announcements %}
+    <article class="card">
+      <div class="card-top">
+        <h2>{{ announcement.title }}</h2>
+        {% if is_staff and not demo_mode %}
+        <a class="mini" href="{{ url_for('announcements.edit', slug=domain.slug, announcement_id=announcement.id) }}">Edit</a>
+        {% endif %}
+      </div>
+      <p class="announcement-body">{{ announcement.body }}</p>
+      <p class="meta">by {{ names.get(announcement.author_id, "—") }} · {{ announcement.published_at | stamp(clock) }}{% if announcement.edited_at %} · edited {{ announcement.edited_at | stamp(clock) }}{% endif %}</p>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted">No announcements yet.</p>
+  {% endif %}
+
   <h2 class="section-title">Requests</h2>
   {% if requests %}
   <div class="card-list">

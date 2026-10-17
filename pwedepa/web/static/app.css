@@ -143,6 +143,7 @@ select:focus-visible, textarea:focus-visible {
 .inspector h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 18px 0 8px; }
 .inspector > .btn { margin-top: 14px; }
 .desc { font-size: 15px; }
+.announcement-body { white-space: pre-line; }
 .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 16px; margin: 14px 0; }
 .facts dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
 .facts dd { margin: 0; font-size: 14px; font-weight: 600; }
