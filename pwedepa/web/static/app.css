@@ -104,6 +104,10 @@ select:focus-visible, textarea:focus-visible {
 .workspace-grid.is-main { grid-template-columns: 240px minmax(0, 2.4fr) minmax(320px, 1fr); }
 .workspace-grid.is-main .inspector { padding: 22px; }
 .workspace-grid.is-main .inspector h2 { font-size: 26px; }
+.client-dash { margin: 0 0 20px; }
+.client-dash .inspector { padding: 22px; }
+.client-dash.is-main .inspector h2 { font-size: 26px; }
+.client-dash .compact-list a { color: var(--text); }
 .group-title { display: flex; justify-content: space-between; align-items: center; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 6px; }
 .group-title:not(:first-child) { margin-top: 22px; }
 .back-to-list { display: none; }
@@ -362,6 +366,8 @@ form.ios-split { background: none; border: 0; overflow: visible; }
   .workspace-grid.is-open .records, .workspace-grid.is-open .filters { display: none; }
   .workspace-grid.is-open .inspector { order: 0; }
   .back-to-list { display: inline-block; margin-bottom: 10px; font-size: 14px; }
+  .client-dash.is-main ~ * { display: none; }
+  .client-dash .inspector h2 { font-size: 22px; }
   .filters-row {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     min-height: 44px; padding: 4px 2px; font-weight: 600;

@@ -5,6 +5,7 @@ This file records the settled design calls. When a pick changes, update this fil
 ## Product shape
 
 - Staff screens use the dense work-queue shape: top bar, queue filters, item list, inspector, and an issue strip. No sidebar.
+- A client sees a mini dashboard at the top of the Requests page. It counts what the client can see now: their own requests and the public board. A selected item opens as the wide card, with the same shape as the staff card. On a phone the opened item fills the page.
 - The staff workspace is the one staff page, and it reads as an inbox. The items a staff member has not opened come first, then the opened ones. Each staff member keeps their own read list. The opened item is the wide middle card, and the list moves to the right. On a phone the opened item fills the page, with a Back to the list link.
 - The client (requester) surface stays separate and simple: My requests, the public board, and one New request action, in a single 720 px column.
 - Settings pages follow the Apple Settings pattern: grouped rows, label on the left, control on the right. A chevron appears only when a row navigates. The pattern stays inside Settings.

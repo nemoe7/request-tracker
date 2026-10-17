@@ -2,11 +2,37 @@
 {% from "_parts.html" import pill %}
 {% block title %}My requests — PwedePa{% endblock %}
 {% block content %}
-<div class="narrow">
+<div class="{% if selected %}wide{% else %}narrow{% endif %}">
   <div class="page-head">
     <h1>My requests</h1>
     <a class="btn primary" href="{{ url_for('records.request_new') }}">New request</a>
   </div>
+
+  <section class="client-dash{% if selected %} is-open is-main{% endif %}">
+    <div class="panel inspector{% if selected %} is-main{% endif %}">
+      {% if selected %}
+      <a class="back-to-list" href="{{ url_for('records.requests') }}">Back to the list</a>
+      <p class="eyebrow">Request #{{ selected.id }} · by {{ names.get(selected.requester_id, "—") }}</p>
+      <h2>{{ selected.title }}</h2>
+      <p>{{ pill(selected.status) }}<span class="vis">{{ selected.visibility.value | capitalize }}</span></p>
+      <p class="desc">{{ selected.description or "No description." }}</p>
+      <a class="btn" href="{{ record_path(selected) }}">Open request</a>
+      {% else %}
+      <p class="eyebrow">Today</p>
+      <h2 id="today">{{ open_count }} open {{ "request" if open_count == 1 else "requests" }} you can see</h2>
+      <p class="muted">Your own requests and the public board, as they stand now.</p>
+      {% if recent %}
+      <ul class="compact-list">
+        {% for record in recent %}
+        <li><a href="{{ url_for('records.requests', selected=record.id) }}">{{ record.title }}</a>{{ pill(record.status) }}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="muted">Nothing is visible yet.</p>
+      {% endif %}
+      {% endif %}
+    </div>
+  </section>
   {% if mine %}
   <div class="card-list">
     {% for record in mine %}

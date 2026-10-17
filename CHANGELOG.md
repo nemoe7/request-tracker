@@ -22,6 +22,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - A frozen demo build that the Pages workflow publishes. Every rail filter, the status filter included, opens from a link and a page of its own. A card swap keeps every link on a real page. The demo ships no worker file, and the build refuses a script that still names one.
 - The app serves through uvicorn, a production server, with one adapter in front of Flask.
 - A staff member can switch to the client view from Settings. Record pages go read only, the server refuses record writes, and account settings stay writable.
+- A client mini dashboard at the top of the Requests page, with the count of what the client can see now. A selected item opens as the wide card, and a phone shows it alone.
 - The staff workspace reads as an inbox. Unread requests come first, the opened ones follow, and each staff member keeps their own read list. The opened item is the wide middle card, and a phone shows it alone with a way back.
 - The theme choice lives on the account, and a signed-out page or the frozen demo keeps the browser copy.
 - A Tailscale sidecar in `compose.yml`, with named containers: `pwedepa-app` and `pwedepa-tailscale`.

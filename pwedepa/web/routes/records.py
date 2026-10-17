@@ -427,8 +427,21 @@ def requests() -> str | Response:
     for r in all_requests
     if r.visibility is Visibility.PUBLIC and r.requester_id != user.id
   ]
+  visible = [*mine, *public]
+  selected_id = request.args.get("selected", type=int)
+  selected = (
+    next((r for r in visible if r.id == selected_id), None) if selected_id else None
+  )
   return render_template(
-    "requests.html", mine=mine, public=public, status_words=STATUS_WORDS, names=_names()
+    "requests.html",
+    mine=mine,
+    public=public,
+    visible=visible,
+    open_count=sum(1 for r in visible if r.status is RequestStatus.OPEN),
+    recent=visible[:3],
+    selected=selected,
+    status_words=STATUS_WORDS,
+    names=_names(),
   )
 
 

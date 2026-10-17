@@ -1,4 +1,4 @@
-"""Which items a staff member has opened. The workspace reads it as an inbox."""
+"""Which items a staff member opened. The workspace reads it as an inbox."""
 
 from datetime import datetime
 
@@ -20,7 +20,7 @@ def mark(
 
 
 def read_ids(db: Connection, user_id: int, object_type: str) -> set[int]:
-  """Return the ids of the items this person has opened."""
+  """Return the ids of the items this person opened."""
   rows = db.exec_driver_sql(
     "SELECT object_id FROM workspace_reads WHERE user_id = ? AND object_type = ?",
     (user_id, object_type),
