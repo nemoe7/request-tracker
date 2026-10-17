@@ -148,6 +148,18 @@ def test_the_brand_tile_holds_the_bare_face(app):
   assert "calc(" not in image.group(1), "nothing shrinks the face"
 
 
+def test_the_brand_swap_never_fades_through_the_page(app):
+  """A crossfade lets the bar show through, so the swap flips at once."""
+  css = app.test_client().get("/static/app.css").data.decode()
+
+  image = re.search(r"\.app-icon img \{(.*?)\}", css, re.DOTALL)
+  assert image is not None, "the face image has a rule"
+  assert "transition" not in image.group(1), "a fade would show the bar between faces"
+  assert ".app-icon .icon-animated { visibility: hidden; }" in css
+  assert ".app-icon:hover.is-ready .icon-static { visibility: hidden; }" in css
+  assert ".app-icon:hover.is-ready .icon-animated { visibility: visible; }" in css
+
+
 def test_the_row_link_reaches_the_card_handler(app, db):
   """The centre card opens in place, so a row link must match the handler."""
   owner = users.create_user(db, "owner", "Owner", at=AT)
@@ -502,10 +514,38 @@ def test_the_workspace_list_carries_one_toolbar(app, db):
   toolbar = page[page.index('class="list-toolbar"') : page.index('class="group-title"')]
   assert "<h1>Workspace</h1>" in toolbar
   assert 'id="status-filter"' in toolbar, "the status filter sits in the row"
-  assert 'class="btn primary"' in toolbar, "the action sits in the row"
+  assert "New request" in toolbar, "the action sits in the row"
+  assert 'class="btn primary"' not in toolbar, "a staff page does not lead with it"
   assert page.index('class="list-toolbar"') < page.index('<table class="record-table')
   rail = page[page.index('class="panel filters"') : page.index('class="panel records"')]
   assert 'id="status-filter"' not in rail, "the rail keeps no second filter row"
+
+
+def test_the_status_filter_applies_on_the_pick(app, db):
+  """A picked status sends at once, and the field reads as a select."""
+  client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+
+  page = client.get("/").get_data(as_text=True)
+  toolbar = page[page.index('class="list-toolbar"') : page.index('class="group-title"')]
+  form = toolbar[toolbar.index('class="filter-form"') :]
+  form = form[: form.index("</form>")]
+  assert "data-auto-submit" in form, "a changed pick sends the form"
+  assert 'id="status-filter"' in form
+  assert form.index("<noscript>") < form.index("Apply status"), (
+    "the button waits for a reader without JavaScript"
+  )
+
+  script = client.get("/static/app.js").data.decode()
+  assert "form[data-auto-submit]" in script, "the script sends on a change"
+  assert "requestSubmit" in script, "the send keeps the form's own rules"
+
+  css = client.get("/static/app.css").data.decode()
+  toolbar_rule = css[css.index(".list-toolbar .filter-form select {") :].split("}", 1)[
+    0
+  ]
+  assert "padding: 6px 32px 6px 10px" in toolbar_rule, "the chevron clears the text"
+  base = css[css.index("\n.filter-form select {") :].split("}", 1)[0]
+  assert "background-color: var(--surface)" in base, "a shorthand would drop the arrow"
 
 
 def test_the_workspace_rows_read_like_a_dense_list(app, db):
