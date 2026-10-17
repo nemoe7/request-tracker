@@ -28,7 +28,7 @@
   <section class="panel records" aria-label="Records">
     <div class="list-toolbar">
       <h1>Workspace</h1>
-      <form class="filter-form" method="get" action="{{ url_for('records.workspace') }}">
+      <form class="filter-form" method="get" action="{{ url_for('records.workspace') }}" data-auto-submit>
         <input type="hidden" name="queue" value="{{ queue }}">
         <input type="hidden" name="domain" value="{{ domain }}">
         <input type="hidden" name="visibility" value="{{ visibility }}">
@@ -39,9 +39,9 @@
           <option value="{{ value }}"{% if status_filter == value %} selected{% endif %}>{{ value | capitalize }}</option>
           {% endfor %}
         </select>
-        <button class="btn" type="submit">Apply status</button>
+        <noscript><button class="btn" type="submit">Apply status</button></noscript>
       </form>
-      <a class="btn primary" href="{{ url_for('records.request_new') }}">New request</a>
+      <a class="btn" href="{{ url_for('records.request_new') }}">New request</a>
     </div>
 
     {% for group, group_rows, group_id in [("Unread", unread_rows, "group-unread"), ("Opened", opened_rows, "group-opened")] %}
