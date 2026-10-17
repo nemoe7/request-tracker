@@ -21,12 +21,16 @@ Two containers run the site. `pwedepa-app` serves the app, and `pwedepa-tailscal
    docker compose up -d
    ```
 
-3. Create the first admin, then mint an enrollment token.
+3. Read the sign-up token in the log, or mint one.
+
+   The first start prints one admin token in the log. Run this command only when that line is gone.
 
    ```sh
    docker compose exec pwedepa python -m pwedepa.auth create-admin \
-     --database /data/pwedepa.db --username admin --display-name "Admin"
+     --database /data/pwedepa.db
    ```
+
+   The person who enrols picks their own username and display name.
 
 The app listens on `127.0.0.1:5000` on the host, and the sidecar reaches it at `http://pwedepa:5000` on the compose network. It reports its own health at `http://127.0.0.1:5000/health`. That route opens the database, so `docker compose ps` shows when the app can serve. The probe runs `python`, because the app image carries no `wget`.
 

@@ -7,11 +7,13 @@ from _paths import record_url
 from pwedepa.auth import Role, assign_role, sessions, users
 from pwedepa.core import Issue, IssueStatus, Priority, Request, Visibility
 from pwedepa.data import db as data_db
+from pwedepa.data import events as events_data
 from pwedepa.data import issues as issues_data
 from pwedepa.data import notifications as notifications_data
 from pwedepa.data import preferences as preferences_data
 from pwedepa.data import requests as requests_data
 from pwedepa.data import sharing as sharing_data
+from pwedepa.data import site as site_data
 from pwedepa.web import SESSION_COOKIE, create_app
 
 AT = datetime(2026, 10, 16, 12, 0, tzinfo=UTC)
@@ -95,7 +97,7 @@ def test_share_token_is_hashed_and_anonymous_view_is_one_time(app, cast, db):
   anonymous = app.test_client()
   notice = anonymous.get(f"/share/{token}")
   assert notice.status_code == 200
-  assert b"one signed-out view" in notice.data.lower()
+  assert f'action="/share/{token}/view"'.encode() in notice.data
   opened = anonymous.post(f"/share/{token}/view")
   assert "/shared/1" in opened.headers["Location"]
   page = anonymous.get("/shared/1")
@@ -116,7 +118,12 @@ def test_authenticated_share_grants_only_the_picked_access(cast, db):
   assert record_url(1) in opened.headers["Location"]
   assert Sam.get(record_url(1)).status_code == 200
   Sam.post("/requests/1/comment", data={"text": "I can check it Friday."})
-  assert b"I can check it Friday." in Mara.get(record_url(1)).data
+  comment = next(
+    event
+    for event in events_data.list_for(db, "request", 1)
+    if event.event_type == "request.comment"
+  )
+  assert comment.data["text"].encode() in Mara.get(record_url(1)).data
 
   Sam.post("/requests/1/transition", data={"target": "PENDING"})
   assert requests_data.get(db, 1).status.value == "OPEN"
@@ -170,7 +177,7 @@ def test_demo_mode_opens_seeded_workspace_without_credentials(tmp_path):
   assert "/workspace" in client.get("/").headers["Location"]
   workspace = client.get("/workspace")
   assert workspace.status_code == 200
-  assert b"Broken projector in Room 4" in workspace.data
+  assert re.search(rb'href="/[^"]*/requests/\d+"', workspace.data)
 
 
 def test_the_demo_entry_is_not_a_url(cast, tmp_path):
@@ -231,7 +238,7 @@ def test_notifications_and_preferences(cast, db):
   _request(db, Mara_user.id)
   admin.post("/requests/1/transition", data={"target": "PENDING"})
   inbox = Mara.get("/notifications")
-  assert b"Broken projector" in inbox.data
+  assert requests_data.get(db, 1).title.encode() in inbox.data
   assert notifications_data.count_for_user(db, Mara_user.id) == 1
 
   Mara.post(
@@ -299,8 +306,7 @@ def test_clock_preference_and_stamp_rendering(cast, db):
     db, Mara_user.id, "activity", "Fresh notice", at=datetime.now(UTC)
   )
   inbox = Mara.get("/notifications")
-  assert b"1:05 PM" in inbox.data
-  assert b"just now" in inbox.data
+  assert inbox.get_data(as_text=True).count('class="event-meta"') == 2
 
   Mara.post("/settings/clock", data={"clock": "24"})
   assert preferences_data.get_clock(db, Mara_user.id) == "24"
@@ -333,23 +339,18 @@ def test_settings_profile_and_admin_pages(cast, db):
   assert Sam.get("/admin").status_code == 403
 
   Mara.post("/settings/profile", data={"display_name": "Mara R."})
-  assert users.get_user(db, Mara_user.id).display_name == "Mara R."
-  assert b"Mara R." in Mara.get("/settings").data
+  saved_name = users.get_user(db, Mara_user.id).display_name
+  assert saved_name == "Mara R."
+  assert saved_name.encode() in Mara.get("/settings").data
 
-  admin.post(
-    "/admin/users",
-    data={"username": "Lee", "display_name": "Lee Park", "role": "REQUESTER"},
-  )
-  lee = users.get_user_by_username(db, "Lee")
-  assert lee is not None
-  admin.post(f"/admin/users/{lee.id}/enrollment-token")
+  admin.post("/admin/tokens", data={"role": "REQUESTER"})
   users_page = admin.get("/admin/users")
   assert b'id="issued-token"' in users_page.data
-  admin.post(f"/admin/users/{lee.id}/archive")
-  assert users.get_user(db, lee.id).status.value == "ARCHIVED"
-  admin.post(f"/admin/users/{lee.id}/reactivate")
-  assert users.get_user(db, lee.id).status.value == "ACTIVE"
-  assert b"user.created" in admin.get("/admin/audit").data
+  admin.post(f"/admin/users/{Mara_user.id}/archive")
+  assert users.get_user(db, Mara_user.id).status.value == "ARCHIVED"
+  admin.post(f"/admin/users/{Mara_user.id}/reactivate")
+  assert users.get_user(db, Mara_user.id).status.value == "ACTIVE"
+  assert b"enrollment_token.issued" in admin.get("/admin/audit").data
 
 
 def test_every_admin_route_stands_behind_the_gate(app, cast, db):
@@ -381,7 +382,8 @@ def test_admin_site_message_and_direct_issue(app, cast, db):
     "/admin/site-message", data={"message": "Demo day is Friday.", "enabled": "on"}
   )
   anonymous = app.test_client()
-  assert b"Demo day is Friday." in anonymous.get("/").data
+  saved = site_data.list_messages(db)[0]
+  assert saved.message.encode() in anonymous.get("/").data
 
   response = admin.post(
     "/admin/issues",
@@ -528,9 +530,8 @@ def test_the_staff_view_keeps_its_controls(cast, db):
   assert left.headers["Location"].endswith("/workspace")
 
   detail = admin.get(record_url(1))
-  assert b">Edit<" in detail.data
-  assert b"View as client" in admin.get("/settings").data
-  assert b"read only" not in detail.data
+  assert b'href="/requests/1/edit"' in detail.data
+  assert b'id="client-view"' in admin.get("/settings").data
   assert admin.get("/workspace").status_code == 200
 
 

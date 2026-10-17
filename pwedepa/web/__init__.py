@@ -23,6 +23,30 @@ DEVELOPMENT_SECRET = "pwedepa-dev-secret"
 LOCAL_HOSTS = ("localhost", "127.0.0.1", "::1")
 
 
+def print_first_token(app: Flask) -> None:
+  """Print one admin sign-up token when the database holds no account."""
+  from pwedepa.auth import Role, users
+  from pwedepa.auth import enrollment as tokens
+
+  if app.config.get("DEMO_MODE"):
+    return
+  connection = data_db.connect(app.config["DATABASE"])
+  try:
+    if users.count_users(connection):
+      return
+    at = now()
+    if tokens.has_waiting(connection, at=at):
+      print(
+        "An enrollment token already waits. Use it, or run the CLI for a new one.",
+        flush=True,
+      )
+      return
+    issued = tokens.issue_enrollment_token(connection, role=Role.ADMIN, at=at)
+    print(f"Enrollment token: {issued.token}", flush=True)
+  finally:
+    connection.close()
+
+
 def create_app(config: dict | None = None) -> Flask:
   """Build the app from environment defaults plus explicit overrides."""
   app = Flask(__name__)

@@ -9,18 +9,17 @@
 
 {% if issued_token %}
 <div class="share-once panel">
-  <label for="issued-token">Copy this enrollment token now</label>
+  <label for="issued-token">Copy this sign-up token now</label>
   <input id="issued-token" type="text" readonly value="{{ issued_token }}">
 </div>
 {% endif %}
 
 <section class="panel admin-section">
-  <h2>Create user</h2>
-  <form class="form inline-form create-user" method="post" action="{{ url_for('admin.create_person') }}">
-    <div class="field"><label for="new-username">Username</label><input id="new-username" name="username" type="text" required></div>
-    <div class="field"><label for="new-display">Display name</label><input id="new-display" name="display_name" type="text" required></div>
-    <div class="field"><label for="new-role">Role</label><select id="new-role" name="role"><option value="">No role</option>{% for role in roles %}<option value="{{ role }}">{{ role | capitalize }}</option>{% endfor %}</select></div>
-    <button class="btn primary" type="submit">Create user</button>
+  <h2>Sign-up token</h2>
+  <p class="muted">The person who enrols picks their own username and display name.</p>
+  <form class="form inline-form create-token" method="post" action="{{ url_for('admin.issue_token') }}">
+    <div class="field"><label for="new-role">Role</label><select id="new-role" name="role">{% for role in roles %}<option value="{{ role }}">{{ role | capitalize }}</option>{% endfor %}</select></div>
+    <button class="btn primary" type="submit">Create token</button>
   </form>
 </section>
 
@@ -38,7 +37,6 @@
         {% else %}
         <form method="post" action="{{ url_for('admin.reactivate', user_id=person.id) }}"><button class="btn" type="submit">Reactivate</button></form>
         {% endif %}
-        <form method="post" action="{{ url_for('admin.enrollment_token', user_id=person.id) }}"><button class="btn" type="submit">Enrollment token</button></form>
       </div>
     </div>
 

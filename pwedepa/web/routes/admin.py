@@ -22,7 +22,6 @@ from pwedepa.auth import (
   actor_for_user,
   archive_user,
   assign_role,
-  create_user,
   grant_permission,
   issue_enrollment_token,
   list_audit_events,
@@ -153,21 +152,15 @@ def users() -> str | Response:
   )
 
 
-@bp.post("/admin/users")
-def create_person() -> Response:
-  """Create a user from the admin page."""
+@bp.post("/admin/tokens")
+def issue_token() -> Response:
+  """Issue a sign-up token for one role and show it once."""
   try:
-    person = create_user(
-      db(),
-      request.form.get("username", ""),
-      request.form.get("display_name", ""),
-      at=now(),
-      actor_id=g.admin_user.id,
+    issued = issue_enrollment_token(
+      db(), role=Role(request.form.get("role", "")), at=now(), actor_id=g.admin_user.id
     )
-    role = request.form.get("role", "")
-    if role:
-      assign_role(db(), person.id, Role(role), at=now(), actor_id=g.admin_user.id)
-    flash(f"User {person.username} created.")
+    session["issued_enrollment"] = {"token": issued.token}
+    flash("Sign-up token created. Copy it now.")
   except (AuthError, ValueError) as error:
     flash(str(error))
   return redirect(url_for("admin.users"))
@@ -213,18 +206,6 @@ def change_grant(user_id: int) -> Response:
     grant_permission(
       db(), user_id, Grant(permission, effect), at=now(), actor_id=g.admin_user.id
     )
-  return redirect(url_for("admin.users"))
-
-
-@bp.post("/admin/users/<int:user_id>/enrollment-token")
-def enrollment_token(user_id: int) -> Response:
-  """Issue an enrollment token and show it once."""
-  try:
-    issued = issue_enrollment_token(db(), user_id, at=now(), actor_id=g.admin_user.id)
-    session["issued_enrollment"] = {"token": issued.token}
-    flash("Enrollment token created. Copy it now.")
-  except AuthError as error:
-    flash(str(error))
   return redirect(url_for("admin.users"))
 
 
