@@ -5,6 +5,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
@@ -32,18 +33,7 @@ def test_pages_workflow_builds_and_deploys():
 
 
 def test_frozen_demo_keeps_pages_and_assets_relative(tmp_path):
-  out = tmp_path / "site"
-  env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
-  result = subprocess.run(
-    [sys.executable, str(ROOT / "scripts" / "build_pages_demo.py")],
-    cwd=ROOT,
-    env=env,
-    capture_output=True,
-    text=True,
-    timeout=120,
-    check=False,
-  )
-  assert result.returncode == 0, result.stderr
+  out = _frozen_site()
   index = (out / "index.html").read_text(encoding="utf-8")
   assert re.search(r'href="[^"]*/requests/1/"', index)
   assert 'href="/static' not in index
@@ -76,18 +66,7 @@ def test_the_frozen_theme_stays_a_browser_choice(tmp_path):
 
 
 def test_frozen_demo_opens_rail_filters_and_selected_records(tmp_path):
-  out = tmp_path / "site"
-  env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
-  result = subprocess.run(
-    [sys.executable, str(ROOT / "scripts" / "build_pages_demo.py")],
-    cwd=ROOT,
-    env=env,
-    capture_output=True,
-    text=True,
-    timeout=120,
-    check=False,
-  )
-  assert result.returncode == 0, result.stderr
+  out = _frozen_site()
   index = (out / "index.html").read_text(encoding="utf-8")
   queue = re.search(r'href="(workspace/queue/mine)/"', index)
   assert queue, "a queue link should open its own frozen page"
@@ -130,18 +109,7 @@ def test_the_status_links_sit_in_the_rail_like_the_domain_links(tmp_path):
 
 
 def test_the_client_tabs_lead_to_client_shaped_pages(tmp_path):
-  out = tmp_path / "site"
-  env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
-  result = subprocess.run(
-    [sys.executable, str(ROOT / "scripts" / "build_pages_demo.py")],
-    cwd=ROOT,
-    env=env,
-    capture_output=True,
-    text=True,
-    timeout=120,
-    check=False,
-  )
-  assert result.returncode == 0, result.stderr
+  out = _frozen_site()
   home = (out / "home" / "index.html").read_text(encoding="utf-8")
   for head, folder in (("requests", "home/requests"), ("issues", "home/issues")):
     assert f'href="{folder}/"' in home, f"the {head} tab opens the client copy"
@@ -162,18 +130,7 @@ def test_the_client_tabs_lead_to_client_shaped_pages(tmp_path):
 
 
 def test_the_frozen_switch_links_stay_in_the_frozen_sets(tmp_path):
-  out = tmp_path / "site"
-  env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
-  result = subprocess.run(
-    [sys.executable, str(ROOT / "scripts" / "build_pages_demo.py")],
-    cwd=ROOT,
-    env=env,
-    capture_output=True,
-    text=True,
-    timeout=120,
-    check=False,
-  )
-  assert result.returncode == 0, result.stderr
+  out = _frozen_site()
   staff = (out / "workspace" / "index.html").read_text(encoding="utf-8")
   client = (out / "home" / "index.html").read_text(encoding="utf-8")
   assert re.search(r'<a href="[^"]*workspace/" class="on">Staff</a>', staff)
@@ -183,18 +140,7 @@ def test_the_frozen_switch_links_stay_in_the_frozen_sets(tmp_path):
 
 
 def test_a_client_copy_keeps_her_controls_in_the_client_pages(tmp_path):
-  out = tmp_path / "site"
-  env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
-  result = subprocess.run(
-    [sys.executable, str(ROOT / "scripts" / "build_pages_demo.py")],
-    cwd=ROOT,
-    env=env,
-    capture_output=True,
-    text=True,
-    timeout=120,
-    check=False,
-  )
-  assert result.returncode == 0, result.stderr
+  out = _frozen_site()
   client = (out / "home").resolve()
   copies = sorted((out / "home" / "requests").glob("*/index.html"))
   assert copies, "a client record copy exists"
@@ -212,18 +158,7 @@ def test_a_client_copy_keeps_her_controls_in_the_client_pages(tmp_path):
 
 
 def test_frozen_demo_ships_no_writes_and_no_dead_links(tmp_path):
-  out = tmp_path / "site"
-  env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
-  result = subprocess.run(
-    [sys.executable, str(ROOT / "scripts" / "build_pages_demo.py")],
-    cwd=ROOT,
-    env=env,
-    capture_output=True,
-    text=True,
-    timeout=120,
-    check=False,
-  )
-  assert result.returncode == 0, result.stderr
+  out = _frozen_site()
   pages = sorted(out.rglob("index.html"))
   assert pages
   for page in pages:
@@ -238,8 +173,14 @@ def test_frozen_demo_ships_no_writes_and_no_dead_links(tmp_path):
       assert path.exists(), (page, target)
 
 
-def _frozen_site(tmp_path):
-  out = tmp_path / "site"
+_SITE: list[Path] = []
+
+
+def _frozen_site(*_tmp_path) -> Path:
+  """Build the demo once per worker, because every test reads the same pages."""
+  if _SITE:
+    return _SITE[0]
+  out = Path(tempfile.mkdtemp(prefix="frozen-demo-")) / "site"
   env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}
   result = subprocess.run(
     [sys.executable, str(ROOT / "scripts" / "build_pages_demo.py")],
@@ -251,6 +192,7 @@ def _frozen_site(tmp_path):
     check=False,
   )
   assert result.returncode == 0, result.stderr
+  _SITE.append(out)
   return out
 
 
