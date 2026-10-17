@@ -26,6 +26,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - `compose.yml` runs the published image, and `compose.dev.yml` builds the checkout for local runs.
 - The frozen demo opens every rail filter, its status filter included, from a link and a page of its own.
+- The workspace inspector and the admin audit page read only the rows they show.
 
 ### Fixed
 
@@ -36,6 +37,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - The database prepares its schema once for each file.
 - A session stamps its use at most once an hour.
 - The workspace reads its three preference rows in one query.
+- The share form reads every day count the number field allows, so a value such as `1e3` no longer fails the page.
+- A submitted value the page cannot send returns a sentence, and an edit keeps the field it cannot read.
 
 ### Removed
 
