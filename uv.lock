@@ -508,7 +508,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "sqlalchemy", specifier = ">=2.1.4" },
     { name = "uvicorn", specifier = ">=0.54.0" },
-    { name = "webauthn", specifier = ">=3.0.1" },
+    { name = "webauthn", specifier = ">=3.0.1,<4" },
 ]
 
 [package.metadata.requires-dev]

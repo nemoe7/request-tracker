@@ -47,6 +47,8 @@ The dev file supplies a sample session secret and a localhost origin, so a local
 
 The dev compose sets `PWEDEPA_ENV=dev`, so the app reads `config.dev.yml` over `config.yml`.
 
+The dev config also carries a `seed:` list, and a dev start inserts it when the requests and issues tables are empty.
+
 ## Tailscale Funnel
 
 The `tailscale` service joins your tailnet and serves the public HTTPS name with Funnel. It reports its own health at `http://127.0.0.1:9002/healthz`, so `docker compose ps` tells when the node is ready. It mounts the `tailscale` folder at `/config` and reads `serve.json` from it as `TS_SERVE_CONFIG`. The config proxies the public name to `http://pwedepa:5000`.
@@ -82,5 +84,7 @@ To run the preview demo on your own machine, ask for demo mode in code:
 - Back up the `pwedepa-data` volume. It holds the only database copy.
 - The `tailscale-state` volume holds the node identity, so a rebuild keeps the device. Restart the sidecar after you edit `tailscale/serve.json`, because it reads the file at startup.
 - The starter Domains come from `config.yml`. Keep it at the project root. The image copies it to `/app/config.yml`, and compose mounts it read-only at `/config/config.yml`. A missing file fails the demo seed with a clear error. A key in that file wins over the same environment variable. The old `PWEDEPA_DOMAINS_CONFIG` variable still names the mount for one release.
+- The passkey library stays on 3.x. Read its changelog before a major bump, because the
+  ceremony API changed between majors.
 - Demo mode stays off in deployment. Code asks for it, and no environment variable sets it.
 - The container workflow scans each image build for high and critical findings.
