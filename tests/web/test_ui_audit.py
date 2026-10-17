@@ -609,7 +609,7 @@ def test_admin_row_buttons_match_their_fields(app):
 
 
 def test_the_role_forms_offer_only_sensible_roles(app, db):
-  """Assign lists what is missing. Revoke lists what is held."""
+  """Assign lists what is missing. Revoke lists what the person holds."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   listing = client.get("/admin/users").data.decode()
   card = listing[listing.index("admin-user-list") :]
