@@ -13,6 +13,9 @@ MOUNTED_ENV = "PWEDEPA_DOMAINS_CONFIG"
 IMPORTED_NAME = "domains.imported.yaml"
 
 
+_SLUG = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
+
+
 class DomainConfigError(ValueError):
   """The config file cannot become a list of Domains."""
 
@@ -76,7 +79,15 @@ def parse(text: str) -> tuple[Domain, ...]:
     description = entry.get("description", "")
     if not isinstance(description, str):
       raise DomainConfigError(f"{name}: the description must be text")
-    slug = slugify(name)
+    pinned = entry.get("slug")
+    if pinned is None:
+      slug = slugify(name)
+    elif not isinstance(pinned, str) or not _SLUG.fullmatch(pinned.strip()):
+      raise DomainConfigError(
+        f"{name}: the slug uses lowercase letters, digits, and single dashes"
+      )
+    else:
+      slug = pinned.strip()
     if not slug:
       raise DomainConfigError(f"{name}: the name makes no URL slug")
     if slug in seen:
@@ -98,14 +109,19 @@ def load(db_path: str | Path | None = None) -> tuple[Domain, ...]:
   return parse(path.read_text(encoding="utf-8"))
 
 
+def _entry(domain: Domain) -> dict[str, str]:
+  """Write one Domain, and keep a pinned slug that the name would not make."""
+  entry = {"name": domain.name}
+  if domain.slug != slugify(domain.name):
+    entry["slug"] = domain.slug
+  entry["description"] = domain.description
+  return entry
+
+
 def render(found: tuple[Domain, ...]) -> str:
   """Return canonical YAML for one imported set."""
   return yaml.safe_dump(
-    {
-      "domains": [
-        {"name": domain.name, "description": domain.description} for domain in found
-      ]
-    },
+    {"domains": [_entry(domain) for domain in found]},
     allow_unicode=True,
     sort_keys=False,
   )

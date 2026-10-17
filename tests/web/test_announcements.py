@@ -7,6 +7,7 @@ import pytest
 from pwedepa.auth import Role, assign_role, sessions, users
 from pwedepa.data import announcements as announcements_data
 from pwedepa.data import db as data_db
+from pwedepa.data import domains as domains_data
 from pwedepa.data import notifications as notifications_data
 from pwedepa.data import subscriptions
 from pwedepa.web import SESSION_COOKIE, create_app
@@ -198,3 +199,28 @@ def test_a_muted_activity_switch_keeps_the_announcement_out(db, staff, requester
   saved = announcements_data.list_for_slug(db, "gym")[0]
 
   assert saved.title not in person_client.get("/notifications").get_data(as_text=True)
+
+
+def test_a_rename_keeps_the_announcement_and_the_subscription(
+  app, db, staff, requester, tmp_path, monkeypatch
+):
+  author, _ = staff
+  reader, reader_user = requester
+  _post(author, "/gym/announcements")
+  reader.post("/gym/subscribe")
+  saved = announcements_data.list_for_slug(db, "gym")[0]
+  assert subscriptions.subscribed(db, reader_user.id, "gym")
+
+  renamed = tmp_path / "domains.yaml"
+  renamed.write_text(
+    "domains:\n"
+    "  - name: Gym and Climbing\n"
+    "    slug: gym\n"
+    "    description: Training plans.\n",
+    encoding="utf-8",
+  )
+  monkeypatch.setattr(domains_data, "CONFIG", renamed)
+
+  page = reader.get("/gym").get_data(as_text=True)
+  assert "Gym and Climbing" in page
+  assert saved.title in page

@@ -1,5 +1,5 @@
 # The Domains this app offers. The admin page imports this file.
-# Each entry needs a name. The description shows on the Domain page.
+# Each entry needs a name. Add `slug:` to hold the URL when a name changes.
 domains:
   - name: 3D Print/Model
     description: Models, parts, and print jobs.

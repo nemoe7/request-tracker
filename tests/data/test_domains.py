@@ -119,3 +119,16 @@ def test_the_stub_seeds_only_configured_domains(tmp_path):
   finally:
     connection.close()
   assert found == set(starter_domains()), "every configured Domain shows in the stub"
+
+
+def test_a_pinned_slug_survives_a_rename():
+  found = domains_data.parse(
+    "domains:\n  - name: Gym and Climbing\n    slug: gym\n    description: Training.\n"
+  )
+  assert found[0].slug == "gym"
+  assert found[0].name == "Gym and Climbing"
+
+
+def test_a_pinned_slug_must_be_a_url_segment():
+  with pytest.raises(DomainConfigError):
+    domains_data.parse("domains:\n  - name: Gym\n    slug: Gym / Hall\n")
