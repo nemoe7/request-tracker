@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="392" viewBox="0 0 800 392" font-family="-apple-system, Segoe UI, Roboto, sans-serif">
+<rect width="800" height="392" fill="#0C1118"/>
+<text x="24" y="32" fill="#93A5B8" font-size="11" font-weight="600" letter-spacing="1.4">STATES</text>
+<text x="24" y="62" fill="#93A5B8" font-size="10" letter-spacing="1.2">HOVER · POINTER ONLY</text>
+<rect x="24" y="72" width="480" height="24" fill="#182233" rx="4"/>
+<text x="36" y="88" fill="#93A5B8" font-size="8" letter-spacing="0.8">REQUESTER</text>
+<text x="190" y="88" fill="#93A5B8" font-size="8" letter-spacing="0.8">REQUEST</text>
+<text x="430" y="88" fill="#93A5B8" font-size="8" letter-spacing="0.8">STATE</text>
+<text x="36" y="116" fill="#E4EBF3" font-size="11">Demo Requester</text>
+<text x="190" y="116" fill="#93A5B8" font-size="11">Broken projector in Room 4</text>
+<rect x="430" y="107" width="48" height="22" fill="#6EA8FE22" stroke="#6EA8FE55" stroke-width="1" rx="11"/>
+<circle cx="442" cy="118" r="3" fill="#6EA8FE"/>
+<text x="450" y="122" fill="#6EA8FE" font-size="10">Open</text>
+<line x1="24" y1="140" x2="504" y2="140" stroke="#243144" stroke-width="1"/>
+<rect x="24" y="140" width="480" height="44" fill="#131B26" rx="4"/>
+<rect x="24" y="140" width="3" height="44" fill="#6EA8FE"/>
+<text x="36" y="160" fill="#E4EBF3" font-size="11" font-weight="600">Mara Reyes</text>
+<text x="190" y="160" fill="#93A5B8" font-size="11">New shelves for the corner</text>
+<rect x="430" y="151" width="69" height="22" fill="#F5B04C22" stroke="#F5B04C55" stroke-width="1" rx="11"/>
+<circle cx="442" cy="162" r="3" fill="#F5B04C"/>
+<text x="450" y="166" fill="#F5B04C" font-size="10">Pending</text>
+<line x1="24" y1="184" x2="504" y2="184" stroke="#243144" stroke-width="1"/>
+<text x="36" y="204" fill="#E4EBF3" font-size="11">Sam Ortiz</text>
+<text x="190" y="204" fill="#93A5B8" font-size="11">Passkey for the new laptop</text>
+<rect x="430" y="195" width="76" height="22" fill="#FF9C9422" stroke="#FF9C9455" stroke-width="1" rx="11"/>
+<circle cx="442" cy="206" r="3" fill="#FF9C94"/>
+<text x="450" y="210" fill="#FF9C94" font-size="10">Rejected</text>
+<line x1="24" y1="228" x2="504" y2="228" stroke="#243144" stroke-width="1"/>
+<text x="24" y="250" fill="#93A5B8" font-size="11">A row lifts only where a pointer exists.</text>
+<text x="544" y="62" fill="#93A5B8" font-size="10" letter-spacing="1.2">FOCUS · 2 PX RING</text>
+<rect x="540" y="68" width="236" height="44" fill="none" stroke="#6EA8FE" stroke-width="2" rx="9"/>
+<rect x="544" y="72" width="228" height="36" fill="#0C1118" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="558" y="95" fill="#93A5B8" font-size="12">Search the queue</text>
+<text x="544" y="130" fill="#93A5B8" font-size="11">Every control, keyboard or pointer.</text>
+<text x="544" y="174" fill="#93A5B8" font-size="10" letter-spacing="1.2">REDUCED MOTION</text>
+<rect x="540" y="182" width="236" height="40" fill="#182233" rx="8"/>
+<text x="556" y="207" fill="#E4EBF3" font-size="12">Animation off</text>
+<rect x="696" y="191" width="40" height="22" fill="#243144" rx="11"/>
+<circle cx="706" cy="202" r="8" fill="#FFFFFF"/>
+<text x="544" y="240" fill="#93A5B8" font-size="11">The move still reads; nothing slides.</text>
+<rect x="24" y="282" width="752" height="88" fill="#182233" rx="8"/>
+<circle cx="60" cy="326" r="14" fill="none" stroke="#93A5B8" stroke-width="1.5"/>
+<circle cx="54" cy="322" r="1.8" fill="#93A5B8"/>
+<circle cx="66" cy="322" r="1.8" fill="#93A5B8"/>
+<path d="M54 333 q6 5 12 0" stroke="#93A5B8" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+<text x="92" y="320" fill="#E4EBF3" font-size="13">Nothing here yet.</text>
+<text x="92" y="340" fill="#93A5B8" font-size="11">An empty list says what is missing and offers one action.</text>
+<rect x="650" y="308" width="108" height="30" fill="none" stroke="#243144" stroke-width="1" rx="7"/>
+<text x="704" y="328" fill="#E4EBF3" font-size="11" text-anchor="middle">New request</text>
+</svg>

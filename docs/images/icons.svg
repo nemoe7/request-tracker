@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="268" viewBox="0 0 800 268" font-family="-apple-system, Segoe UI, Roboto, sans-serif">
+<rect width="800" height="268" fill="#0C1118"/>
+<text x="24" y="32" fill="#93A5B8" font-size="11" font-weight="600" letter-spacing="1.4">ICONS · LUCIDE AT 18 PX</text>
+<rect x="24" y="56" width="72" height="64" fill="#182233" rx="8"/>
+<g transform="translate(51 68) scale(0.75)" stroke="#E4EBF3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7" />
+  <path d="M19 12H5" /></g>
+<text x="60" y="108" fill="#93A5B8" font-size="8" text-anchor="middle">arrow-left</text>
+<rect x="104" y="56" width="72" height="64" fill="#182233" rx="8"/>
+<g transform="translate(131 68) scale(0.75)" stroke="#E4EBF3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+  <path d="m15 5 4 4" /></g>
+<text x="140" y="108" fill="#93A5B8" font-size="8" text-anchor="middle">pencil</text>
+<rect x="184" y="56" width="72" height="64" fill="#182233" rx="8"/>
+<g transform="translate(211 68) scale(0.75)" stroke="#E4EBF3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" />
+  <path d="M12 5v14" /></g>
+<text x="220" y="108" fill="#93A5B8" font-size="8" text-anchor="middle">plus</text>
+<rect x="264" y="56" width="72" height="64" fill="#182233" rx="8"/>
+<g transform="translate(291 68) scale(0.75)" stroke="#E4EBF3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34" />
+  <circle cx="11" cy="11" r="8" /></g>
+<text x="300" y="108" fill="#93A5B8" font-size="8" text-anchor="middle">search</text>
+<rect x="344" y="56" width="72" height="64" fill="#182233" rx="8"/>
+<g transform="translate(371 68) scale(0.75)" stroke="#E4EBF3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0" />
+  <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" /></g>
+<text x="380" y="108" fill="#93A5B8" font-size="8" text-anchor="middle">bell</text>
+<rect x="424" y="56" width="72" height="64" fill="#182233" rx="8"/>
+<g transform="translate(451 68) scale(0.75)" stroke="#E4EBF3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
+  <circle cx="12" cy="12" r="3" /></g>
+<text x="460" y="108" fill="#93A5B8" font-size="8" text-anchor="middle">settings</text>
+<rect x="24" y="132" width="72" height="64" fill="#182233" rx="8"/>
+<g transform="translate(51 144) scale(0.75)" stroke="#E4EBF3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" />
+  <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" /></g>
+<text x="60" y="184" fill="#93A5B8" font-size="8" text-anchor="middle">key-round</text>
+<rect x="104" y="132" width="72" height="64" fill="#182233" rx="8"/>
+<g transform="translate(131 144) scale(0.75)" stroke="#E4EBF3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+  <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" /></g>
+<text x="140" y="184" fill="#93A5B8" font-size="8" text-anchor="middle">inbox</text>
+<rect x="184" y="132" width="72" height="64" fill="#182233" rx="8"/>
+<g transform="translate(211 144) scale(0.75)" stroke="#E4EBF3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" />
+  <path d="M12 6v6l4 2" /></g>
+<text x="220" y="184" fill="#93A5B8" font-size="8" text-anchor="middle">clock</text>
+<rect x="264" y="132" width="72" height="64" fill="#182233" rx="8"/>
+<g transform="translate(291 144) scale(0.75)" stroke="#E4EBF3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></g>
+<text x="300" y="184" fill="#93A5B8" font-size="8" text-anchor="middle">chevron-right</text>
+<rect x="344" y="132" width="72" height="64" fill="#182233" rx="8"/>
+<g transform="translate(371 144) scale(0.75)" stroke="#E4EBF3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 17 5-5-5-5" />
+  <path d="M21 12H9" />
+  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /></g>
+<text x="380" y="184" fill="#93A5B8" font-size="8" text-anchor="middle">log-out</text>
+<rect x="424" y="132" width="72" height="64" fill="#182233" rx="8"/>
+<g transform="translate(451 144) scale(0.75)" stroke="#E4EBF3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18" />
+  <path d="m6 6 12 12" /></g>
+<text x="460" y="184" fill="#93A5B8" font-size="8" text-anchor="middle">x</text>
+<text x="536" y="88" fill="#E4EBF3" font-size="12">One sprite, 19 symbols.</text>
+<text x="536" y="108" fill="#93A5B8" font-size="12">18 px, drawn in the</text>
+<text x="536" y="126" fill="#93A5B8" font-size="12">current text colour.</text>
+<text x="536" y="164" fill="#93A5B8" font-size="12">Both licences and</text>
+<text x="536" y="182" fill="#93A5B8" font-size="12">NOTICE.md ship beside</text>
+<text x="536" y="200" fill="#93A5B8" font-size="12">the assets.</text>
+<text x="24" y="250" fill="#93A5B8" font-size="12">The app mark is the Noto Emoji pleading face.</text>
+</svg>

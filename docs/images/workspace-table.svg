@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="440" viewBox="0 0 800 440" font-family="-apple-system, Segoe UI, Roboto, sans-serif">
+<rect width="800" height="440" fill="#0C1118"/>
+<rect x="0" y="0" width="800" height="40" fill="#131B26"/>
+<rect x="0" y="39" width="800" height="1" fill="#243144"/>
+<text x="16" y="26" fill="#E4EBF3" font-size="15" font-weight="700">PwedePa</text>
+<circle cx="776" cy="20" r="6" fill="none" stroke="#93A5B8" stroke-width="1.5"/>
+<circle cx="748" cy="20" r="6" fill="none" stroke="#93A5B8" stroke-width="1.5"/>
+<circle cx="720" cy="20" r="6" fill="none" stroke="#93A5B8" stroke-width="1.5"/>
+<text x="16" y="70" fill="#93A5B8" font-size="10" letter-spacing="1">QUEUE</text>
+<rect x="8" y="73" width="184" height="28" rx="6" fill="#182233"/>
+<text x="18" y="91" fill="#E4EBF3" font-size="12">• Needs triage</text>
+<rect x="8" y="107" width="184" height="28" rx="6" fill="none"/>
+<text x="18" y="125" fill="#93A5B8" font-size="12">Assigned to me</text>
+<rect x="8" y="141" width="184" height="28" rx="6" fill="none"/>
+<text x="18" y="159" fill="#93A5B8" font-size="12">Blocked</text>
+<rect x="8" y="175" width="184" height="28" rx="6" fill="none"/>
+<text x="18" y="193" fill="#93A5B8" font-size="12">Public</text>
+<text x="16" y="232" fill="#93A5B8" font-size="10" letter-spacing="1">DOMAIN</text>
+<text x="18" y="253" fill="#93A5B8" font-size="12">All domains</text>
+<text x="18" y="279" fill="#93A5B8" font-size="12">3D Print/Model</text>
+<text x="18" y="305" fill="#93A5B8" font-size="12">Asset Tracker</text>
+<path d="M0 40 V440" stroke="#243144" stroke-width="1"/>
+<text x="220" y="76" fill="#93A5B8" font-size="10" letter-spacing="1">REQUESTER</text><text x="350" y="76" fill="#93A5B8" font-size="10" letter-spacing="1">REQUEST</text><text x="674" y="76" fill="#93A5B8" font-size="10" letter-spacing="1">STATUS</text><text x="742" y="76" fill="#93A5B8" font-size="10" letter-spacing="1">TIME</text><path d="M220 86 H780" stroke="#243144" stroke-width="1"/><text x="220" y="112" fill="#E4EBF3" font-size="12" font-weight="600">Demo Admin</text><text x="350" y="112" fill="#E4EBF3" font-size="12" font-weight="600">Ideas for the next community day</text><text x="350" y="128" fill="#93A5B8" font-size="11">Collect ideas for the next community day.</text><rect x="654" y="98" width="74" height="22" rx="11" fill="#6EA8FE22" stroke="#6EA8FE55"/><circle cx="666" cy="109" r="3" fill="#6EA8FE"/><text x="674" y="113" fill="#6EA8FE" font-size="11">Open</text><text x="742" y="112" fill="#93A5B8" font-size="11">8m</text><path d="M220 146 H780" stroke="#243144" stroke-width="1"/><text x="220" y="160" fill="#E4EBF3" font-size="12" font-weight="600">Demo Requester</text><text x="350" y="160" fill="#E4EBF3" font-size="12" font-weight="600">Broken projector in Room 4</text><text x="350" y="176" fill="#93A5B8" font-size="11">Drops the image after two minutes.</text><rect x="654" y="146" width="74" height="22" rx="11" fill="#6EA8FE22" stroke="#6EA8FE55"/><circle cx="666" cy="157" r="3" fill="#6EA8FE"/><text x="674" y="161" fill="#6EA8FE" font-size="11">Open</text><text x="742" y="160" fill="#93A5B8" font-size="11">9m</text><path d="M220 194 H780" stroke="#243144" stroke-width="1"/><text x="220" y="208" fill="#E4EBF3" font-size="12" font-weight="600">Mara Reyes</text><text x="350" y="208" fill="#E4EBF3" font-size="12" font-weight="600">New shelves for the reading corner</text><text x="350" y="224" fill="#93A5B8" font-size="11">Two brackets came loose by the window.</text><rect x="654" y="194" width="74" height="22" rx="11" fill="#F5B04C22" stroke="#F5B04C55"/><circle cx="666" cy="205" r="3" fill="#F5B04C"/><text x="674" y="209" fill="#F5B04C" font-size="11">Pending</text><text x="742" y="208" fill="#93A5B8" font-size="11">2h</text><path d="M220 242 H780" stroke="#243144" stroke-width="1"/><text x="220" y="256" fill="#E4EBF3" font-size="12" font-weight="600">Sam Ortiz</text><text x="350" y="256" fill="#E4EBF3" font-size="12" font-weight="600">Passkey for the new laptop</text><text x="350" y="272" fill="#93A5B8" font-size="11">The laptop refuses the old passkey.</text><rect x="654" y="242" width="74" height="22" rx="11" fill="#FF9C9422" stroke="#FF9C9455"/><circle cx="666" cy="253" r="3" fill="#FF9C94"/><text x="674" y="257" fill="#FF9C94" font-size="11">Rejected</text><text x="742" y="256" fill="#93A5B8" font-size="11">1d</text><path d="M220 290 H780" stroke="#243144" stroke-width="1"/>
+</svg>

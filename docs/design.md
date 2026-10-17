@@ -3,10 +3,23 @@
 This file holds the settled calls. Update it in the same change that changes a
 pick.
 
+## Renders
+
+Each picture is a generic wireframe, not a screenshot. It shows the shape a
+rule adds.
+
+![A workspace wireframe: a rail on the left, then one table with requester, request, status, and time](images/design-workspace.png)
+
+*Figure 1. The workspace reads as one table, with the rail on the left and a status pill that pairs a dot with a word.*
+
+![A dialog wireframe: a title, one reason field, and Cancel and Reject](images/design-dialog.png)
+
+*Figure 2. A destructive move asks for one reason in a dialog, and Cancel and the scrim close it without a change.*
+
 ## Product shape
 
 - Staff screens use the dense work-queue shape: top bar, queue filters, item list,
-  inspector, and an issue strip. No sidebar.
+  inspector. No sidebar.
 - Admin home lists its four sections as dense rows, each with one line of what it
   holds.
 - Admin users, share links, and the audit log read as dense rows. A person or a
@@ -28,7 +41,7 @@ pick.
   comments. A right sidebar holds the people, labels, priority, and details.
 - Prose blocks read as markdown with inline html, the way a mail client reads a
   message. A sanitizer drops every unsafe tag, attribute, and url scheme.
-- Revoke opens one custom modal that asks for a reason. Cancel, Escape, and the
+- Reject opens one custom modal that asks for a reason. Cancel, Escape, and the
   scrim close it, and focus returns to the trigger. The reason box reuses the
   shared field rule, so it matches every other form.
 - The public share page keeps that shape. It holds one timeline and a facts
@@ -65,6 +78,10 @@ pick.
   each follower except the author, and the activity switch silences it.
 - Staff remove an announcement from a page that asks first.
 
+![A Domain page wireframe: a title, a description, a following switch, announcements, then requests and issues](images/domains.png)
+
+*Figure 3. The Domain page holds the description, the announcements newest first, and the records as dense rows.*
+
 ## Settings file
 
 - `config.yml` is a template, and a deploy mounts the real file over it. It holds
@@ -74,6 +91,10 @@ pick.
   that file. No variable turns it on, and the released image ships without it.
 - A `seed:` list fills the requests and issues tables once, on a first start, and
   only while both are empty.
+
+![A config file wireframe: database, origin, and rp_id keys, then a domains list](images/settingsfile.png)
+
+*Figure 4. `config.yml` holds three short keys and the Domains, and a deploy mounts the real file over it.*
 
 ## Color
 
@@ -100,6 +121,10 @@ Scheme 2, Slate and blue. Components use tokens from
 - Body text passes 4.5:1 contrast, large text 3:1, and every interactive element
   shows a 2 px focus ring.
 
+![A palette strip: eleven tokens in light and dark, then six status pills](images/palette.png)
+
+*Figure 5. Eleven tokens carry both schemes, and a status pill pairs a dot with a word.*
+
 ## Type
 
 - Inter, self-hosted woff2 in 400, 600, and 800, under the SIL Open Font License 1.1.
@@ -107,12 +132,20 @@ Scheme 2, Slate and blue. Components use tokens from
 - Scale: 11 px uppercase eyebrows, 12 px meta, 15 px body, 20 px panel titles, and
   28 px page titles.
 
+![A type ramp: a page title, a panel title, body, meta, an eyebrow, and a mono ID](images/type.png)
+
+*Figure 6. Inter runs from the 28 px page title to the 11 px eyebrow, and IDs use tabular figures.*
+
 ## Icons
 
 - Lucide, as one self-hosted SVG sprite at 18 px in the current text color.
 - The app icon is the Google Noto Emoji pleading face. The licenses ship beside both
   assets, and the icon files and their `NOTICE.md` live in
   `pwedepa/web/static/icons/`.
+
+![An icon grid: twelve Lucide icons at 18 px over labelled tiles](images/icons.png)
+
+*Figure 7. One sprite gives every icon at 18 px in the current text colour.*
 
 ## Layout
 
@@ -129,6 +162,10 @@ Scheme 2, Slate and blue. Components use tokens from
   bar, the opened item fills the page, and the filters fold into one row.
 - Touch targets run at least 44 px, and tables stack into cards on a phone.
 
+![Three grid outlines at 1200, 900, and 640 px, marked with their columns](images/layout.png)
+
+*Figure 8. The grid runs filters, list, and inspector at 1200 px, folds at 900 px, and stacks at 640 px.*
+
 ## Components
 
 - One primary action per view. Primary buttons use the accent fill, and danger stays
@@ -138,6 +175,10 @@ Scheme 2, Slate and blue. Components use tokens from
 - Empty states use the pleading-face mark, one sentence, and one action.
 - A new pattern needs a sheet entry and a screenshot before it ships.
 
+![Components: a primary button, a danger button, a labelled field, and an empty state](images/components.png)
+
+*Figure 9. One primary button, a ghost danger button, a labelled field, and an empty state with one action.*
+
 ## Theme and motion
 
 - The theme control cycles System, Light, and Dark, and System reads the device. The
@@ -146,3 +187,38 @@ Scheme 2, Slate and blue. Components use tokens from
 - One easing curve, `cubic-bezier(0.22, 1, 0.36, 1)`, runs 160 to 220 ms. Reduced
   motion turns animation off.
 - The sign-in page holds one card and no header. The card offers a passkey button and an enroll link.
+
+![Three theme cards with the dark card selected, beside one easing curve](images/theme.png)
+
+*Figure 10. The theme control cycles three choices, and one curve runs every move.*
+
+## States
+
+- A row lifts on hover only where a pointer exists.
+- Every control shows a 2 px accent focus ring.
+- Reduced motion turns animation off.
+- An empty list says what is missing and offers one action.
+
+![A hovered table row, a focused field with an accent ring, a switch, and an empty state](images/states.png)
+
+*Figure 11. A row lifts on hover, a control shows a 2 px ring, and an empty state offers one action.*
+
+## Phone
+
+- Below 900 px the opened record fills the page and the list steps back.
+- Below 640 px the tabs move to a bottom bar, tables stack into cards, and the
+  touch target stays at least 44 px.
+
+![Two phones: a card list over a bottom tab bar, and a pushed record with a back control](images/phone.png)
+
+*Figure 12. A phone stacks the list as cards over a bottom tab bar, and the opened record fills the screen.*
+
+## Change log
+
+- 2026-10-17. The request action reads Reject, and a reason comes in a dialog.
+- 2026-10-17. The workspace reads as one mail table with a reading pane.
+- 2026-10-16. Dark theme ships first, and every shot uses it.
+
+![A dated list with one line per entry, newest first](images/changelog.png)
+
+*Figure 13. The change log reads newest first, one line per pick.*

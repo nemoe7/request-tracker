@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="314" viewBox="0 0 800 314" font-family="-apple-system, Segoe UI, Roboto, sans-serif">
+<rect width="800" height="314" fill="#0C1118"/>
+<text x="24" y="32" fill="#93A5B8" font-size="11" font-weight="600" letter-spacing="1.4">TYPE</text>
+<text x="24" y="132" fill="#E4EBF3" font-size="72" font-weight="700">Aa</text>
+<text x="24" y="158" fill="#93A5B8" font-size="12">Inter</text>
+<text x="24" y="176" fill="#93A5B8" font-size="11">400 · 600 · 800</text>
+<text x="24" y="194" fill="#93A5B8" font-size="10">SIL OFL 1.1</text>
+<text x="24" y="222" fill="#E4EBF3" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">REQ-1042 · 8m</text>
+<text x="24" y="240" fill="#93A5B8" font-size="10">IDs and ages use ui-monospace</text>
+<text x="240" y="97.8" fill="#E4EBF3" font-size="28" font-weight="800">Page title</text>
+<text x="744" y="97.8" fill="#93A5B8" font-size="10" text-anchor="end">28 px</text>
+<text x="240" y="137.0" fill="#E4EBF3" font-size="20" font-weight="600">Panel title</text>
+<text x="744" y="137.0" fill="#93A5B8" font-size="10" text-anchor="end">20 px</text>
+<text x="240" y="173.25" fill="#E4EBF3" font-size="15" font-weight="400">Body runs at 15 px with a 1.5 line height.</text>
+<text x="744" y="173.25" fill="#93A5B8" font-size="10" text-anchor="end">15 px</text>
+<text x="240" y="198.2" fill="#93A5B8" font-size="12" font-weight="400">Meta: 12 px, muted, for the small facts.</text>
+<text x="744" y="198.2" fill="#93A5B8" font-size="10" text-anchor="end">12 px</text>
+<text x="240" y="225.85" fill="#93A5B8" font-size="11" font-weight="600">EYEBROW · 11 PX</text>
+<text x="744" y="225.85" fill="#93A5B8" font-size="10" text-anchor="end">11 px</text>
+<line x1="240" y1="250" x2="776" y2="250" stroke="#243144" stroke-width="1"/>
+<text x="240" y="276" fill="#93A5B8" font-size="11">28 px page title · 20 px panel title · 15 px body</text>
+<text x="240" y="294" fill="#93A5B8" font-size="11">12 px meta · 11 px eyebrow, set in capitals</text>
+</svg>
