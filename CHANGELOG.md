@@ -17,6 +17,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Retained notifications, with per-category settings.
 - Starter Domains from `domains.yaml`, each with a URL slug and a description. An admin imports the file from a read-only mount or a picked file.
 - Domain-first record URLs and a page for each Domain, with its description and its records. The record forms offer the configured Domains, and the old record URLs answer 404.
+- Domain announcements. Staff publish and edit them from the Domain page, and each shows its author, publish time, and edit time. The demo seeds two.
 - A frozen demo build that the Pages workflow publishes. Every rail filter, the status filter included, opens from a link and a page of its own. A card swap keeps every link on a real page. The demo ships no worker file, and the build refuses a script that still names one.
 - The app serves through uvicorn, a production server, with one adapter in front of Flask.
 - A staff member can switch to the client view from Settings. Record pages go read only, the server refuses record writes, and account settings stay writable.
