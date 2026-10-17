@@ -8,10 +8,15 @@ from pathlib import Path
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Connection, Engine
 
-# Hard-dev schema: recreate the database instead of migrating it. A change
-# that must survive existing data gets a repair block in initialize(), and
-# docs/schema.md tells the story.
+# The number this code needs. A file carries its own number in PRAGMA
+# user_version, and a step in initialize() moves a lower file up one version.
+SCHEMA_VERSION = 1
+
 SCHEMA = files(__package__).joinpath("schema.sql").read_text(encoding="utf-8")
+
+
+class SchemaVersionError(RuntimeError):
+  """The database file cannot work with this code."""
 
 
 _engines: dict[str, Engine] = {}
@@ -46,16 +51,40 @@ def connect(path: str | Path) -> Connection:
   key = _key(path)
   connection = _engine(key).connect()
   if key not in _prepared:
-    initialize(connection)
+    try:
+      initialize(connection, key)
+    except BaseException:
+      connection.close()
+      raise
     _prepared.add(key)
   return connection
 
 
-def initialize(db: Connection) -> None:
-  """Create every table when it is missing, and add a column an older file lacks."""
+def _version(db: Connection) -> int:
+  return int(db.exec_driver_sql("PRAGMA user_version").scalar_one())
+
+
+def initialize(db: Connection, path: str | Path | None = None) -> None:
+  """Bring the file to the schema this code needs, one version step at a time."""
+  found = _version(db)
+  if found > SCHEMA_VERSION:
+    where = _key(path) if path is not None else "the database"
+    raise SchemaVersionError(
+      f"{where} is schema version {found}, and this code stops at {SCHEMA_VERSION}. "
+      f"Use a newer release, or delete the file and start again: rm {where}"
+    )
   for statement in SCHEMA.split(";"):
     if statement.strip():
       db.exec_driver_sql(statement)
+  if found < 1:
+    _step_one(db)
+  # A later step reads the number, adds its guard, and moves the number again.
+  db.exec_driver_sql(f"PRAGMA user_version = {SCHEMA_VERSION}")
+  db.commit()
+
+
+def _step_one(db: Connection) -> None:
+  """Give an old file the theme column and a token that names a role."""
   columns = {
     row._mapping["name"]
     for row in db.exec_driver_sql("PRAGMA table_info(user_preferences)")
@@ -69,7 +98,7 @@ def initialize(db: Connection) -> None:
     for row in db.exec_driver_sql("PRAGMA table_info(enrollment_tokens)")
   }
   if "user_id" in tokens:
-    # A token now names a role, not a person. Old tokens bound a user, so drop them.
+    # Old tokens bound a user, so drop them. A token now names a role.
     db.exec_driver_sql("ALTER TABLE enrollment_tokens RENAME TO enrollment_tokens_old")
     db.exec_driver_sql(
       "CREATE TABLE enrollment_tokens ("
@@ -81,7 +110,6 @@ def initialize(db: Connection) -> None:
       "used_at TEXT)"
     )
     db.exec_driver_sql("DROP TABLE enrollment_tokens_old")
-  db.commit()
 
 
 @contextmanager

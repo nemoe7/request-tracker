@@ -7,14 +7,16 @@ The executable schema is `pwedepa/data/schema.sql`. `pwedepa/data/db.py` reads i
 import, and `initialize()` runs each statement with `exec_driver_sql` the first time a
 database path appears in the process.
 
-Two repair blocks then update an older file. The first
-adds `user_preferences.theme` when that column is missing. The second rebuilds
+`PRAGMA user_version` holds the number this code needs, and that number is 1. A 0.1.0 file
+carries 0. `initialize()` runs step 1 over it, then stamps 1.
+
+Step 1 adds `user_preferences.theme` when that column is missing. It also rebuilds
 `enrollment_tokens` when the table still holds `user_id`, because a token now names a role
 and not a person.
 
 There is no migration tool and no ORM model. Alembic is not a dependency, so a schema change
-reaches an old file only through a repair block. A later change numbers the schema in
-`PRAGMA user_version`, one step for each change, so the blocks retire.
+reaches an old file only through a numbered step. A file from a newer release stops the app
+with its path and the command to delete it.
 
 ```mermaid
 ---
@@ -192,7 +194,7 @@ erDiagram
 ## How to change a table
 
 1. Edit `pwedepa/data/schema.sql` for a fresh database.
-2. Add a repair block to `initialize()` for an existing one. Guard it on a `PRAGMA
-   table_info` check so a second run changes nothing.
+2. Raise `SCHEMA_VERSION` in `pwedepa/data/db.py`, and add one step that guards on the number
+   it moves from, so a second run changes nothing.
 3. Edit `docs/schema.dbml`, then run `python scripts/render_schema.py`.
 4. Add a test that opens a database with the old shape, connects, and reads the new shape.

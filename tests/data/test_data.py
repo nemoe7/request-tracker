@@ -212,9 +212,9 @@ def test_a_database_file_prepares_its_schema_once(tmp_path, monkeypatch):
   calls = []
   real_initialize = data_db.initialize
 
-  def count(connection):
+  def count(connection, path=None):
     calls.append(connection)
-    real_initialize(connection)
+    real_initialize(connection, path)
 
   monkeypatch.setattr(data_db, "initialize", count)
   path = tmp_path / "once.db"
