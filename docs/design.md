@@ -12,6 +12,8 @@ This file records the settled design calls. When a pick changes, update this fil
 
 - The Domain list comes from `domains.yaml` at the project root. Each entry holds a name and a description. The URL slug comes from the name: lowercase, with each run of other characters folded to `-`.
 - An admin imports the file in Admin, Domain config. The page reads a mounted file first, then a picked file. The import writes a copy beside the database, and the app reads that copy first.
+- A record lives at `/<slug>/requests/<id>` or `/<slug>/issues/<id>`, under each Domain it belongs to. The old `/requests/<id>` and `/issues/<id>` pages answer 404. The record forms offer the configured Domains as checkboxes.
+- The Domain page at `/<slug>` shows the description and the requests and issues that carry the Domain.
 
 ## Color
 
