@@ -137,6 +137,15 @@ def find(slug: str, db_path: str | Path | None = None) -> Domain | None:
   return None
 
 
+def slug_for(names: tuple[str, ...], found: tuple[Domain, ...]) -> str:
+  """Return the first configured Domain slug in names, else the first slug."""
+  by_name = {domain.name: domain.slug for domain in found}
+  for name in names:
+    if name in by_name:
+      return by_name[name]
+  return found[0].slug
+
+
 def domain_slot(names: tuple[str, ...], index: int) -> str:
   """Return the Domain for a fixed demo slot, and wrap a shorter config."""
   if not names:

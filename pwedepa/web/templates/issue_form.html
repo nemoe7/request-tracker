@@ -12,11 +12,14 @@
       <label for="i-description">Description</label>
       <textarea id="i-description" name="description" rows="5">{{ record.description }}</textarea>
     </div>
-    <div class="field">
-      <label for="i-domains">Domains</label>
-      <input id="i-domains" name="domains" type="text" value="{{ record.domains | join(', ') }}">
-      <p class="help">Comma separated, such as Workspace, Docs.</p>
-    </div>
+    <fieldset class="field">
+      <legend>Domains</legend>
+      {% for domain in domains %}
+      <label class="check"><input id="i-domains-{{ loop.index }}" type="checkbox" name="domains" value="{{ domain.name }}"{% if record and domain.name in record.domains %} checked{% endif %}> {{ domain.name }}</label>
+      {% else %}
+      <p class="help">No Domain is configured.</p>
+      {% endfor %}
+    </fieldset>
     <div class="field">
       <label for="i-visibility">Visibility</label>
       <select id="i-visibility" name="visibility">
@@ -43,7 +46,7 @@
     </div>
     <div class="form-actions">
       <button class="btn primary" type="submit">Save changes</button>
-      <a class="btn" href="{{ url_for('records.issue_detail', issue_id=record.id) }}">Cancel</a>
+      <a class="btn" href="{{ record_path(record, 'issue') }}">Cancel</a>
     </div>
   </form>
 </div>

@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from demo_seed import seed_file
 
 from pwedepa.data import db as data_db
+from pwedepa.data import domains as domains_data
 from pwedepa.data import issues as issues_data
 from pwedepa.data import requests as requests_data
 from pwedepa.web import create_app
@@ -29,10 +30,6 @@ STAFF_PAGES = (
   "workspace",
   "requests",
   "issues",
-  "issues/1",
-  "issues/2",
-  "requests/1",
-  "requests/5",
   "requests/new",
   "notifications",
   "settings",
@@ -40,6 +37,7 @@ STAFF_PAGES = (
   "admin/users",
   "admin/shares",
   "admin/audit",
+  "admin/config",
 )
 
 LINK_RE = re.compile(r'(href|action)="(/(?:[^"]*))"')
@@ -101,13 +99,17 @@ def _relative(
   """Point one link at the nearest frozen page, from the site root."""
   if nav:
     path = target.split("?", 1)[0].split("#", 1)[0].strip("/")
-    for head, folder in nav.items():
+    for head, folder in (("requests", "home/requests"), ("issues", "home/issues")):
       if path == head or path.startswith(f"{head}/"):
         tail = folder + path[len(head) :]
         while tail not in frozen and "/" in tail:
           tail = tail.rsplit("/", 1)[0]
         if tail in frozen:
           return f"{tail}/"
+    # A client copy links no record page from the staff set.
+    match = re.fullmatch(r"[^/]+/(requests|issues)/\d+", path)
+    if match and f"home/{match.group(1)}" in frozen:
+      return f"home/{match.group(1)}/"
   if "?" in target:
     head, query = target.split("?", 1)
     if head.strip("/") == "workspace":
@@ -200,13 +202,13 @@ def keep_workers_out(static: Path) -> None:
       raise SystemExit(f"{script.name} lost a brace with the worker block")
 
 
-def seeded_records(database: Path) -> tuple[list[int], list[int]]:
-  """Return the seeded request and issue ids, so their links have a page."""
+def seeded_records(database: Path):
+  """Return the seeded requests and issues, so their links have a page."""
   connection = data_db.connect(str(database))
   try:
     return (
-      [record.id for record in requests_data.list_requests(connection)],
-      [record.id for record in issues_data.list_issues(connection)],
+      requests_data.list_requests(connection),
+      issues_data.list_issues(connection),
     )
   finally:
     connection.close()
@@ -231,12 +233,22 @@ def main() -> int:
     }
   )
   client = app.test_client()
-  request_ids, issue_ids = seeded_records(database)
+  found = domains_data.load(database)
+  request_rows, issue_rows = seeded_records(database)
+  request_ids = [record.id for record in request_rows]
   views = filter_views(client.get("/workspace").get_data(as_text=True), request_ids)
+
+  def record_folder(record, kind: str) -> str:
+    return f"{domains_data.slug_for(record.domains, found)}/{kind}/{record.id}"
+
+  record_folders = [
+    *(record_folder(record, "requests") for record in request_rows),
+    *(record_folder(record, "issues") for record in issue_rows),
+  ]
   folders = (
     *STAFF_PAGES,
-    *(f"requests/{number}" for number in request_ids),
-    *(f"issues/{number}" for number in issue_ids),
+    *(domain.slug for domain in found),
+    *record_folders,
   )
   frozen = {"", "home", *folders, *views.values()}
 
@@ -261,11 +273,17 @@ def main() -> int:
   set_seat("client")
   nav = {"requests": "home/requests", "issues": "home/issues"}
   client_pages = [("/home", "home")]
-  for head, folder in nav.items():
+  for head, folder in (("requests", "home/requests"), ("issues", "home/issues")):
     listing = client.get(f"/{head}").get_data(as_text=True)
     client_pages.append((f"/{head}", folder))
-    numbers = sorted(set(re.findall(rf'href="/{head}/(\d+)"', listing)))
-    client_pages += [(f"/{head}/{number}", f"{folder}/{number}") for number in numbers]
+    routes = sorted(
+      set(re.findall(r'href="(/[^"]*/(?:requests|issues)/\d+)"', listing))
+    )
+    for route in routes:
+      kind = "requests" if "/requests/" in route else "issues"
+      target = f"home/{kind}/{route.rsplit('/', 1)[1]}"
+      nav[route.strip("/")] = target
+      client_pages.append((route, target))
   frozen.update(folder for _, folder in client_pages)
   for route, folder in client_pages:
     freeze(route, folder, nav=nav)

@@ -7,6 +7,7 @@ from sqlalchemy.engine import Connection
 
 from pwedepa.auth import WebAuthnConfig, actor_for_user, get_user, resolve_session
 from pwedepa.data import db as data_db
+from pwedepa.data import domains as domains_data
 
 from .. import SESSION_COOKIE, now
 
@@ -75,3 +76,31 @@ def can_share(user, record) -> bool:
 def client_view() -> bool:
   """True while a staff user checks the app the way a client sees it."""
   return session.get("view_as") == "client"
+
+
+def db_path():
+  """Return the database path in force for this request."""
+  return current_app.config["DATABASE"]
+
+
+def record_slug(record) -> str:
+  """Return the Domain slug a record carries in its URL."""
+  return domains_data.slug_for(record.domains, domains_data.load(db_path()))
+
+
+def record_path(record, kind: str = "request") -> str:
+  """Return the domain-first URL for one record."""
+  return f"/{record_slug(record)}/{kind}s/{record.id}"
+
+
+def domain_path(name: str) -> str:
+  """Return the Domain page path for one configured name, or an empty string."""
+  found = domains_data.find(domains_data.slugify(name), db_path())
+  return f"/{found.slug}" if found else ""
+
+
+def domain_matches(record, slug: str) -> bool:
+  """True when the record belongs under this Domain URL."""
+  found = domains_data.load(db_path())
+  configured = {domain.slug for domain in found if domain.name in record.domains}
+  return slug == domains_data.slug_for(record.domains, found) or slug in configured

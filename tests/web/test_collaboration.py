@@ -2,6 +2,7 @@ import re
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from _paths import record_url
 
 from pwedepa.auth import Role, assign_role, sessions, users
 from pwedepa.core import Issue, IssueStatus, Priority, Request, Visibility
@@ -75,7 +76,7 @@ def _share_token(client, object_type="request", object_id=1, permission="VIEW"):
   client.post(
     f"/records/{object_type}/{object_id}/share", data={"permission": permission}
   )
-  detail = client.get(f"/{object_type}s/{object_id}")
+  detail = client.get(record_url(object_id, f"{object_type}s"))
   match = re.search(rb"/share/([A-Za-z0-9_-]+)", detail.data)
   assert match is not None
   return match.group(1).decode()
@@ -112,10 +113,10 @@ def test_authenticated_share_grants_only_the_picked_access(cast, db):
   token = _share_token(Mara, permission="COMMENT")
 
   opened = Sam.get(f"/share/{token}")
-  assert "/requests/1" in opened.headers["Location"]
-  assert Sam.get("/requests/1").status_code == 200
+  assert record_url(1) in opened.headers["Location"]
+  assert Sam.get(record_url(1)).status_code == 200
   Sam.post("/requests/1/comment", data={"text": "I can check it Friday."})
-  assert b"I can check it Friday." in Mara.get("/requests/1").data
+  assert b"I can check it Friday." in Mara.get(record_url(1)).data
 
   Sam.post("/requests/1/transition", data={"target": "PENDING"})
   assert requests_data.get(db, 1).status.value == "OPEN"
@@ -146,7 +147,7 @@ def test_authenticated_share_grants_only_the_picked_access(cast, db):
   assert requests_data.get(db, 1).title == "Changed by Sam"
 
   admin.post("/share-links/2/revoke")
-  assert Sam.get("/requests/1").status_code == 404
+  assert Sam.get(record_url(1)).status_code == 404
   assert Sam.get(f"/share/{edit_token}").status_code == 404
 
 
@@ -403,7 +404,7 @@ def test_admin_site_message_and_direct_issue(app, cast, db):
       "domains": "Facilities",
     },
   )
-  assert "/issues/1" in response.headers["Location"]
+  assert record_url(1, "issues") in response.headers["Location"]
   issue = issues_data.get(db, 1)
   assert issue.status is IssueStatus.OPEN
   assert issue.priority is Priority.LOW
@@ -437,16 +438,16 @@ def test_the_share_rule_answers_the_page_and_the_endpoint(app, cast, db):
     ),
   )
 
-  assert b"share-panel" in Mara.get("/requests/1").data
-  assert b"share-panel" in Mara.get("/issues/1").data
+  assert b"share-panel" in Mara.get(record_url(1)).data
+  assert b"share-panel" in Mara.get(record_url(1, "issues")).data
   assert (
     Sam.post("/records/request/1/share", data={"permission": "VIEW"}).status_code == 404
   )
   assert (
     Sam.post("/records/issue/1/share", data={"permission": "VIEW"}).status_code == 404
   )
-  assert b"share-panel" not in Sam.get("/requests/1").data
-  assert b"share-panel" not in Sam.get("/issues/1").data
+  assert b"share-panel" not in Sam.get(record_url(1)).data
+  assert b"share-panel" not in Sam.get(record_url(1, "issues")).data
 
 
 def test_a_share_expiry_reads_a_number_the_field_allows(cast, db):
@@ -505,7 +506,7 @@ def test_a_staff_member_can_check_the_client_view(cast, db):
   assert entered.status_code == 302
   assert entered.headers["Location"].endswith("/requests")
 
-  detail = admin.get("/requests/1")
+  detail = admin.get(record_url(1))
   assert detail.status_code == 200
   assert b">Edit<" not in detail.data
   assert b"share-form" not in detail.data
@@ -536,7 +537,7 @@ def test_the_staff_view_keeps_its_controls(cast, db):
   assert left.status_code == 302
   assert left.headers["Location"].endswith("/workspace")
 
-  detail = admin.get("/requests/1")
+  detail = admin.get(record_url(1))
   assert b">Edit<" in detail.data
   assert b"View as client" in admin.get("/settings").data
   assert b"read only" not in detail.data

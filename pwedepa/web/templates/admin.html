@@ -75,10 +75,12 @@
         <option value="PUBLIC">Public</option>
       </select>
     </div>
-    <div class="field">
-      <label for="admin-issue-domains">Domains</label>
-      <input id="admin-issue-domains" type="text" name="domains">
-    </div>
+    <fieldset class="field">
+      <legend>Domains</legend>
+      {% for domain in domains %}
+      <label class="check"><input type="checkbox" name="domains" value="{{ domain.name }}"> {{ domain.name }}</label>
+      {% endfor %}
+    </fieldset>
     <div class="form-actions"><button class="btn primary" type="submit">Create issue</button></div>
   </form>
 </section>

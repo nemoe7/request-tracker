@@ -9,6 +9,8 @@ from pwedepa.data import db as data_db
 from pwedepa.data import requests as requests_data
 from pwedepa.web import SESSION_COOKIE, create_app
 
+from _paths import record_url
+
 AT = datetime(2026, 10, 16, 12, 0, tzinfo=UTC)
 
 
@@ -259,7 +261,7 @@ def test_client_cards_open_the_record_from_anywhere(app, db):
   requests_data.save(db, record)
 
   body = client.get("/requests").data.decode()
-  assert f'href="/requests/{record.id}"' in body
+  assert f'href="{record_url(record.id)}"' in body
   assert 'class="card is-linked"' in body, "a client card only opens from its title"
 
   css = app.test_client().get("/static/app.css").data.decode()

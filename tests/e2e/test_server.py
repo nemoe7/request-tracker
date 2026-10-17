@@ -21,6 +21,7 @@ import pytest
 
 from pwedepa.auth import Role, assign_role, sessions, users
 from pwedepa.data import db as data_db
+from pwedepa.data import domains as domains_data
 
 ROOT = Path(__file__).resolve().parents[2]
 AT = datetime(2026, 10, 16, 12, 0, tzinfo=UTC)
@@ -90,7 +91,12 @@ def served(tmp_path_factory):
       f"the server did not answer on {base} within {START_TIMEOUT:.0f} seconds"
     )
 
-  yield {"base": base, "port": port, "cookie": f"pwedepa_session={token}"}
+  yield {
+    "base": base,
+    "port": port,
+    "cookie": f"pwedepa_session={token}",
+    "database": database,
+  }
   process.terminate()
   process.wait(timeout=10)
 
@@ -117,10 +123,7 @@ def test_a_created_request_reads_back_by_id(served):
   )
   assert status == 200
   assert "/requests/" in url
-  request_id = url.rstrip("/").rsplit("/", 1)[-1]
-  status, _, body = _fetch(
-    f"{served['base']}/requests/{request_id}", cookie=served["cookie"]
-  )
+  status, _, body = _fetch(url, cookie=served["cookie"])
   assert status == 200
   assert "E2E chairs" in body
 
@@ -135,7 +138,10 @@ def test_the_script_reaches_the_browser_through_the_server(served):
 
 
 def test_a_missing_record_answers_a_styled_404(served):
-  status, _, body = _fetch(f"{served['base']}/requests/9999", cookie=served["cookie"])
+  slug = domains_data.load(served["database"])[0].slug
+  status, _, body = _fetch(
+    f"{served['base']}/{slug}/requests/9999", cookie=served["cookie"]
+  )
   assert status == 404
   assert "404" in body
 

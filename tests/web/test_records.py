@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
 import pytest
+from _paths import record_url
 
 from pwedepa.auth import Role, assign_role, grant_permission, sessions, users
 from pwedepa.core import (
@@ -90,9 +91,9 @@ def test_requester_creates_request_and_sees_it_in_client_view(cast, db):
     },
   )
   assert response.status_code == 302
-  assert "/requests/1" in response.headers["Location"]
+  assert record_url(1) in response.headers["Location"]
 
-  detail = Mara.get("/requests/1")
+  detail = Mara.get(record_url(1))
   assert detail.status_code == 200
   assert b"New chairs" in detail.data
   assert b"Open" in detail.data
@@ -121,9 +122,9 @@ def test_private_records_stay_hidden_from_other_users(cast, db):
       updated_at=AT,
     ),
   )
-  assert Mara.get("/requests/1").status_code == 200
-  assert junior.get("/requests/1").status_code == 404
-  assert junior.get("/issues/1").status_code == 404
+  assert Mara.get(record_url(1)).status_code == 200
+  assert junior.get(record_url(1)).status_code == 404
+  assert junior.get(record_url(1, "issues")).status_code == 404
   assert b"Broken projector" not in junior.get("/requests").data
 
 
@@ -235,7 +236,7 @@ def test_raise_creates_a_linked_issue(cast, db):
     visibility=Visibility.PUBLIC,
   )
   response = admin.post("/requests/1/transition", data={"target": "RAISED"})
-  assert "/issues/1" in response.headers["Location"]
+  assert record_url(1, "issues") in response.headers["Location"]
   issue = issues_data.get(db, 1)
   assert issue.status is IssueStatus.OPEN
   assert issue.priority is Priority.URGENT
@@ -281,11 +282,11 @@ def test_comments_respect_core_permissions(cast, db):
   junior, _ = cast["Sam"]
   _save_request(db, 1, Mara_user.id)
   Mara.post("/requests/1/comment", data={"text": "Any update?"})
-  detail = Mara.get("/requests/1")
+  detail = Mara.get(record_url(1))
   assert b"Any update?" in detail.data
 
   junior.post("/requests/1/comment", data={"text": "Sneaky"})
-  assert b"Sneaky" not in Mara.get("/requests/1").data
+  assert b"Sneaky" not in Mara.get(record_url(1)).data
 
 
 def test_assignee_issue_flow_and_priority(cast, db):
@@ -361,7 +362,7 @@ def test_workspace_queues_counts_and_inspector(cast, db):
 
   junior_view = Sam.get("/workspace?queue=assigned")
   assert b"Blocked door" in junior_view.data
-  assert Sam.get("/issues/1").status_code == 200
+  assert Sam.get(record_url(1, "issues")).status_code == 200
 
   pending = admin.get("/workspace?queue=triage&status=PENDING")
   assert b"Broken projector" not in pending.data

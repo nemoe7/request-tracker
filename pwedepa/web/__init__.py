@@ -45,6 +45,11 @@ def create_app(config: dict | None = None) -> Flask:
   if config:
     app.config.update(config)
 
+  from .routes._helpers import domain_path, record_path
+
+  app.jinja_env.globals["record_path"] = record_path
+  app.jinja_env.globals["domain_path"] = domain_path
+
   if app.config.get("DEMO_MODE"):
 
     @app.after_request

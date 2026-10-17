@@ -8,7 +8,7 @@
   <p>{{ pill(record.status) }}<span class="vis">{{ record.visibility.value | capitalize }}</span></p>
   <p class="desc">{{ record.description or "No description." }}</p>
   <dl class="facts">
-    <div><dt>Domains</dt><dd>{{ record.domains | join(", ") or "—" }}</dd></div>
+    <div><dt>Domains</dt><dd>{% for name in record.domains %}{% if not loop.first %}, {% endif %}{% if domain_path(name) %}<a href="{{ domain_path(name) }}">{{ name }}</a>{% else %}{{ name }}{% endif %}{% else %}—{% endfor %}</dd></div>
     <div><dt>Priority ask</dt><dd>{% if record.priority_suggestion %}{{ record.priority_suggestion.value | capitalize }}{% elif record.priority_unsure %}Not sure{% else %}—{% endif %}</dd></div>
     <div><dt>Updated</dt><dd>{{ (record.updated_at | stamp(clock)) if record.updated_at else "—" }}</dd></div>
   </dl>

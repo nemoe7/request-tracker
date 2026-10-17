@@ -3,6 +3,7 @@
 from flask import (
   Blueprint,
   abort,
+  current_app,
   flash,
   redirect,
   render_template,
@@ -32,6 +33,7 @@ from pwedepa.core import (
   transition_request,
 )
 from pwedepa.core.transitions import ISSUE_TRANSITIONS, REQUEST_TRANSITIONS
+from pwedepa.data import domains as domains_data
 from pwedepa.data import events as events_data
 from pwedepa.data import issues as issues_data
 from pwedepa.data import notifications as notifications_data
@@ -40,7 +42,15 @@ from pwedepa.data import sharing as sharing_data
 from pwedepa.data.db import transaction
 
 from .. import now
-from ._helpers import can_share, choice, client_view, current_user, db
+from ._helpers import (
+  can_share,
+  choice,
+  client_view,
+  current_user,
+  db,
+  domain_matches,
+  record_path,
+)
 
 bp = Blueprint("records", __name__)
 
@@ -72,6 +82,16 @@ def _user():
 
 def _actor(user):
   return actor_for_user(db(), user.id)
+
+
+def _configured_domains():
+  return domains_data.load(current_app.config["DATABASE"])
+
+
+def _picked_domains() -> tuple[str, ...]:
+  """Read the Domain checkboxes and keep the configured names."""
+  names = {domain.name for domain in _configured_domains()}
+  return tuple(name for name in request.form.getlist("domains") if name in names)
 
 
 def _names() -> dict[int, str]:
@@ -352,6 +372,36 @@ def workspace() -> str | Response:
   )
 
 
+@bp.get("/<slug>")
+def domain_page(slug: str) -> str | Response:
+  """Show one Domain page with its description and its records."""
+  found = domains_data.find(slug, current_app.config["DATABASE"])
+  if found is None:
+    abort(404)
+  user = _user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  actor = _actor(user)
+  requests = [
+    record
+    for record in _viewable_requests(actor, requests_data.list_requests(db()))
+    if found.name in record.domains
+  ]
+  issues = [
+    record
+    for record in _viewable_issues(actor, issues_data.list_issues(db()))
+    if found.name in record.domains
+  ]
+  return render_template(
+    "domain.html",
+    domain=found,
+    requests=requests,
+    issues=issues,
+    status_words=STATUS_WORDS,
+    names=_names(),
+  )
+
+
 @bp.get("/requests")
 def requests() -> str | Response:
   """Show the client view: the signed-in requests and the public board."""
@@ -381,7 +431,10 @@ def request_new() -> str | Response:
     flash("Your account cannot create requests.")
     return redirect(url_for("records.requests"))
   return render_template(
-    "request_form.html", record=None, priorities=[p.value for p in Priority]
+    "request_form.html",
+    record=None,
+    priorities=[p.value for p in Priority],
+    domains=_configured_domains(),
   )
 
 
@@ -414,11 +467,7 @@ def request_create() -> Response:
         visibility=choice(
           Visibility, request.form.get("visibility", "PRIVATE"), Visibility.PRIVATE
         ),
-        domains=tuple(
-          part.strip()
-          for part in request.form.get("domains", "").split(",")
-          if part.strip()
-        ),
+        domains=_picked_domains(),
         created_at=at,
         updated_at=at,
       ),
@@ -427,17 +476,19 @@ def request_create() -> Response:
     created = Event("request.created", user.id, at)
     events_data.append(db(), "request", record.id, created, commit=False)
     _notify_event("request", record, created, commit=False)
-  return redirect(url_for("records.request_detail", request_id=record.id))
+  return redirect(record_path(record))
 
 
-@bp.get("/requests/<int:request_id>")
-def request_detail(request_id: int) -> str | Response:
+@bp.get("/<slug>/requests/<int:request_id>")
+def request_detail(slug: str, request_id: int) -> str | Response:
   """Show one request with facts, activity, comments, and actions."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
   record, actor = _load_request(actor, request_id)
+  if not domain_matches(record, slug):
+    abort(404)
   events = events_data.list_for(db(), "request", request_id)
   read_only = client_view()
   return render_template(
@@ -467,7 +518,7 @@ def request_transition(request_id: int) -> Response:
   target = choice(RequestStatus, request.form.get("target", ""), None)
   if target is None:
     flash("That move is not available.")
-    return redirect(url_for("records.request_detail", request_id=request_id))
+    return redirect(record_path(record))
   at = now()
   try:
     if target is RequestStatus.RAISED:
@@ -482,7 +533,7 @@ def request_transition(request_id: int) -> Response:
         events_data.append(db(), "issue", issue.id, created, commit=False)
         _notify_event("issue", issue, created, commit=False)
       flash(f"Raised into Issue #{issue.id}.")
-      return redirect(url_for("records.issue_detail", issue_id=issue.id))
+      return redirect(record_path(issue, "issue"))
     change = transition_request(
       record, target, actor, at=at, reason=request.form.get("reason") or None
     )
@@ -490,7 +541,7 @@ def request_transition(request_id: int) -> Response:
     _append_all("request", record, change)
   except CoreError as error:
     flash(str(error))
-  return redirect(url_for("records.request_detail", request_id=request_id))
+  return redirect(record_path(record))
 
 
 @bp.post("/requests/<int:request_id>/comment")
@@ -508,7 +559,7 @@ def request_comment(request_id: int) -> Response:
     _notify_event("request", record, event)
   elif text:
     flash("You cannot comment on this request.")
-  return redirect(url_for("records.request_detail", request_id=request_id))
+  return redirect(record_path(record))
 
 
 @bp.get("/requests/<int:request_id>/edit")
@@ -520,7 +571,10 @@ def request_edit(request_id: int) -> str | Response:
   actor = _actor(user)
   record, actor = _load_request(actor, request_id)
   return render_template(
-    "request_form.html", record=record, priorities=[p.value for p in Priority]
+    "request_form.html",
+    record=record,
+    priorities=[p.value for p in Priority],
+    domains=_configured_domains(),
   )
 
 
@@ -539,11 +593,7 @@ def request_edit_save(request_id: int) -> str | Response:
     "visibility": choice(
       Visibility, request.form.get("visibility", ""), record.visibility
     ),
-    "domains": tuple(
-      part.strip()
-      for part in request.form.get("domains", "").split(",")
-      if part.strip()
-    ),
+    "domains": _picked_domains(),
     "priority_suggestion": (
       choice(Priority, priority, record.priority_suggestion) if priority else None
     ),
@@ -561,13 +611,16 @@ def request_edit_save(request_id: int) -> str | Response:
       **fields,
     )
   except ConfirmationRequired:
-    return render_template("confirm_edit.html", record=record, fields=request.form)
+    fields = [
+      (key, value) for key in request.form for value in request.form.getlist(key)
+    ]
+    return render_template("confirm_edit.html", record=record, fields=fields)
   except CoreError as error:
     flash(str(error))
-    return redirect(url_for("records.request_detail", request_id=request_id))
+    return redirect(record_path(record))
   requests_data.save(db(), change.object)
   _append_all("request", record, change)
-  return redirect(url_for("records.request_detail", request_id=request_id))
+  return redirect(record_path(record))
 
 
 @bp.get("/issues")
@@ -584,15 +637,24 @@ def issue_board() -> str | Response:
   return render_template("issue_board.html", board=board, names=_names())
 
 
-@bp.get("/issues/<int:issue_id>")
-def issue_detail(issue_id: int) -> str | Response:
+@bp.get("/<slug>/issues/<int:issue_id>")
+def issue_detail(slug: str, issue_id: int) -> str | Response:
   """Show one issue with facts, activity, comments, and actions."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
   record, actor = _load_issue(actor, issue_id)
+  if not domain_matches(record, slug):
+    abort(404)
   events = events_data.list_for(db(), "issue", issue_id)
+  source_request = (
+    requests_data.get(db(), record.source_request_id)
+    if record.source_request_id
+    else None
+  )
+  if source_request is not None and not _can(actor, "request.view", source_request):
+    source_request = None
   read_only = client_view()
   return render_template(
     "issue_detail.html",
@@ -614,6 +676,7 @@ def issue_detail(issue_id: int) -> str | Response:
     can_share=can_share(user, record) and not read_only,
     object_type="issue",
     issued_token=_issued_token("issue", record.id),
+    source_request=source_request,
     names=_names(),
   )
 
@@ -629,14 +692,14 @@ def issue_transition(issue_id: int) -> Response:
   target = choice(IssueStatus, request.form.get("target", ""), None)
   if target is None:
     flash("That move is not available.")
-    return redirect(url_for("records.issue_detail", issue_id=issue_id))
+    return redirect(record_path(record, "issue"))
   try:
     change = transition_issue(record, target, actor, at=now())
     issues_data.save(db(), change.object)
     _append_all("issue", record, change)
   except CoreError as error:
     flash(str(error))
-  return redirect(url_for("records.issue_detail", issue_id=issue_id))
+  return redirect(record_path(record, "issue"))
 
 
 @bp.post("/issues/<int:issue_id>/priority")
@@ -658,7 +721,7 @@ def issue_priority(issue_id: int) -> Response:
     _append_all("issue", record, change)
   except CoreError as error:
     flash(str(error))
-  return redirect(url_for("records.issue_detail", issue_id=issue_id))
+  return redirect(record_path(record, "issue"))
 
 
 @bp.post("/issues/<int:issue_id>/comment")
@@ -676,7 +739,7 @@ def issue_comment(issue_id: int) -> Response:
     _notify_event("issue", record, event)
   elif text:
     flash("You cannot comment on this issue.")
-  return redirect(url_for("records.issue_detail", issue_id=issue_id))
+  return redirect(record_path(record, "issue"))
 
 
 @bp.get("/issues/<int:issue_id>/edit")
@@ -692,6 +755,7 @@ def issue_edit(issue_id: int) -> str | Response:
     record=record,
     priorities=[p.value for p in Priority],
     users=list_users(db()),
+    domains=_configured_domains(),
   )
 
 
@@ -710,11 +774,7 @@ def issue_edit_save(issue_id: int) -> Response:
     "visibility": choice(
       Visibility, request.form.get("visibility", ""), record.visibility
     ),
-    "domains": tuple(
-      part.strip()
-      for part in request.form.get("domains", "").split(",")
-      if part.strip()
-    ),
+    "domains": _picked_domains(),
     "priority": choice(Priority, request.form.get("priority", ""), record.priority),
     "assignee_id": int(assignee) if assignee else None,
   }
@@ -725,10 +785,10 @@ def issue_edit_save(issue_id: int) -> Response:
     change = edit_issue(record, actor, at=now(), **fields)
   except CoreError as error:
     flash(str(error))
-    return redirect(url_for("records.issue_detail", issue_id=issue_id))
+    return redirect(record_path(record, "issue"))
   issues_data.save(db(), change.object)
   _append_all("issue", record, change)
-  return redirect(url_for("records.issue_detail", issue_id=issue_id))
+  return redirect(record_path(record, "issue"))
 
 
 def is_staff(user) -> bool:

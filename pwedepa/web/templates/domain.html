@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% from "_parts.html" import pill %}
+{% block title %}{{ domain.name }} — PwedePa{% endblock %}
+{% block content %}
+<div class="narrow">
+  <p class="eyebrow">Domain</p>
+  <div class="page-head">
+    <h1>{{ domain.name }}</h1>
+  </div>
+  <p class="desc">{{ domain.description or "No description yet." }}</p>
+
+  <h2 class="section-title">Requests</h2>
+  {% if requests %}
+  <div class="card-list">
+    {% for record in requests %}
+    <article class="card is-linked">
+      <div class="card-top">
+        <h2><a href="{{ record_path(record) }}">{{ record.title }}</a></h2>
+        {{ pill(record.status) }}
+      </div>
+      <p class="status-word">{{ status_words[record.status] }}</p>
+      <p class="meta">#{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted">No requests here yet.</p>
+  {% endif %}
+
+  <h2 class="section-title">Issues</h2>
+  {% if issues %}
+  <div class="card-list">
+    {% for record in issues %}
+    <article class="card is-linked">
+      <div class="card-top">
+        <h2><a href="{{ record_path(record, "issue") }}">{{ record.title }}</a></h2>
+        {{ pill(record.status) }}
+      </div>
+      <p class="meta">#{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted">No issues here yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

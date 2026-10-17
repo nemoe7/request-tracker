@@ -13,11 +13,14 @@
       <textarea id="f-description" name="description" rows="5">{{ record.description if record else '' }}</textarea>
       <p class="help">Say what you need and what done looks like.</p>
     </div>
-    <div class="field">
-      <label for="f-domains">Domains</label>
-      <input id="f-domains" name="domains" type="text" value="{{ record.domains | join(', ') if record else '' }}">
-      <p class="help">Comma separated, such as Workspace, Docs.</p>
-    </div>
+    <fieldset class="field">
+      <legend>Domains</legend>
+      {% for domain in domains %}
+      <label class="check"><input id="f-domains-{{ loop.index }}" type="checkbox" name="domains" value="{{ domain.name }}"{% if record and domain.name in record.domains %} checked{% endif %}> {{ domain.name }}</label>
+      {% else %}
+      <p class="help">No Domain is configured.</p>
+      {% endfor %}
+    </fieldset>
     <div class="field">
       <label for="f-visibility">Visibility</label>
       <select id="f-visibility" name="visibility">
@@ -37,7 +40,7 @@
     <label class="check"><input type="checkbox" name="priority_unsure"{% if record and record.priority_unsure %} checked{% endif %}> I am not sure about the priority</label>
     <div class="form-actions">
       <button class="btn primary" type="submit">{% if record %}Save changes{% else %}Create request{% endif %}</button>
-      <a class="btn" href="{% if record %}{{ url_for('records.request_detail', request_id=record.id) }}{% else %}{{ url_for('records.requests') }}{% endif %}">Cancel</a>
+      <a class="btn" href="{% if record %}{{ record_path(record) }}{% else %}{{ url_for('records.requests') }}{% endif %}">Cancel</a>
     </div>
   </form>
 </div>

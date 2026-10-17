@@ -6,11 +6,11 @@
   <div class="panel">
     <p>Editing a pending request sends Request #{{ record.id }} back to Open. Staff then review it again from the start.</p>
     <form method="post" action="{{ url_for('records.request_edit_save', request_id=record.id) }}">
-      {% for name, value in fields.items() %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+      {% for name, value in fields %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
       <input type="hidden" name="confirmed" value="1">
       <div class="form-actions">
         <button class="btn primary" type="submit">Edit anyway</button>
-        <a class="btn" href="{{ url_for('records.request_detail', request_id=record.id) }}">Keep it pending</a>
+        <a class="btn" href="{{ record_path(record) }}">Keep it pending</a>
       </div>
     </form>
   </div>

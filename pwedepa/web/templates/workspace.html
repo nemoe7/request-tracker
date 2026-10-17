@@ -65,7 +65,7 @@
     <ul class="events">
       {% for event in selected_events %}{{ event_line(event, names) }}{% endfor %}
     </ul>
-    <a class="btn" href="{{ url_for('records.request_detail', request_id=selected.id) }}">Open request</a>
+    <a class="btn" href="{{ record_path(selected) }}">Open request</a>
     {% else %}
     <div class="empty">
       <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="48" height="48">
@@ -86,9 +86,9 @@
           <td>
             {% if row_kind == "request" %}
             <a href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter, selected=row.id) }}">{{ row.title }}</a>
-            <span class="row-sub"><a href="{{ url_for('records.request_detail', request_id=row.id) }}"> Open #{{ row.id }}</a> · {{ names.get(row.requester_id, "—") }} · {{ row.domains | join(", ") or "—" }}</span>
+            <span class="row-sub"><a href="{{ record_path(row) }}"> Open #{{ row.id }}</a> · {{ names.get(row.requester_id, "—") }} · {{ row.domains | join(", ") or "—" }}</span>
             {% else %}
-            <a href="{{ url_for('records.issue_detail', issue_id=row.id) }}">{{ row.title }}</a>
+            <a href="{{ record_path(row, 'issue') }}">{{ row.title }}</a>
             <span class="row-sub">Issue #{{ row.id }} · {{ names.get(row.requester_id, "—") }} · {{ row.domains | join(", ") or "—" }}</span>
             {% endif %}
           </td>
@@ -110,7 +110,7 @@
       <div class="strip-col">
         <h3>{{ pill(status) }}<span class="count">{{ issues | length }}</span></h3>
         {% for issue in issues %}
-        <a class="mini" href="{{ url_for('records.issue_detail', issue_id=issue.id) }}">{{ issue.title }}<span>#{{ issue.id }} · {{ issue.priority.value | capitalize }}</span></a>
+        <a class="mini" href="{{ record_path(issue, 'issue') }}">{{ issue.title }}<span>#{{ issue.id }} · {{ issue.priority.value | capitalize }}</span></a>
         {% endfor %}
       </div>
       {% endfor %}

@@ -23,7 +23,7 @@ from pwedepa.data import requests as requests_data
 from pwedepa.data import sharing as sharing_data
 
 from .. import now
-from ._helpers import can_share, current_user, db, expiry_days
+from ._helpers import can_share, current_user, db, expiry_days, record_path
 
 bp = Blueprint("sharing", __name__)
 
@@ -36,10 +36,10 @@ def _record(object_type: str, object_id: int):
   abort(404)
 
 
-def _detail_url(object_type: str, object_id: int) -> str:
-  if object_type == "request":
-    return url_for("records.request_detail", request_id=object_id)
-  return url_for("records.issue_detail", issue_id=object_id)
+def _detail_url(record, object_type: str) -> str:
+  if record is None:
+    return url_for("records.requests")
+  return record_path(record, object_type)
 
 
 def _notify_share(record, object_type: str, actor_id: int, message: str) -> None:
@@ -99,7 +99,7 @@ def create(object_type: str, object_id: int) -> Response:
     data={"link_id": issued.link.id, "permissions": list(issued.link.permissions)},
   )
   flash("Share link created. Copy it now. The app shows the plain link once.")
-  return redirect(_detail_url(object_type, object_id))
+  return redirect(_detail_url(record, object_type))
 
 
 @bp.post("/share-links/<int:link_id>/revoke")
@@ -137,7 +137,7 @@ def revoke(link_id: int) -> Response:
     data={"link_id": link_id},
   )
   flash("Share link revoked.")
-  return redirect(_detail_url(link.object_type, link.object_id))
+  return redirect(_detail_url(record, link.object_type))
 
 
 @bp.get("/share/<token>")
@@ -160,7 +160,7 @@ def open_link(token: str) -> str | Response:
       object_id=link.object_id,
       data={"link_id": link.id},
     )
-    return redirect(_detail_url(link.object_type, link.object_id))
+    return redirect(_detail_url(record, link.object_type))
   if link.view_consumed_at is not None:
     return render_template("share_gone.html"), 410
   return render_template("share_notice.html", link=link, record=record, token=token)
@@ -172,9 +172,10 @@ def consume_view(token: str) -> Response:
   link = sharing_data.find_by_token(db(), token)
   if link is None or not sharing_data.is_active(link, now()):
     return render_template("share_gone.html"), 404
+  record = _record(link.object_type, link.object_id)
   if current_user() is not None:
     session["share_link_id"] = link.id
-    return redirect(_detail_url(link.object_type, link.object_id))
+    return redirect(_detail_url(record, link.object_type))
   if not sharing_data.consume_view(db(), link.id, at=now()):
     return render_template("share_gone.html"), 410
   session["anonymous_share_link_id"] = link.id

@@ -46,7 +46,7 @@ from pwedepa.data import site as site_data
 from pwedepa.data.db import transaction
 
 from .. import now
-from ._helpers import choice, current_user, db, expiry_days
+from ._helpers import choice, current_user, db, expiry_days, record_path
 
 bp = Blueprint("admin", __name__)
 
@@ -78,6 +78,7 @@ def overview() -> str | Response:
     share_links=sharing_data.list_all(db()),
     site_messages=site_data.list_messages(db()),
     priorities=[priority.value for priority in Priority],
+    domains=domains_data.load(current_app.config["DATABASE"]),
   )
 
 
@@ -297,9 +298,10 @@ def create_issue() -> Response:
       Visibility, request.form.get("visibility", "PRIVATE"), Visibility.PRIVATE
     ),
     domains=tuple(
-      part.strip()
-      for part in request.form.get("domains", "").split(",")
-      if part.strip()
+      name
+      for name in request.form.getlist("domains")
+      if name
+      in {domain.name for domain in domains_data.load(current_app.config["DATABASE"])}
     ),
     created_at=at,
     updated_at=at,
@@ -329,4 +331,4 @@ def create_issue() -> Response:
     object_type="issue",
     object_id=record.id,
   )
-  return redirect(url_for("records.issue_detail", issue_id=record.id))
+  return redirect(record_path(record, "issue"))
