@@ -42,6 +42,7 @@
         {{ pill(record.status) }}
       </div>
       <p class="status-word">{{ status_words[record.status] }}</p>
+      <p><a class="mini" href="{{ url_for('records.requests', selected=record.id) }}">Open the card</a></p>
       <p class="meta">#{{ record.id }} · {{ record.visibility.value | capitalize }}{% if record.domains %} · {{ record.domains | join(", ") }}{% endif %}</p>
     </article>
     {% endfor %}
@@ -64,6 +65,7 @@
         {{ pill(record.status) }}
       </div>
       <p class="meta">#{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
+      <p><a class="mini" href="{{ url_for('records.requests', selected=record.id) }}">Open the card</a></p>
     </article>
     {% endfor %}
   </div>
