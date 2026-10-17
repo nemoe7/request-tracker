@@ -1,7 +1,8 @@
 # PwedePa
 
 PwedePa is a self-hosted tracker for requests and issues. A small trusted group
-files requests, raises them into issues, and shares one record with a link.
+files requests, raises them into issues, and shares one request or issue with
+a link.
 
 ## Stack
 
@@ -25,7 +26,7 @@ and every passkey still signs in.
 
 ## Images
 
-The **Docker** workflow publishes `ghcr.io/nemoe7/pwedepa` for linux/amd64 and
+The Docker workflow publishes `ghcr.io/nemoe7/pwedepa` for linux/amd64 and
 linux/arm64. A passing CI run on `main` tags the image `dev`, and an approved
 release draft tags the version and `latest`. `compose.yml` runs the published
 image, and `compose.dev.yml` builds this checkout.
@@ -36,12 +37,12 @@ CI runs `ruff`, `pytest`, `scripts/lint_prose.py`, and `markdownlint-cli2`.
 
 ## Docs
 
-- `docs/deploy.md` — how to run the app for real.
-- `docs/design.md` — the settled UI decisions.
-- `docs/schema.dbml` — the database shape. `scripts/render_schema.py` writes
+- `docs/deploy.md`: how to run the app for real.
+- `docs/design.md`: the settled UI decisions.
+- `docs/schema.dbml`: the database shape. `scripts/render_schema.py` writes
   `docs/schema.md` from it.
-- `CHANGELOG.md` — what changed, per version.
-- `AGENTS.md` — the rules this repository follows.
+- `CHANGELOG.md`: what changed, per version.
+- `AGENTS.md`: the rules this repository follows.
 
 ## License
 

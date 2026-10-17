@@ -70,7 +70,7 @@ If Tailscale runs on the host instead, change the Proxy value in
 The `pages.yml` workflow freezes a demo to GitHub Pages on each push to `main`
 that touches the web app, and on demand from the Actions tab. Pages serves files
 only, so forms and passkey buttons stay inert there. The repository needs one
-setting: Settings, Pages, source **GitHub Actions**.
+setting: Settings, Pages, source: GitHub Actions.
 
 ## Notes
 

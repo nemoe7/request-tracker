@@ -1,6 +1,6 @@
 # PwedePa design decisions
 
-This file records the settled calls. Update it in the same change that changes a
+This file holds the settled calls. Update it in the same change that changes a
 pick.
 
 ## Product shape
@@ -25,9 +25,9 @@ pick.
   first, then a picked file, and the app reads the imported copy before both.
 - A request lives at `/<slug>/requests/<id>` and an issue at `/<slug>/issues/<id>`.
   The old `/<id>` pages answer 404, and both forms offer the configured Domains.
-- The Domain page shows the description, its records, and its announcements newest
-  first. An announcement holds a title, a body, the author, the publish time, and
-  the edit time.
+- The Domain page shows the description, its requests and issues, and its
+  announcements newest first. An announcement holds a title, a body, the author,
+  the publish time, and the edit time.
 - The slug keys an announcement and a subscription, so a rename keeps both. A pinned
   slug keeps the URL too.
 - A person follows a Domain from a toggle on its page. A new announcement notifies
@@ -79,8 +79,8 @@ Scheme 2, Slate and blue. Components use tokens from
 - Tabs follow the role. Staff see Workspace alone, and clients keep Requests and
   Issues.
 - A staff member can switch the whole session to the client view from Settings.
-  Record pages lose the write controls, and the server refuses record writes that
-  still arrive. Account settings stay writable.
+  Request and issue pages lose the write controls, and the server refuses a
+  request or issue write that still arrives. Account settings stay writable.
 - At 1200 px and up the staff grid runs filters 240 px, list fluid, inspector 360 px.
   Spacing follows an 8 px scale, rows are 40 px, panels get 10 px radius, and panels
   carry no shadow.
