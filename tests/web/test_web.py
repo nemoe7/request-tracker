@@ -326,6 +326,18 @@ def test_the_health_route_answers_from_the_database(app):
   assert response.data.strip() == b"ok"
 
 
+def test_safe_next_returns_only_a_local_path(app):
+  from pwedepa.web.routes._helpers import safe_next
+
+  with app.test_request_context(
+    "/", method="POST", data={"next": "/?queue=triage&selected=4"}
+  ):
+    assert safe_next() == "/?queue=triage&selected=4"
+  for bad in ("//evil.example", "https://evil.example", "/\\evil.example", "/\x00x"):
+    with app.test_request_context("/", method="POST", data={"next": bad}):
+      assert safe_next() is None
+
+
 def test_the_font_waits_for_no_paint(app):
   """A refresh must not strand the page on the fallback face."""
   with app.test_client() as client:
