@@ -87,6 +87,13 @@ def test_user_lifecycle_and_actor_block(db, user):
   assert active.archived_at is None
 
 
+def test_archiving_records_the_reason(db, user):
+  users.archive_user(db, user.id, at=LATER, actor_id=user.id, reason="Moved on")
+  audit = list_audit_events(db, object_type="user", object_id=user.id)
+  archived = [event for event in audit if event.event_type == "user.archived"][-1]
+  assert archived.data == {"reason": "Moved on"}
+
+
 def test_roles_and_direct_grants_make_an_actor(db, user):
   assert Grant("request.create") in grants.ROLE_GRANTS[Role.REQUESTER]
   assert Grant("issue.view") in grants.ROLE_GRANTS[Role.ASSIGNEE]

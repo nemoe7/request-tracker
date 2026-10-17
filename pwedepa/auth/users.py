@@ -121,7 +121,12 @@ def list_users(db: Connection, *, include_archived: bool = False) -> list[User]:
 
 
 def archive_user(
-  db: Connection, user_id: int, *, at: datetime, actor_id: int | None = None
+  db: Connection,
+  user_id: int,
+  *,
+  at: datetime,
+  actor_id: int | None = None,
+  reason: str | None = None,
 ) -> User:
   """Keep the row: past work still points at this user."""
   user = _require_user(db, user_id)
@@ -138,6 +143,7 @@ def archive_user(
     actor_id=actor_id,
     object_type="user",
     object_id=user_id,
+    data={"reason": reason} if reason else None,
     commit=False,
   )
   db.commit()
