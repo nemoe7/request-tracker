@@ -17,9 +17,9 @@ pick.
   requests, no group headings. Unread rows sit first and read bold, and each staff
   member keeps their own read list. One toolbar over the table holds the title, the
   status filter, the Issues link, and the new-request action. The open row carries
-  an accent edge on its first cell. The opened request reads on the right in the
-  same view as its page, with state controls, the comment box, and sharing. On a
-  phone that view fills the page, with a Back to the list link.
+  an accent edge on its first cell. The opened request centers on the page in the
+  same view as its page, with state controls, the comment box, and sharing. A Back
+  to the list link returns to the filtered table.
 - Request and issue pages follow the GitHub issue shape. The title carries the
   number and the state. One comment timeline holds the description and the
   comments. A right sidebar holds the people, labels, priority, and details.
