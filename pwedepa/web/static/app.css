@@ -539,7 +539,7 @@ form.is-auto [data-save] { display: none; }
   .workspace-grid .filters { order: 3; }
   .workspace-grid.is-open .records, .workspace-grid.is-open .filters { display: none; }
   .workspace-grid.is-open .inspector { order: 0; }
-  .back-to-list { display: inline-block; margin-bottom: 10px; font-size: 14px; }
+  .back-to-list { display: inline-flex; margin-bottom: 10px; }
   .issue-layout { grid-template-columns: 1fr; gap: 20px; }
   .issue-head h1 { font-size: 24px; }
   .issue-actions { margin-left: 0; }
