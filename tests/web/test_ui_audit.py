@@ -633,3 +633,11 @@ def test_an_admin_cannot_take_their_own_admin_role(app, db):
   )
   assert Role.ADMIN in list_roles(db, person.id)
   assert b"You cannot remove your own Admin role" in answer.data
+
+
+def test_admin_rows_draw_the_rule_above(app):
+  """One rule sits above each row, so a lone row ends at the card edge."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  rule = css[css.index(".admin-user .compact-list li {") :].split("}", 1)[0]
+  assert "border-top: 1px solid var(--line)" in rule
+  assert "border-bottom: 0" in rule

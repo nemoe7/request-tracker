@@ -261,6 +261,7 @@ select:focus-visible, textarea:focus-visible {
 .admin-section .create-token input, .admin-section .create-token select { width: 100%; box-sizing: border-box; }
 .admin-user h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 18px 0 8px; }
 .admin-user h2 { font-size: 20px; text-transform: none; letter-spacing: -0.02em; color: var(--text); }
+.admin-user .compact-list li { border-top: 1px solid var(--line); border-bottom: 0; }
 .chip-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .compact-list form { display: inline; }
 .empty-state { text-align: center; }
