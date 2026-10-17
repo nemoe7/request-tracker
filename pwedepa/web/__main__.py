@@ -3,7 +3,7 @@
 import os
 
 import uvicorn
-from asgiref.wsgi import WsgiToAsgi
+from a2wsgi import WSGIMiddleware
 
 from . import check_secret, create_app
 
@@ -17,7 +17,7 @@ def main() -> None:
   )
   # Flask answers as a WSGI app, and uvicorn speaks ASGI, so one adapter joins them.
   uvicorn.run(
-    WsgiToAsgi(create_app()),
+    WSGIMiddleware(create_app()),
     host=os.environ.get("PWEDEPA_HOST", "127.0.0.1"),
     port=int(os.environ.get("PWEDEPA_PORT", "5000")),
   )

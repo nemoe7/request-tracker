@@ -5,6 +5,7 @@ test reads them the way a browser does: a real port, a real cookie, real
 redirects, and the database on disk.
 """
 
+import http.client
 import os
 import socket
 import subprocess
@@ -89,7 +90,7 @@ def served(tmp_path_factory):
       f"the server did not answer on {base} within {START_TIMEOUT:.0f} seconds"
     )
 
-  yield {"base": base, "cookie": f"pwedepa_session={token}"}
+  yield {"base": base, "port": port, "cookie": f"pwedepa_session={token}"}
   process.terminate()
   process.wait(timeout=10)
 
@@ -143,3 +144,23 @@ def test_a_signed_out_read_lands_on_the_login_page(served):
   status, url, _ = _fetch(f"{served['base']}/requests")
   assert status == 200
   assert url.endswith("/login")
+
+
+def test_a_kept_alive_connection_can_reload_a_page(served):
+  """A browser reuses one connection for a page and its assets, and a refresh must hold."""
+  connection = http.client.HTTPConnection("127.0.0.1", served["port"], timeout=10)
+  try:
+    for path in (
+      "/health",
+      "/static/app.css",
+      "/static/tokens.css",
+      "/static/app.js",
+      "/static/icons/icon-static.png",
+      "/settings",
+    ):
+      connection.request("GET", path)
+      answer = connection.getresponse()
+      answer.read()
+      assert answer.status < 400, f"{path} answered {answer.status}"
+  finally:
+    connection.close()
