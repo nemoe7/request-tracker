@@ -21,6 +21,18 @@ def test_dockerfile_runs_the_web_app_as_one_service():
   assert "COPY domains.json ./" in text, "the image carries the domains config"
 
 
+def test_the_image_carries_the_package_it_starts():
+  """A venv alone cannot import the app: the editable install points at the source."""
+  stages = (ROOT / "Dockerfile").read_text(encoding="utf-8").split("\nFROM ")
+  runtime = stages[-1]
+  sync = next(line for line in stages if "uv sync" in line)
+  copies_source = re.search(r"^COPY pwedepa ./", runtime, re.MULTILINE)
+
+  assert copies_source or "--no-editable" in sync, (
+    "the runtime stage installs an editable package and leaves its source behind"
+  )
+
+
 def test_the_domains_config_sits_at_the_repo_root():
   assert (ROOT / "domains.json").is_file()
 
