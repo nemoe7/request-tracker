@@ -235,3 +235,19 @@ def test_a_remove_needs_the_tick_when_the_domain_holds_records(app, admin):
     assert requests_data.list_requests(connection) == []
   finally:
     connection.close()
+
+
+def test_an_old_domain_path_lands_on_the_same_page(app, admin):
+  from pwedepa.data import domain_store
+
+  admin.post("/admin/config/add", data={"name": "Gym"})
+  db_path = app.config["DATABASE"]
+  domain_store.rename(db_path, "gym", name="Fitness", new_slug="fitness")
+
+  detail = admin.get("/gym/requests/4")
+  assert detail.status_code == 302
+  assert detail.headers["Location"].endswith("/fitness/requests/4")
+
+  other = admin.get("/gym/announcements/9")
+  assert other.status_code == 302
+  assert other.headers["Location"].endswith("/fitness")

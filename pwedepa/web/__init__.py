@@ -1,10 +1,11 @@
 """Flask web shell: landing, passkey auth pages, and the signed-in home."""
 
 import os
+import re
 from datetime import UTC, datetime
 from urllib.parse import urlparse
 
-from flask import Flask, abort, g, redirect, request
+from flask import Flask, abort, g, redirect, request, url_for
 
 from pwedepa.auth import WebAuthnConfig
 from pwedepa.data import db as data_db
@@ -20,6 +21,7 @@ def check_secret(secret_key: str, origin: str) -> None:
 
 
 DEVELOPMENT_SECRET = "pwedepa-dev-secret"
+_RECORD_TAIL = re.compile(r"^/(?P<kind>requests|issues)/(?P<id>\d+)/?$")
 LOCAL_HOSTS = ("localhost", "127.0.0.1", "::1")
 
 
@@ -107,15 +109,28 @@ def create_app(config: dict | None = None) -> Flask:
     """Send a request on a renamed Domain to the slug that holds it now."""
     from pwedepa.data import domain_store
 
-    first = request.path.strip("/").split("/")[0]
-    if not first:
+    if request.method not in ("GET", "HEAD"):
       return None
-    target = domain_store.redirect_for(app.config["DATABASE"], first)
+    parts = request.path.strip("/").split("/")
+    if not parts or not parts[0]:
+      return None
+    target = domain_store.redirect_for(app.config["DATABASE"], parts[0])
     if target is None:
       return None
-    rest = request.path[len(first) + 1 :]
-    query = f"?{request.query_string.decode()}" if request.query_string else ""
-    return redirect(f"/{target}{rest}{query}", code=302)
+    # The target comes from the stored list, and the id is an int, so the
+    # browser never leaves this site.
+    match = _RECORD_TAIL.match("/" + "/".join(parts[1:]))
+    if match and match["kind"] == "requests":
+      return redirect(
+        url_for("records.request_detail", slug=target, request_id=int(match["id"])),
+        code=302,
+      )
+    if match and match["kind"] == "issues":
+      return redirect(
+        url_for("records.issue_detail", slug=target, issue_id=int(match["id"])),
+        code=302,
+      )
+    return redirect(url_for("records.domain_page", slug=target), code=302)
 
   data_db.connect(app.config["DATABASE"]).close()
   app.extensions["webauthn"] = WebAuthnConfig(
