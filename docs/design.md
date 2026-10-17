@@ -96,9 +96,8 @@ Scheme 2, Slate and blue. Components use tokens from
   Spacing follows an 8 px scale, rows are 40 px, panels get 10 px radius, and panels
   carry no shadow.
 - Breakpoints sit at 1200, 900, and 640 px. Below 900 px the tabs move to a bottom
-  nav, the inspector becomes a sheet, and filters fold into one row.
-- Touch targets run at least 44 px, tables stack into cards, and text stays 12 px or
-  larger.
+  bar, the opened item fills the page, and the filters fold into one row.
+- Touch targets run at least 44 px, and tables stack into cards on a phone.
 
 ## Components
 
