@@ -18,7 +18,7 @@ from pwedepa.core import (
 )
 from pwedepa.data import announcements, events, issues, notifications, requests
 from pwedepa.data import db as data_db
-from pwedepa.data.domains import domain_slot, starter_domains
+from pwedepa.data.domains import domain_slot, slugify, starter_domains
 
 
 def _user(db, username, display, role, at):
@@ -360,7 +360,7 @@ def seed(db, *, now: datetime, db_path=None) -> dict:
   )
   announcements.create(
     db,
-    domain=domain_slot(names, 2),
+    slug=slugify(domain_slot(names, 2)),
     title="The studio reopens on Monday",
     body="The floor is dry. The morning session starts at 7.",
     author_id=admin.id,
@@ -368,7 +368,7 @@ def seed(db, *, now: datetime, db_path=None) -> dict:
   )
   announcements.create(
     db,
-    domain=domain_slot(names, 1),
+    slug=slugify(domain_slot(names, 1)),
     title="Ladder audit this week",
     body="Label every ladder by Friday.",
     author_id=Sam.id,

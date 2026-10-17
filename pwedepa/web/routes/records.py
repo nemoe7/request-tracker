@@ -404,8 +404,8 @@ def domain_page(slug: str) -> str | Response:
   return render_template(
     "domain.html",
     domain=found,
-    announcements=announcements_data.list_for_domain(db(), found.name),
-    subscribed=subscriptions.subscribed(db(), user.id, found.name),
+    announcements=announcements_data.list_for_slug(db(), found.slug),
+    subscribed=subscriptions.subscribed(db(), user.id, found.slug),
     requests=requests,
     issues=issues,
     status_words=STATUS_WORDS,

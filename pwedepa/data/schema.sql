@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS site_messages (
 );
 CREATE TABLE IF NOT EXISTS announcements (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  domain TEXT NOT NULL,
+  domain TEXT NOT NULL, -- the Domain slug
   title TEXT NOT NULL,
   body TEXT NOT NULL,
   author_id INTEGER NOT NULL REFERENCES users(id),
@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS announcements (
 );
 CREATE TABLE IF NOT EXISTS domain_subscriptions (
   user_id INTEGER NOT NULL REFERENCES users(id),
-  domain TEXT NOT NULL,
+  domain TEXT NOT NULL, -- the Domain slug
   PRIMARY KEY (user_id, domain)
 );
 CREATE TABLE IF NOT EXISTS workspace_reads (

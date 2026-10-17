@@ -48,7 +48,7 @@ def _submitted() -> tuple[str, str]:
 def _find(domain, announcement_id: int):
   """Return one announcement of this Domain, or answer 404."""
   found = announcements_data.get(db(), announcement_id)
-  if found is None or found.domain != domain.name:
+  if found is None or found.slug != domain.slug:
     abort(404)
   return found
 
@@ -88,9 +88,9 @@ def create(slug: str) -> str | Response:
     )
   at = now()
   created = announcements_data.create(
-    db(), domain=domain.name, title=title, body=body, author_id=user.id, at=at
+    db(), slug=domain.slug, title=title, body=body, author_id=user.id, at=at
   )
-  for subscriber in subscriptions.subscribers(db(), domain.name):
+  for subscriber in subscriptions.subscribers(db(), domain.slug):
     if subscriber == user.id:
       continue
     notifications_data.notify(
@@ -158,8 +158,8 @@ def subscribe(slug: str) -> str | Response:
   user = current_user()
   if user is None:
     return redirect(url_for("pages.login"))
-  on = not subscriptions.subscribed(db(), user.id, domain.name)
-  subscriptions.set_subscribed(db(), user.id, domain.name, on=on)
+  on = not subscriptions.subscribed(db(), user.id, domain.slug)
+  subscriptions.set_subscribed(db(), user.id, domain.slug, on=on)
   flash(
     f"Subscribed to {domain.name} announcements."
     if on

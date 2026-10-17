@@ -1,4 +1,4 @@
-"""Announcements, one list for each Domain."""
+"""Announcements, one list for each Domain. The Domain slug is the key."""
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -11,7 +11,7 @@ from ._rows import pack_time, unpack_time
 @dataclass(frozen=True)
 class Announcement:
   id: int
-  domain: str
+  slug: str
   title: str
   body: str
   author_id: int
@@ -22,7 +22,7 @@ class Announcement:
 def _from_row(row: Row) -> Announcement:
   return Announcement(
     id=row._mapping["id"],
-    domain=row._mapping["domain"],
+    slug=row._mapping["domain"],
     title=row._mapping["title"],
     body=row._mapping["body"],
     author_id=row._mapping["author_id"],
@@ -34,7 +34,7 @@ def _from_row(row: Row) -> Announcement:
 def create(
   db: Connection,
   *,
-  domain: str,
+  slug: str,
   title: str,
   body: str,
   author_id: int,
@@ -45,7 +45,7 @@ def create(
   cursor = db.exec_driver_sql(
     "INSERT INTO announcements (domain, title, body, author_id, published_at) "
     "VALUES (?, ?, ?, ?, ?)",
-    (domain, title, body, author_id, pack_time(at)),
+    (slug, title, body, author_id, pack_time(at)),
   )
   if commit:
     db.commit()
@@ -79,10 +79,10 @@ def get(db: Connection, announcement_id: int) -> Announcement | None:
   return _from_row(row) if row is not None else None
 
 
-def list_for_domain(db: Connection, domain: str) -> list[Announcement]:
+def list_for_slug(db: Connection, slug: str) -> list[Announcement]:
   """Return the Domain's announcements, newest first."""
   rows = db.exec_driver_sql(
     "SELECT * FROM announcements WHERE domain = ? ORDER BY published_at DESC, id DESC",
-    (domain,),
+    (slug,),
   ).fetchall()
   return [_from_row(row) for row in rows]

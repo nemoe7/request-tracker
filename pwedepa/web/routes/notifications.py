@@ -5,7 +5,6 @@ from werkzeug.wrappers import Response
 
 from pwedepa.auth import get_user
 from pwedepa.data import announcements as announcements_data
-from pwedepa.data import domains as domains_data
 from pwedepa.data import issues as issues_data
 from pwedepa.data import notifications as notifications_data
 from pwedepa.data import requests as requests_data
@@ -36,7 +35,7 @@ def inbox() -> str | Response:
       links[notice.id] = record_path(record, "issue") if record else ""
     elif notice.object_type == "announcement":
       found = announcements_data.get(db(), notice.object_id)
-      links[notice.id] = f"/{domains_data.slugify(found.domain)}" if found else ""
+      links[notice.id] = f"/{found.slug}" if found else ""
   return render_template(
     "notifications.html", notices=notices, names=names, links=links
   )
