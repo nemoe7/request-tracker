@@ -850,3 +850,28 @@ def test_titles_lead_with_the_product(app, db):
     body = client.get(path).data.decode()
     title = re.search(r"<title>(.*?)</title>", body).group(1)
     assert title.startswith("PwedePa | "), title
+
+
+def test_the_issues_page_lists_the_work_in_status_groups(app, db):
+  client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  person = users.get_user_by_username(db, "sam")
+  issues_data.save(
+    db,
+    Issue(
+      id=1,
+      title="Projector repair plan",
+      description="Replace the lamp and test it.",
+      requester_id=person.id,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+
+  page = client.get("/issues").data.decode()
+
+  assert 'class="board-col"' not in page, "the page is a list, not a board"
+  assert 'class="issue-group"' in page, "each status keeps its own group"
+  assert 'class="issue-row"' in page, "an issue reads as one row"
+  assert "Nothing here." not in page, "an empty status stays out of the list"
+  assert record_url(1, "issues") in page
+  assert "Projector repair plan" in page

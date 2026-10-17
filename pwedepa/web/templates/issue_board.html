@@ -5,18 +5,31 @@
 <div class="page-head">
   <h1>Issues</h1>
 </div>
-<div class="board">
+{% set shown = board.values() | map("length") | sum %}
+{% if shown %}
+<div class="issue-groups">
   {% for status, issues in board.items() %}
-  <section class="board-col" aria-label="{{ status.value | capitalize }}">
+  {% if issues %}
+  <section class="issue-group">
     <h2>{{ pill(status) }}<span class="count">{{ issues | length }}</span></h2>
-    {% for issue in issues %}
-    <a class="mini card-mini" href="{{ record_path(issue, 'issue') }}">
-      <span class="mini-title">{{ issue.title }}</span>
-      <span>#{{ issue.id }} · {{ issue.priority.value | capitalize }} · {{ names.get(issue.assignee_id, "Unassigned") }}</span>
-    </a>
-    {% endfor %}
-    {% if not issues %}<p class="muted">Nothing here.</p>{% endif %}
+    <ol class="issue-list">
+      {% for issue in issues %}
+      <li class="issue-row">
+        <a href="{{ record_path(issue, 'issue') }}">
+          <span class="issue-row-title">{{ issue.title }}</span>
+          <span class="issue-row-meta">#{{ issue.id }} · {{ issue.priority.value | capitalize }} · {{ names.get(issue.assignee_id, "Unassigned") }}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ol>
   </section>
+  {% endif %}
   {% endfor %}
 </div>
+{% else %}
+<div class="empty panel">
+  <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="48" height="48">
+  <p>No issues yet.</p>
+</div>
+{% endif %}
 {% endblock %}
