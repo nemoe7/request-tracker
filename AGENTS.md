@@ -23,6 +23,7 @@ One root `AGENTS.md` only. Do not add nested `AGENTS.md` files unless a package 
 - Deployment ships the app container and a Tailscale sidecar from `Dockerfile` and `compose.yml`, which runs the published image. `compose.dev.yml` builds the checkout for local runs. Run notes live in `docs/deploy.md`.
 - The initial schema lives in `pwedepa/data/schema.sql`. Keep `docs/schema.dbml` and `docs/schema.svg` in step with it.
 - Repository gates and tools live in `scripts/`. Their tests live in `tests/scripts/`.
+- End-to-end tests live in `tests/e2e/`. A child process serves the app on a free port, and the tests read it over a socket.
 - The workflow set lives in `.github/workflows/`. The set contract is `scripts/gate_workflows.py`.
 - Update this file in the same change that changes the layout it points to.
 
