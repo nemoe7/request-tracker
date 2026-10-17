@@ -65,15 +65,17 @@ def _request(db, number, requester_id, **overrides):
 
 def test_a_domain_page_shows_its_description_and_its_records(db, Mara):
   client, person = Mara
-  _request(db, 1, person.id, title="Rope climb plan", domains=("Gym",))
-  _request(db, 2, person.id, title="Borrowed ladder", domains=("Asset Tracker",))
+  mine = _request(db, 1, person.id, title="Rope climb plan", domains=("Gym",))
+  other = _request(
+    db, 2, person.id, title="Borrowed ladder", domains=("Asset Tracker",)
+  )
   found = domains_data.find("gym")
 
   page = client.get(f"/{found.slug}")
   assert page.status_code == 200
   assert found.description.encode() in page.data
-  assert b"Rope climb plan" in page.data
-  assert b"Borrowed ladder" not in page.data
+  assert mine.title.encode() in page.data
+  assert other.title.encode() not in page.data
 
 
 def test_a_record_opens_under_each_of_its_domains(db, Mara):

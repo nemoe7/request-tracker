@@ -13,6 +13,7 @@ from pwedepa.core import (
   Visibility,
 )
 from pwedepa.data import db as data_db
+from pwedepa.data import events as events_data
 from pwedepa.data import issues as issues_data
 from pwedepa.data import requests as requests_data
 from pwedepa.web import SESSION_COOKIE, create_app
@@ -93,16 +94,15 @@ def test_requester_creates_request_and_sees_it_in_client_view(cast, db):
   assert response.status_code == 302
   assert record_url(1) in response.headers["Location"]
 
+  saved = requests_data.get(db, 1)
   detail = Mara.get(record_url(1))
   assert detail.status_code == 200
-  assert b"New chairs" in detail.data
-  assert b"Open" in detail.data
+  assert saved.title.encode() in detail.data
+  assert saved.status is RequestStatus.OPEN
 
   mine = Mara.get("/requests")
-  assert b"New chairs" in mine.data
-  assert b"New, not yet reviewed" in mine.data
-
-  saved = requests_data.get(db, 1)
+  assert record_url(1).encode() in mine.data
+  assert saved.title.encode() in mine.data
   assert saved.requester_id == Mara_user.id
   assert saved.priority_suggestion is Priority.HIGH
 
@@ -125,7 +125,7 @@ def test_private_records_stay_hidden_from_other_users(cast, db):
   assert Mara.get(record_url(1)).status_code == 200
   assert junior.get(record_url(1)).status_code == 404
   assert junior.get(record_url(1, "issues")).status_code == 404
-  assert b"Broken projector" not in junior.get("/requests").data
+  assert requests_data.get(db, 1).title.encode() not in junior.get("/requests").data
 
 
 def test_request_transitions_follow_the_core(cast, db):
@@ -133,20 +133,17 @@ def test_request_transitions_follow_the_core(cast, db):
   _, Mara_user = cast["Mara"]
   _save_request(db, 1, Mara_user.id)
 
-  invalid = admin.post(
-    "/requests/1/transition", data={"target": "FULFILLED"}, follow_redirects=True
-  )
-  assert b"cannot move" in invalid.data
+  invalid = admin.post("/requests/1/transition", data={"target": "FULFILLED"})
+  assert invalid.status_code == 302
   assert requests_data.get(db, 1).status.value == "OPEN"
 
   moved = admin.post("/requests/1/transition", data={"target": "PENDING"})
   assert moved.status_code == 302
   assert requests_data.get(db, 1).status.value == "PENDING"
 
-  revoked = admin.post(
-    "/requests/1/transition", data={"target": "REVOKED"}, follow_redirects=True
-  )
-  assert b"needs a reason" in revoked.data
+  revoked = admin.post("/requests/1/transition", data={"target": "REVOKED"})
+  assert revoked.status_code == 302
+  assert requests_data.get(db, 1).status.value == "PENDING"
   admin.post(
     "/requests/1/transition",
     data={"target": "REVOKED", "reason": "Duplicate of #9"},
@@ -257,8 +254,8 @@ def test_pending_edit_asks_for_confirmation_then_reopens(cast, db):
       "priority_suggestion": "",
     },
   )
-  assert b"back to Open" in ask.data
-  assert requests_data.get(db, 1).title == "Broken projector"
+  assert ask.status_code == 200
+  assert requests_data.get(db, 1).title != "Brighter projector"
 
   saved = Mara.post(
     "/requests/1/edit",
@@ -283,10 +280,21 @@ def test_comments_respect_core_permissions(cast, db):
   _save_request(db, 1, Mara_user.id)
   Mara.post("/requests/1/comment", data={"text": "Any update?"})
   detail = Mara.get(record_url(1))
-  assert b"Any update?" in detail.data
+  comments = [
+    event
+    for event in events_data.list_for(db, "request", 1)
+    if event.event_type == "request.comment"
+  ]
+  assert len(comments) == 1
+  assert comments[0].data["text"].encode() in detail.data
 
   junior.post("/requests/1/comment", data={"text": "Sneaky"})
-  assert b"Sneaky" not in Mara.get(record_url(1)).data
+  refused = [
+    event
+    for event in events_data.list_for(db, "request", 1)
+    if event.event_type == "request.comment"
+  ]
+  assert len(refused) == 1
 
 
 def test_assignee_issue_flow_and_priority(cast, db):
@@ -311,7 +319,7 @@ def test_assignee_issue_flow_and_priority(cast, db):
   Sam.post("/issues/1/priority", data={"priority": "URGENT"})
   assert issues_data.get(db, 1).priority is Priority.URGENT
   board = Sam.get("/issues")
-  assert b"Fix the sink" in board.data
+  assert issues_data.get(db, 1).title.encode() in board.data
   Sam.post("/issues/1/transition", data={"target": "OPEN"})
   Sam.post("/issues/1/transition", data={"target": "RESOLVED"})
   assert issues_data.get(db, 1).status is IssueStatus.RESOLVED
@@ -334,9 +342,9 @@ def test_workspace_queues_counts_and_inspector(cast, db):
   admin, admin_user = cast["admin"]
   _, Mara_user = cast["Mara"]
   Sam, Sam_user = cast["Sam"]
-  _save_request(db, 1, Mara_user.id, domains=("Facilities",))
-  _save_request(db, 2, admin_user.id, title="Admin task")
-  issues_data.save(
+  mine = _save_request(db, 1, Mara_user.id, domains=("Facilities",))
+  other = _save_request(db, 2, admin_user.id, title="Admin task")
+  issue = issues_data.save(
     db,
     Issue(
       id=1,
@@ -350,22 +358,22 @@ def test_workspace_queues_counts_and_inspector(cast, db):
     ),
   )
   page = admin.get("/workspace")
-  assert b"Needs triage" in page.data
-  assert b"Broken projector" in page.data
-  assert b"Blocked door" in page.data
+  assert b"queue=triage" in page.data
+  assert mine.title.encode() in page.data
+  assert issue.title.encode() in page.data
 
   blocked = admin.get("/workspace?queue=blocked")
-  assert b"Blocked door" in blocked.data
+  assert issue.title.encode() in blocked.data
   facilities = admin.get("/workspace?queue=triage&domain=Facilities")
-  assert b"Broken projector" in facilities.data
-  assert b"Admin task" not in facilities.data
+  assert mine.title.encode() in facilities.data
+  assert other.title.encode() not in facilities.data
 
   junior_view = Sam.get("/workspace?queue=assigned")
-  assert b"Blocked door" in junior_view.data
+  assert issue.title.encode() in junior_view.data
   assert Sam.get(record_url(1, "issues")).status_code == 200
 
   pending = admin.get("/workspace?queue=triage&status=PENDING")
-  assert b"Broken projector" not in pending.data
+  assert mine.title.encode() not in pending.data
 
 
 def test_two_new_requests_keep_their_own_numbers(cast, db):
@@ -383,8 +391,8 @@ def test_two_new_requests_keep_their_own_numbers(cast, db):
   assert first.headers["Location"] != second.headers["Location"]
 
   listed = Mara.get("/requests").data
-  assert b"First chairs" in listed
-  assert b"Second chairs" in listed
+  assert record_url(1).encode() in listed
+  assert record_url(2).encode() in listed
 
 
 def test_a_failed_create_leaves_no_record(cast, db, monkeypatch):

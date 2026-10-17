@@ -79,7 +79,7 @@ def test_an_admin_imports_the_mounted_file(app, admin, monkeypatch, tmp_path):
   assert domains_data.imported_path(db_path).is_file()
   assert [domain.name for domain in domains_data.load(db_path)] == ["Garden"]
   page = admin.get("/admin/config")
-  assert b"Garden" in page.data
+  assert domains_data.load(db_path)[0].name.encode() in page.data
 
 
 def test_an_admin_imports_a_chosen_file(app, admin):

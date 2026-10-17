@@ -448,7 +448,7 @@ def test_workspace_centers_the_inspector(app, db):
   assert body.index(b"panel inspector") < body.index(b"panel records")
   assert b"<th>Requester</th>" not in body
   assert b"<th>Domain</th>" not in body
-  assert b"Open the board" not in body
+  assert b'class="client-dash"' not in body
 
 
 def test_workspace_opens_two_cards_then_swaps_the_centre_one(app, db):
