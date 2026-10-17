@@ -164,3 +164,10 @@ CREATE TABLE IF NOT EXISTS domain_subscriptions (
   domain TEXT NOT NULL,
   PRIMARY KEY (user_id, domain)
 );
+CREATE TABLE IF NOT EXISTS workspace_reads (
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  object_type TEXT NOT NULL,
+  object_id INTEGER NOT NULL,
+  read_at TEXT NOT NULL,
+  PRIMARY KEY (user_id, object_type, object_id)
+);

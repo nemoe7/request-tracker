@@ -40,7 +40,7 @@ from pwedepa.data import issues as issues_data
 from pwedepa.data import notifications as notifications_data
 from pwedepa.data import requests as requests_data
 from pwedepa.data import sharing as sharing_data
-from pwedepa.data import subscriptions
+from pwedepa.data import subscriptions, workspace_reads
 from pwedepa.data.db import transaction
 
 from .. import now
@@ -342,6 +342,11 @@ def workspace() -> str | Response:
   selected_id = request.args.get("selected", type=int)
   if row_kind == "request" and selected_id:
     selected = next((r for r in rows if r.id == selected_id), None)
+  if selected is not None:
+    workspace_reads.mark(db(), user.id, "request", selected.id, at=now())
+  read_ids = workspace_reads.read_ids(db(), user.id, row_kind)
+  unread_rows = [row for row in rows if row.id not in read_ids]
+  opened_rows = [row for row in rows if row.id in read_ids]
   board = {
     status: [i for i in all_issues if i.status is status and in_domain(i)]
     for status in (
@@ -363,6 +368,8 @@ def workspace() -> str | Response:
     domains=domains,
     counts=counts,
     rows=rows,
+    unread_rows=unread_rows,
+    opened_rows=opened_rows,
     row_kind=row_kind,
     board=board,
     selected=selected,
@@ -493,6 +500,8 @@ def request_detail(slug: str, request_id: int) -> str | Response:
   record, actor = _load_request(actor, request_id)
   if not domain_matches(record, slug):
     abort(404)
+  if is_staff(user):
+    workspace_reads.mark(db(), user.id, "request", record.id, at=now())
   events = events_data.list_for(db(), "request", request_id)
   read_only = client_view()
   return render_template(
@@ -651,6 +660,8 @@ def issue_detail(slug: str, issue_id: int) -> str | Response:
   record, actor = _load_issue(actor, issue_id)
   if not domain_matches(record, slug):
     abort(404)
+  if is_staff(user):
+    workspace_reads.mark(db(), user.id, "issue", record.id, at=now())
   events = events_data.list_for(db(), "issue", issue_id)
   source_request = (
     requests_data.get(db(), record.source_request_id)

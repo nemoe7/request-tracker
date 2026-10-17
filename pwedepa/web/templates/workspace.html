@@ -6,7 +6,7 @@
   <h1>Workspace</h1>
   <a class="btn primary" href="{{ url_for('records.request_new') }}">New request</a>
 </div>
-<div class="workspace-grid{% if selected %} is-open{% endif %}">
+<div class="workspace-grid{% if selected %} is-open is-main{% endif %}">
   <aside class="panel filters" aria-label="Queue filters">
     <input class="filters-toggle" type="checkbox" id="filters-toggle">
     <label class="filters-row" for="filters-toggle">Filters<svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg></label>
@@ -43,8 +43,9 @@
     </div>
   </aside>
 
-  <aside class="panel inspector" aria-label="Inspector">
+  <aside class="panel inspector{% if selected %} is-main{% endif %}" aria-label="Inspector">
     {% if selected %}
+    <a class="back-to-list" href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter) }}">Back to the list</a>
     <p class="eyebrow">Request #{{ selected.id }} · opened by {{ names.get(selected.requester_id, "—") }}</p>
     <h2>{{ selected.title }}</h2>
     <p>{{ pill(selected.status) }}<span class="vis">{{ selected.visibility.value | capitalize }}</span></p>
@@ -75,13 +76,15 @@
   </aside>
 
   <section class="panel records" aria-label="Records">
-    {% if rows %}
+    {% for group, group_rows in [("Unread", unread_rows), ("Opened", opened_rows)] %}
+    <h2 class="group-title">{{ group }}<span class="count">{{ group_rows | length }}</span></h2>
+    {% if group_rows %}
     <table class="record-table">
       <thead>
         <tr><th>Title</th><th>Status</th></tr>
       </thead>
       <tbody>
-        {% for row in rows %}
+        {% for row in group_rows %}
         <tr{% if selected and row.id == selected.id %} class="is-selected"{% endif %}>
           <td>
             {% if row_kind == "request" %}
@@ -98,11 +101,9 @@
       </tbody>
     </table>
     {% else %}
-    <div class="empty">
-      <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="48" height="48">
-      <p>Nothing here yet.</p>
-    </div>
+    <p class="muted">{{ "Nothing unread." if group == "Unread" else "Nothing opened yet." }}</p>
     {% endif %}
+    {% endfor %}
 
     <h2 class="strip-title">Issue strip</h2>
     <div class="strip">

@@ -117,6 +117,7 @@ def test_the_phone_workspace_folds_its_filters(app, db):
 
 def test_the_stylesheet_holds_one_phone_block(app):
   css = app.test_client().get("/static/app.css").data.decode()
+  assert ".workspace-grid.is-main" in css, "the wide card needs its own grid rule"
   assert len(re.findall(r"@media \(max-width: 899px\)", css)) == 1, (
     "phones read in one place"
   )
@@ -468,7 +469,8 @@ def test_workspace_opens_two_cards_then_swaps_the_centre_one(app, db):
   assert f"selected={record.id}" in closed, "a row keeps a real link to its card"
 
   opened = client.get(f"/workspace?selected={record.id}").data.decode()
-  assert 'class="workspace-grid is-open"' in opened
+  # The opened card is the widest track, so the grid carries both marks.
+  assert 'class="workspace-grid is-open is-main"' in opened
 
   css = app.test_client().get("/static/app.css").data.decode()
   grid = css[css.index(".workspace-grid {") :].split("}", 1)[0]
