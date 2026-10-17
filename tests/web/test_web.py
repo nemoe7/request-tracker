@@ -240,6 +240,16 @@ def test_pwa_assets_are_served(client):
   assert icon.status_code == 200
   assert icon.data[:4] == b"\x89PNG"
 
+
+def test_the_manifest_points_inside_its_own_site(client):
+  """A demo under a path prefix must not send its start, scope, and icons to the root."""
+  data = json.loads(client.get("/static/manifest.webmanifest").data)
+  assert not data["start_url"].startswith("/")
+  assert not data["scope"].startswith("/")
+  assert all(not icon["src"].startswith("/") for icon in data["icons"])
+
+
+def test_the_pwa_sprite_answers(client):
   sprite = client.get("/static/icons/lucide.svg")
   assert sprite.status_code == 200
   assert b'id="contrast"' in sprite.data

@@ -1,5 +1,6 @@
 """Pages demo: one workflow freezes the seeded demo into static pages."""
 
+import json
 import os
 import re
 import subprocess
@@ -50,6 +51,19 @@ def test_frozen_demo_keeps_pages_and_assets_relative(tmp_path):
   assert (out / "static" / "app.css").exists()
   assert (out / "settings" / "index.html").exists()
   assert (out / "home" / "index.html").exists()
+
+
+def test_the_frozen_manifest_opens_its_own_site(tmp_path):
+  """An installed demo must open the site it came from, not the host root."""
+  out = _frozen_site(tmp_path)
+  manifest = json.loads(
+    (out / "static" / "manifest.webmanifest").read_text(encoding="utf-8")
+  )
+  here = urljoin(SITE, "static/manifest.webmanifest")
+  assert urljoin(here, manifest["start_url"]) == SITE
+  assert urljoin(here, manifest["scope"]) == SITE
+  for icon in manifest["icons"]:
+    assert urljoin(here, icon["src"]).startswith(SITE)
 
 
 def test_frozen_demo_opens_rail_filters_and_selected_records(tmp_path):
