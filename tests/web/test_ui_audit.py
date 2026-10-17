@@ -68,28 +68,28 @@ def _nav_tabs(html: str) -> list[str]:
   return re.findall(r"</svg>([^<]+)</a>", block.group(0))
 
 
-def test_staff_see_the_workspace_alone(app, db):
+def test_staff_hold_no_top_tabs(app, db):
   client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
-  tabs = _nav_tabs(client.get("/").get_data(as_text=True))
-  assert tabs == ["Workspace"]
+  assert '<nav class="tabs"' not in client.get("/").get_data(as_text=True), (
+    "the brand alone leads back to the workspace"
+  )
 
 
-def test_admins_see_the_workspace_alone(app, db):
+def test_admins_hold_no_top_tabs(app, db):
   client = _client(app, db, "Ana", "Ana Lim", roles=(Role.ADMIN,))
-  tabs = _nav_tabs(client.get("/").get_data(as_text=True))
-  assert tabs == ["Workspace"]
+  assert '<nav class="tabs"' not in client.get("/").get_data(as_text=True)
 
 
-def test_the_phone_drops_a_single_stop_nav(app, db):
+def test_the_phone_reserves_no_room_for_a_staff_bar(app, db):
   staff = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   staff_page = staff.get("/").get_data(as_text=True)
   assert '<body class="is-staff">' in staff_page
   css = staff.get("/static/app.css").data.decode()
   blocks = re.findall(r"@media \(max-width: 899px\) \{(.*?)\n\}", css, re.DOTALL)
   assert blocks, "the phone blocks hold the bottom bar rules"
-  hidden = [re.search(r"body\.is-staff \.tabs \{([^}]*)\}", block) for block in blocks]
-  assert any(match and "display: none" in match.group(1) for match in hidden), (
-    "one stop needs no bar"
+  padding = [re.search(r"body\.is-staff \{([^}]*)\}", block) for block in blocks]
+  assert any(match and "padding-bottom: 0" in match.group(1) for match in padding), (
+    "no bar leaves no room"
   )
   client = _client(app, db, "Mara", "Mara Reyes", roles=(Role.REQUESTER,))
   assert '<body class="is-staff">' not in client.get("/requests").get_data(as_text=True)

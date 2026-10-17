@@ -91,8 +91,8 @@ Scheme 2, Slate and blue. Components use tokens from
 ## Layout
 
 - The top bar is 56 px, fixed outside the scrolled layer, and the body holds its room.
-- Tabs follow the role. Staff see Workspace alone, and clients keep Requests and
-  Issues.
+- Tabs follow the role. Staff hold no tabs, and the brand opens the workspace.
+  Clients keep Requests and Issues.
 - A staff member can switch the whole session to the client view from Settings.
   Request and issue pages lose the write controls, and the server refuses a
   request or issue write that still arrives. Account settings stay writable.

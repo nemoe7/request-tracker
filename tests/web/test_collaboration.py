@@ -283,14 +283,13 @@ def test_notification_dismiss_and_clear(app, cast, db):
   assert anonymous.post("/notifications/1/dismiss").status_code == 302
 
 
-def test_header_nav_calls_the_middle_tab_requests(cast, db):
+def test_header_nav_keeps_the_client_tabs(cast, db):
+  """Staff hold no top tabs. The brand leads back to the workspace."""
   admin, _ = cast["admin"]
   Mara, _ = cast["Mara"]
   staff_page = admin.get("/").data
-  staff_nav = re.search(rb'<nav class="tabs".*?</nav>', staff_page, re.DOTALL).group(0)
-  assert b'href="/"' in staff_nav
-  assert b'href="/requests"' not in staff_nav
-  assert b'href="/issues"' not in staff_nav
+  assert b'<nav class="tabs"' not in staff_page
+  assert b'<a class="brand" href="/">' in staff_page
   client_page = Mara.get("/requests").data
   client_nav = re.search(rb'<nav class="tabs".*?</nav>', client_page, re.DOTALL).group(
     0

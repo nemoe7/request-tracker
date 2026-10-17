@@ -416,7 +416,6 @@ form.is-auto [data-save] { display: none; }
   .topbar .tabs .icon { display: block; }
   body { padding-bottom: 76px; }
   body.is-staff { padding-bottom: 0; }
-  body.is-staff .tabs { display: none; }
 }
 
 
