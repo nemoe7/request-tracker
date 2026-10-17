@@ -7,6 +7,8 @@ import pytest
 from pwedepa.auth import Role, assign_role, sessions, users
 from pwedepa.data import announcements as announcements_data
 from pwedepa.data import db as data_db
+from pwedepa.data import notifications as notifications_data
+from pwedepa.data import subscriptions
 from pwedepa.web import SESSION_COOKIE, create_app
 
 AT = datetime(2026, 10, 16, 12, 0, tzinfo=UTC)
@@ -133,3 +135,67 @@ def test_a_signed_out_visitor_lands_on_the_login_page(app, db):
   answer = app.test_client().get("/gym/announcements/new")
   assert answer.status_code == 302
   assert answer.headers["Location"] == "/login"
+
+
+def test_a_client_subscribes_from_the_domain_page(db, staff, requester):
+  person_client, person = requester
+  assert "Subscribe to announcements" in person_client.get("/gym").get_data(
+    as_text=True
+  ), "the toggle belongs on the Domain page for the signed-in visitor"
+
+  done = person_client.post("/gym/subscribe")
+  assert done.status_code == 302
+  assert done.headers["Location"] == "/gym"
+  assert subscriptions.subscribed(db, person.id, "Gym")
+  page = person_client.get("/gym").get_data(as_text=True)
+  assert "Unsubscribe from announcements" in page
+
+  person_client.post("/gym/subscribe")
+  assert not subscriptions.subscribed(db, person.id, "Gym")
+
+
+def test_a_new_announcement_reaches_each_subscriber(db, staff, requester):
+  admin_client, _ = staff
+  person_client, _ = requester
+  person_client.post("/gym/subscribe")
+
+  _post(admin_client, "/gym/announcements", title="Floor is open", body="Come in.")
+
+  inbox = person_client.get("/notifications").get_data(as_text=True)
+  assert "Floor is open" in inbox
+  assert 'href="/gym"' in inbox, "the inbox points at the Domain page"
+  assert "Floor is open" not in admin_client.get("/notifications").get_data(
+    as_text=True
+  ), "the author hears nothing"
+
+
+def test_a_subscriber_hears_only_about_their_own_domain(db, staff, requester):
+  admin_client, _ = staff
+  person_client, _ = requester
+  person_client.post("/gym/subscribe")
+
+  _post(
+    admin_client,
+    "/asset-tracker/announcements",
+    title="Ladder audit",
+    body="Label every ladder.",
+  )
+
+  assert "Ladder audit" not in person_client.get("/notifications").get_data(
+    as_text=True
+  )
+
+
+def test_a_muted_activity_switch_keeps_the_announcement_out(db, staff, requester):
+  admin_client, _ = staff
+  person_client, person = requester
+  person_client.post("/gym/subscribe")
+  notifications_data.set_preference(
+    db, person.id, "activity", enabled=False, inbox_enabled=True, pip_enabled=True
+  )
+
+  _post(admin_client, "/gym/announcements", title="Floor is open", body="Come in.")
+
+  assert "Floor is open" not in person_client.get("/notifications").get_data(
+    as_text=True
+  )

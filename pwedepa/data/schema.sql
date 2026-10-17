@@ -159,3 +159,8 @@ CREATE TABLE IF NOT EXISTS announcements (
   published_at TEXT NOT NULL,
   edited_at TEXT
 );
+CREATE TABLE IF NOT EXISTS domain_subscriptions (
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  domain TEXT NOT NULL,
+  PRIMARY KEY (user_id, domain)
+);

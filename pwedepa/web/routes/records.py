@@ -40,6 +40,7 @@ from pwedepa.data import issues as issues_data
 from pwedepa.data import notifications as notifications_data
 from pwedepa.data import requests as requests_data
 from pwedepa.data import sharing as sharing_data
+from pwedepa.data import subscriptions
 from pwedepa.data.db import transaction
 
 from .. import now
@@ -397,6 +398,7 @@ def domain_page(slug: str) -> str | Response:
     "domain.html",
     domain=found,
     announcements=announcements_data.list_for_domain(db(), found.name),
+    subscribed=subscriptions.subscribed(db(), user.id, found.name),
     requests=requests,
     issues=issues,
     status_words=STATUS_WORDS,

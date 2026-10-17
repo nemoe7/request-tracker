@@ -117,6 +117,7 @@ def create_app(config: dict | None = None) -> Flask:
     if endpoint == "auth.logout" or endpoint.startswith("settings."):
       return
     if endpoint in {
+      "announcements.subscribe",
       "auth.register_options",
       "auth.register_finish",
       "auth.passkey_revoke",

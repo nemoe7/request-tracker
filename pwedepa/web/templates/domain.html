@@ -10,6 +10,11 @@
   <p class="desc">{{ domain.description or "No description yet." }}</p>
 
   <h2 class="section-title">Announcements</h2>
+  {% if user and not demo_mode %}
+  <form method="post" action="{{ url_for('announcements.subscribe', slug=domain.slug) }}">
+    <button class="btn" type="submit">{% if subscribed %}Unsubscribe from announcements{% else %}Subscribe to announcements{% endif %}</button>
+  </form>
+  {% endif %}
   {% if is_staff and not demo_mode %}
   <p><a class="btn" href="{{ url_for('announcements.new', slug=domain.slug) }}">New announcement</a></p>
   {% endif %}

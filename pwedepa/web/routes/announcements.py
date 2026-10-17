@@ -14,6 +14,8 @@ from werkzeug.wrappers import Response
 
 from pwedepa.data import announcements as announcements_data
 from pwedepa.data import domains as domains_data
+from pwedepa.data import notifications as notifications_data
+from pwedepa.data import subscriptions
 
 from .. import now
 from ._helpers import current_user, db
@@ -41,6 +43,14 @@ def _staff_user():
 
 def _submitted() -> tuple[str, str]:
   return request.form.get("title", "").strip(), request.form.get("body", "").strip()
+
+
+def _find(domain, announcement_id: int):
+  """Return one announcement of this Domain, or answer 404."""
+  found = announcements_data.get(db(), announcement_id)
+  if found is None or found.domain != domain.name:
+    abort(404)
+  return found
 
 
 @bp.get("/<slug>/announcements/new")
@@ -76,9 +86,23 @@ def create(slug: str) -> str | Response:
       action=url_for("announcements.create", slug=domain.slug),
       values={"title": title, "body": body},
     )
-  announcements_data.create(
-    db(), domain=domain.name, title=title, body=body, author_id=user.id, at=now()
+  at = now()
+  created = announcements_data.create(
+    db(), domain=domain.name, title=title, body=body, author_id=user.id, at=at
   )
+  for subscriber in subscriptions.subscribers(db(), domain.name):
+    if subscriber == user.id:
+      continue
+    notifications_data.notify(
+      db(),
+      subscriber,
+      "activity",
+      f'{user.display_name} posted "{title}" in {domain.name}',
+      at=at,
+      object_type="announcement",
+      object_id=created.id,
+      actor_id=user.id,
+    )
   flash("Announcement published.")
   return redirect(url_for("records.domain_page", slug=domain.slug))
 
@@ -127,8 +151,18 @@ def edit_save(slug: str, announcement_id: int) -> str | Response:
   return redirect(url_for("records.domain_page", slug=domain.slug))
 
 
-def _find(domain, announcement_id: int):
-  found = announcements_data.get(db(), announcement_id)
-  if found is None or found.domain != domain.name:
-    abort(404)
-  return found
+@bp.post("/<slug>/subscribe")
+def subscribe(slug: str) -> str | Response:
+  """Follow or unfollow the Domain's announcements."""
+  domain = _domain(slug)
+  user = current_user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  on = not subscriptions.subscribed(db(), user.id, domain.name)
+  subscriptions.set_subscribed(db(), user.id, domain.name, on=on)
+  flash(
+    f"Subscribed to {domain.name} announcements."
+    if on
+    else f"Unsubscribed from {domain.name} announcements."
+  )
+  return redirect(url_for("records.domain_page", slug=domain.slug))
