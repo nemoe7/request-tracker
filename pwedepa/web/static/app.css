@@ -652,7 +652,7 @@ select:not([multiple]) { appearance: none; -webkit-appearance: none; min-height:
 .modal[hidden] { display: none; }
 .modal-scrim { position: absolute; inset: 0; background: rgb(0 0 0 / 0.55); }
 .modal-card { position: relative; width: min(420px, 100%); padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: 0 24px 60px rgb(0 0 0 / 0.35); }
-.modal-card h2 { margin: 0 0 10px; font-size: calc(17px * var(--font-scale)); text-transform: none; letter-spacing: 0; color: var(--text); }
+.modal .modal-card h2 { margin: 0 0 10px; font-size: calc(17px * var(--font-scale)); text-transform: none; letter-spacing: 0; color: var(--text); }
 .modal-form { display: grid; gap: 8px; }
 .modal-form label { font-size: calc(13px * var(--font-scale)); color: var(--muted); }
 .modal-form textarea { min-height: 84px; }
