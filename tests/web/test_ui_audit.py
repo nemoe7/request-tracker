@@ -758,8 +758,8 @@ def test_a_staff_request_link_opens_in_the_workspace(app, db):
   assert 'href="/?selected=1"' in page, "staff open a request in the workspace"
 
 
-def test_revoke_asks_for_a_reason_in_a_modal(app, db):
-  """The revoke trigger opens a custom modal, and the form carries a reason."""
+def test_reject_asks_for_a_reason_in_a_modal(app, db):
+  """The reject trigger opens a custom modal, and the form carries a reason."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   requests_data.save(
     db,
@@ -775,8 +775,8 @@ def test_revoke_asks_for_a_reason_in_a_modal(app, db):
 
   client.post("/records/request/1/share", data={"permission": "VIEW"})
   page = client.get("/?selected=1").get_data(as_text=True)
-  assert 'data-modal-open="revoke-request-1"' in page
-  assert 'id="revoke-request-1"' in page
+  assert 'data-modal-open="reject-request-1"' in page
+  assert 'id="reject-request-1"' in page
   assert 'role="dialog"' in page
   assert 'name="reason"' in page
   assert "<noscript>" in page, "a browser without JS keeps a reason field"
@@ -786,7 +786,7 @@ def test_revoke_asks_for_a_reason_in_a_modal(app, db):
   assert re.search(r'id="revoke-share-\d+"', page)
 
   closed = client.get("/").get_data(as_text=True)
-  assert "revoke-request-1" not in closed
+  assert "reject-request-1" not in closed
 
 
 def test_prose_in_the_workspace_renders_safe_html(app, db):

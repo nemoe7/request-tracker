@@ -61,30 +61,28 @@ def test_new_request_starts_open_and_issue_defaults_to_high():
 def test_request_graph_allows_only_listed_moves():
   allowed = {
     (RequestStatus.OPEN, RequestStatus.PENDING),
+    (RequestStatus.OPEN, RequestStatus.REJECTED),
     (RequestStatus.PENDING, RequestStatus.DELAYED),
     (RequestStatus.PENDING, RequestStatus.RAISED),
+    (RequestStatus.PENDING, RequestStatus.REJECTED),
+    (RequestStatus.PENDING, RequestStatus.FULFILLED),
     (RequestStatus.DELAYED, RequestStatus.PENDING),
+    (RequestStatus.DELAYED, RequestStatus.REJECTED),
   }
-  for current, target in allowed:
-    result = transition_request(make_request(current), target, ADMIN, at=NOW)
+  for current, target in sorted(allowed, key=str):
+    result = transition_request(
+      make_request(current), target, ADMIN, at=NOW, reason="declined"
+    )
     assert result.object.status is target
     assert result.events[0].event_type == "request.state_changed"
   for current in RequestStatus:
     for target in RequestStatus:
-      if (current, target) in allowed or target is RequestStatus.REVOKED:
-        continue
-      if (
-        current in (RequestStatus.OPEN, RequestStatus.PENDING, RequestStatus.DELAYED)
-        and target
-        in (
-          RequestStatus.REJECTED,
-          RequestStatus.FULFILLED,
-        )
-        and current is not RequestStatus.OPEN
-      ):
+      if (current, target) in allowed:
         continue
       with pytest.raises(CoreError):
-        transition_request(make_request(current), target, ADMIN, at=NOW)
+        transition_request(
+          make_request(current), target, ADMIN, at=NOW, reason="declined"
+        )
 
 
 def test_terminal_request_states_have_no_moves():
@@ -92,19 +90,18 @@ def test_terminal_request_states_have_no_moves():
     RequestStatus.RAISED,
     RequestStatus.REJECTED,
     RequestStatus.FULFILLED,
-    RequestStatus.REVOKED,
   ):
     with pytest.raises(CoreError):
       transition_request(make_request(current), RequestStatus.OPEN, ADMIN, at=NOW)
 
 
-def test_revocation_needs_a_reason():
+def test_rejection_needs_a_reason():
   with pytest.raises(CoreError):
-    transition_request(make_request(), RequestStatus.REVOKED, OWNER, at=NOW)
+    transition_request(make_request(), RequestStatus.REJECTED, OWNER, at=NOW)
   result = transition_request(
-    make_request(), RequestStatus.REVOKED, OWNER, at=NOW, reason="no longer needed"
+    make_request(), RequestStatus.REJECTED, OWNER, at=NOW, reason="no longer needed"
   )
-  assert result.object.status is RequestStatus.REVOKED
+  assert result.object.status is RequestStatus.REJECTED
   assert result.events[0].data["reason"] == "no longer needed"
 
 

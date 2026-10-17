@@ -1,4 +1,4 @@
-{% from "_parts.jinja" import revoke_modal %}
+{% from "_parts.jinja" import reason_modal %}
 {% if can_share %}
 <section class="share-panel" aria-label="Sharing">
   <h2>Share</h2>
@@ -35,7 +35,7 @@
         {% if next_href %}<input type="hidden" name="next" value="{{ next_href }}">{% endif %}
         <button class="btn danger" type="submit" data-modal-open="revoke-share-{{ link.id }}">Revoke</button>
       </form>
-      {{ revoke_modal("revoke-share-" ~ link.id, url_for('sharing.revoke', link_id=link.id), {}, next_href) }}
+      {{ reason_modal("revoke-share-" ~ link.id, url_for('sharing.revoke', link_id=link.id), {}, next_href) }}
       {% endif %}
     </li>
     {% endfor %}

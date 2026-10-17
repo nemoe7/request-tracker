@@ -35,16 +35,16 @@
 </div>
 {%- endmacro %}
 
-{% macro revoke_modal(id, action, fields, next_href) -%}
-{% call modal(id, "Revoke this?") %}
+{% macro reason_modal(id, action, fields, next_href, title="Revoke this?", submit="Revoke", hint="Why this is revoked") -%}
+{% call modal(id, title) %}
 <form class="modal-form" method="post" action="{{ action }}">
   {% for name, value in fields.items() %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
   {% if next_href %}<input type="hidden" name="next" value="{{ next_href }}">{% endif %}
   <label for="{{ id }}-reason">Reason</label>
-  <textarea id="{{ id }}-reason" name="reason" rows="3" required placeholder="Why this is revoked"></textarea>
+  <textarea id="{{ id }}-reason" name="reason" rows="3" required placeholder="{{ hint }}"></textarea>
   <div class="modal-actions">
     <button class="btn" type="button" data-modal-close>Cancel</button>
-    <button class="btn danger" type="submit">Revoke</button>
+    <button class="btn danger" type="submit">{{ submit }}</button>
   </div>
 </form>
 {% endcall %}
