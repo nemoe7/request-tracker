@@ -19,8 +19,8 @@ pick.
 
 ## Domains
 
-- `config.yml` at the project root is a template. A deploy copy holds each Domain
-  name and description. The slug comes from the name, and `slug:` pins it.
+- `config.yml` seeds the Domains once. After that the app owns the list, and an
+  admin adds a Domain in Admin, Domain config. The slug comes from the name.
 - An admin imports a picked file in Admin, Domain config. The app reads that copy
   before the config file in force.
 - A request lives at `/<slug>/requests/<id>` and an issue at `/<slug>/issues/<id>`.

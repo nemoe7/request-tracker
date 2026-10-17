@@ -104,6 +104,13 @@ def parse(text: str) -> tuple[Domain, ...]:
 
 
 def load(db_path: str | Path | None = None) -> tuple[Domain, ...]:
+  # The app-owned list wins as soon as an admin adds a Domain.
+  if db_path is not None:
+    from . import domain_store
+
+    stored = domain_store.read_all(db_path)
+    if stored:
+      return stored
   path = active_path(db_path)
   if not path.is_file():
     raise FileNotFoundError(

@@ -36,6 +36,7 @@ from pwedepa.auth import (
   revoke_role,
 )
 from pwedepa.core import Effect, Event, Grant, Issue, Priority, Visibility
+from pwedepa.data import domain_store
 from pwedepa.data import domains as domains_data
 from pwedepa.data import events as events_data
 from pwedepa.data import issues as issues_data
@@ -90,6 +91,56 @@ def domain_config() -> str | Response:
     imported=domains_data.imported_path(db_path),
     imported_exists=domains_data.imported_path(db_path).is_file(),
   )
+
+
+@bp.post("/admin/config/add")
+def domain_config_add() -> Response:
+  name = str(request.form.get("name", "")).strip()
+  description = str(request.form.get("description", "")).strip()
+  try:
+    found = domain_store.add(current_app.config["DATABASE"], name, description)
+  except domains_data.DomainConfigError as error:
+    flash(f"The Domain did not add: {error}")
+    return redirect(url_for("admin.domain_config"))
+  record_audit(
+    db(),
+    "domain.added",
+    at=now(),
+    actor_id=g.admin_user.id,
+    object_type="domain",
+    object_id=None,
+    data={"name": found.name, "slug": found.slug},
+  )
+  flash(f"{found.name} added.")
+  return redirect(url_for("admin.domain_config"))
+
+
+@bp.post("/admin/config/remove")
+def domain_config_remove() -> Response:
+  slug = str(request.form.get("slug", "")).strip()
+  db_path = current_app.config["DATABASE"]
+  requests, issues, announcements = domain_store.count_records(db_path, slug)
+  if sum((requests, issues, announcements)) and request.form.get("confirm") != "yes":
+    flash(
+      f"{slug} still holds {requests} requests and {issues} issues. Tick the box to delete them."
+    )
+    return redirect(url_for("admin.domain_config"))
+  try:
+    gone = domain_store.remove(db_path, slug)
+  except domains_data.DomainConfigError as error:
+    flash(f"The Domain did not remove: {error}")
+    return redirect(url_for("admin.domain_config"))
+  record_audit(
+    db(),
+    "domain.removed",
+    at=now(),
+    actor_id=g.admin_user.id,
+    object_type="domain",
+    object_id=None,
+    data={"slug": slug, "requests": gone[0], "issues": gone[1]},
+  )
+  flash(f"{slug} removed with {gone[0]} requests and {gone[1]} issues.")
+  return redirect(url_for("admin.domain_config"))
 
 
 @bp.post("/admin/config/import")

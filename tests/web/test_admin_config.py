@@ -117,3 +117,20 @@ def test_a_missing_choice_asks_for_a_file(admin):
   assert done.status_code == 200
   assert b'type="file"' in done.data
   assert not domains_data.imported_path(admin.application.config["DATABASE"]).exists()
+
+
+def test_an_admin_adds_a_domain(app, admin):
+  done = admin.post(
+    "/admin/config/add", data={"name": "Garden", "description": "Plots and tools."}
+  )
+  assert done.status_code == 302
+
+  db_path = app.config["DATABASE"]
+  assert [domain.name for domain in domains_data.load(db_path)] == ["Garden"]
+  page = admin.get("/admin/config")
+  assert b"Garden" in page.data
+
+
+def test_a_client_cannot_add_a_domain(requester):
+  done = requester.post("/admin/config/add", data={"name": "Garden"})
+  assert done.status_code == 403

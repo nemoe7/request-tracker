@@ -17,6 +17,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Domains from `config.yml`, each with a slug and a description, and an import
   from Admin. Every request and issue URL starts with its Domain, and the old URLs
   answer 404.
+- Domains live in the app. The config file fills the list on a first start,
+  and an admin adds a Domain in Admin, Domain config.
 - A checkout reads `config.dev.yml` in place of `config.yml`, with no variable in
   play. That file carries the Domains, and it can seed a demo set of requests and
   issues on a first start.
