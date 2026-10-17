@@ -122,9 +122,13 @@ def test_the_dev_build_skips_commits_that_change_no_image_input():
   assert jobs["changes"]["outputs"]["build"] == "${{ steps.paths.outputs.build }}"
 
 
-def test_the_changes_job_reads_the_tested_commit_file_list():
+def test_the_changes_job_reads_the_whole_push_range():
+  """A push can hold several commits, so the tip commit is not enough."""
   text = _docker_text()
-  assert "commits/$SHA" in text
+  assert "commits/$SHA" in text and ".parents[0].sha" in text, (
+    "the check needs the commit before the tested one"
+  )
+  assert "compare/$parent...$SHA" in text, "the check reads the push range"
   assert ".files[].filename" in text
   for path in (
     "pwedepa/*",

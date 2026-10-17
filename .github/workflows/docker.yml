@@ -62,7 +62,11 @@ jobs:
           fi
 
           # A failed read stops the job here, so no commit is guessed at.
-          files="$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA" \
+          # The push can hold several commits, so read the range from the
+          # commit before the tested one. A tip-only read misses the rest.
+          parent="$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA" \
+            --jq '.parents[0].sha')"
+          files="$(gh api "repos/$GITHUB_REPOSITORY/compare/$parent...$SHA" \
             --jq '.files[].filename')"
           build=no
           while IFS= read -r path; do
