@@ -46,7 +46,7 @@
     {% for record in requests %}
     <li class="record-row">
       <div class="record-row-main">
-        <h2><a href="{{ record_path(record, slug=domain.slug) }}">{{ record.title }}</a></h2>
+        <h2><a href="{{ request_open_path(record, domain.slug) }}">{{ record.title }}</a></h2>
         <p class="meta">#{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
       </div>
       <div class="record-row-side">{{ pill(record.status) }}</div>

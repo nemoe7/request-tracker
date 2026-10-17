@@ -2,10 +2,17 @@
 
 import math
 
-from flask import current_app, g, request, session
+from flask import current_app, g, request, session, url_for
 from sqlalchemy.engine import Connection
 
-from pwedepa.auth import WebAuthnConfig, actor_for_user, get_user, resolve_session
+from pwedepa.auth import (
+  Role,
+  WebAuthnConfig,
+  actor_for_user,
+  get_user,
+  list_roles,
+  resolve_session,
+)
 from pwedepa.data import db as data_db
 from pwedepa.data import domains as domains_data
 
@@ -96,6 +103,20 @@ def record_slug(record) -> str:
 def record_path(record, kind: str = "request", slug: str | None = None) -> str:
   """The domain-first URL for one item, under slug when given."""
   return f"/{slug or record_slug(record)}/{kind}s/{record.id}"
+
+
+def is_staff(user) -> bool:
+  """True when the user holds a staff role (admin or assignee)."""
+  roles = list_roles(db(), user.id)
+  return Role.ADMIN in roles or Role.ASSIGNEE in roles
+
+
+def request_open_path(record, slug: str | None = None) -> str:
+  """Open a request in the workspace for staff, or on its own page."""
+  user = current_user()
+  if user is not None and not client_view() and is_staff(user):
+    return url_for("records.workspace", selected=record.id)
+  return record_path(record, slug=slug)
 
 
 def domain_path(name: str) -> str:

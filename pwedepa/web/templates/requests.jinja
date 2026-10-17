@@ -16,7 +16,7 @@
       <h2>{{ selected.title }}</h2>
       <p>{{ pill(selected.status) }}<span class="vis">{{ selected.visibility.value | capitalize }}</span></p>
       <p class="desc">{{ selected.description or "No description." }}</p>
-      <a class="btn" href="{{ record_path(selected) }}">Open request</a>
+      <a class="btn" href="{{ request_open_path(selected) }}">Open request</a>
     </div>
   </section>
   {% else %}
@@ -40,7 +40,7 @@
     {% for record in mine %}
     <li class="record-row">
       <div class="record-row-main">
-        <h2><a href="{{ record_path(record) }}">{{ record.title }}</a></h2>
+        <h2><a href="{{ request_open_path(record) }}">{{ record.title }}</a></h2>
         <p class="meta">#{{ record.id }} · {{ record.visibility.value | capitalize }}{% if record.domains %} · {{ record.domains | join(", ") }}{% endif %}</p>
       </div>
       <div class="record-row-side">
@@ -65,7 +65,7 @@
     {% for record in public %}
     <li class="record-row">
       <div class="record-row-main">
-        <h2><a href="{{ record_path(record) }}">{{ record.title }}</a></h2>
+        <h2><a href="{{ request_open_path(record) }}">{{ record.title }}</a></h2>
         <p class="meta">#{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
       </div>
       <div class="record-row-side">

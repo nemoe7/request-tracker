@@ -16,10 +16,12 @@ pick.
 - The staff workspace is the one staff page. It follows Gmail: one flat table of
   requests, no group headings. Unread rows sit first and read bold, and each staff
   member keeps their own read list. One toolbar over the table holds the title, the
-  status filter, the Issues link, and the new-request action. The open row carries
-  an accent edge on its first cell. The opened request centers on the page in the
-  same view as its page, with state controls, the comment box, and sharing. A Back
-  to the list link returns to the filtered table.
+  status filter, and the Issues link. New request sits in the top bar as an icon,
+  because staff triage and clients make requests. The open row carries an accent
+  edge on its first cell. The opened request centers on the page in the same view
+  as its page, with state controls, the comment box, and sharing. A Back to the
+  list link returns to the filtered table. A staff link to a request opens the
+  workspace instead of the record page. Clients keep the record page.
 - Request and issue pages follow the GitHub issue shape. The title carries the
   number and the state. One comment timeline holds the description and the
   comments. A right sidebar holds the people, labels, priority, and details.
