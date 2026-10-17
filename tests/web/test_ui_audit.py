@@ -651,3 +651,11 @@ def test_the_script_opens_the_card_as_wide_as_a_reload(app):
   assert 'workspaceGrid.classList.add("is-open", "is-main")' in script
   assert 'inspector.classList.add("is-main")' in script
   assert 'workspaceGrid.classList.remove("is-open", "is-main")' in script
+
+
+def test_titles_lead_with_the_product(app, db):
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  for path in ("/settings", "/admin/users", "/workspace"):
+    body = client.get(path).data.decode()
+    title = re.search(r"<title>(.*?)</title>", body).group(1)
+    assert title.startswith("PwedePa | "), title

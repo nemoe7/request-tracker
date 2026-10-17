@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "_parts.html" import pill, event_line %}
-{% block title %}Issue #{{ record.id }} — PwedePa{% endblock %}
+{% block title %}PwedePa | Issue #{{ record.id }}{% endblock %}
 {% block content %}
 <article class="narrow detail">
   <p class="eyebrow">Issue #{{ record.id }} · opened by {{ names.get(record.requester_id, "—") }}</p>
