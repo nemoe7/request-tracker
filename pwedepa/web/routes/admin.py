@@ -251,7 +251,13 @@ def issue_token() -> Response:
 
 @bp.post("/admin/users/<int:user_id>/archive")
 def archive(user_id: int) -> Response:
-  archive_user(db(), user_id, at=now(), actor_id=g.admin_user.id)
+  archive_user(
+    db(),
+    user_id,
+    at=now(),
+    actor_id=g.admin_user.id,
+    reason=request.form.get("reason") or None,
+  )
   flash("User archived.")
   return redirect(url_for("admin.users"))
 

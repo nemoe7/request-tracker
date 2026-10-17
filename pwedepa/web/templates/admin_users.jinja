@@ -1,4 +1,5 @@
 {% extends "base.jinja" %}
+{% from "_parts.jinja" import reason_modal %}
 {% block title %}PwedePa | Admin users{% endblock %}
 {% block content %}
 <div class="admin-page">
@@ -40,7 +41,8 @@
       <div class="admin-user-body">
         <div class="admin-user-actions">
           {% if person.status.value == "ACTIVE" %}
-          <form method="post" action="{{ url_for('admin.archive', user_id=person.id) }}"><button class="btn danger" type="submit">Archive</button></form>
+          <button class="btn danger" type="button" data-modal-open="archive-user-{{ person.id }}">Archive</button>
+          {{ reason_modal("archive-user-" ~ person.id, url_for('admin.archive', user_id=person.id), {}, None, title="Archive this person?", submit="Archive", hint="Why this person is archived") }}
           {% else %}
           <form method="post" action="{{ url_for('admin.reactivate', user_id=person.id) }}"><button class="btn" type="submit">Reactivate</button></form>
           {% endif %}
