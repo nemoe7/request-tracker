@@ -367,3 +367,74 @@ document.querySelector("#logout-button")?.addEventListener("click", async () => 
 document.querySelectorAll("form[data-auto-submit]").forEach((form) => {
   form.addEventListener("change", () => form.requestSubmit());
 });
+
+/* Modal: one manager for every custom dialog. An opener carries
+   data-modal-open="<id>", and a close control carries data-modal-close. */
+(() => {
+  let active = null;
+  let returnFocus = null;
+
+  function focusable(modal) {
+    return [
+      ...modal.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      ),
+    ].filter((node) => !node.disabled && node.offsetParent !== null);
+  }
+
+  function open(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    active = modal;
+    returnFocus = document.activeElement;
+    modal.hidden = false;
+    document.body.classList.add("has-modal");
+    const first = focusable(modal)[0];
+    if (first) first.focus();
+  }
+
+  function close() {
+    if (!active) return;
+    active.hidden = true;
+    document.body.classList.remove("has-modal");
+    active = null;
+    if (returnFocus && returnFocus.isConnected) returnFocus.focus();
+    returnFocus = null;
+  }
+
+  document.addEventListener("click", (event) => {
+    const opener = event.target.closest("[data-modal-open]");
+    if (opener) {
+      event.preventDefault();
+      open(opener.dataset.modalOpen);
+      return;
+    }
+    if (event.target.closest("[data-modal-close]")) {
+      event.preventDefault();
+      close();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (!active) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      close();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const items = focusable(active);
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+
+  window.PwedePaModal = { open, close };
+})();
