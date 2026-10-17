@@ -62,6 +62,18 @@ def clock() -> Response:
   return redirect(url_for("settings.settings"))
 
 
+@bp.post("/settings/theme")
+def theme() -> Response:
+  """Save the signed-in user's theme choice."""
+  user = current_user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  picked = request.form.get("theme", "")
+  if picked in preferences_data.THEMES:
+    preferences_data.set_theme(db(), user.id, picked)
+  return Response("", status=204)
+
+
 @bp.post("/settings/notifications")
 def notification_preferences() -> Response:
   """Save the signed-in user's notification preferences."""

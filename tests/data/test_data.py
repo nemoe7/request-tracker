@@ -1,3 +1,4 @@
+import sqlite3
 from datetime import UTC, datetime
 
 import pytest
@@ -222,3 +223,24 @@ def test_a_database_file_prepares_its_schema_once(tmp_path, monkeypatch):
   data_db.connect(path).close()
 
   assert len(calls) == 1
+
+
+def test_an_older_file_gains_the_theme_column(tmp_path):
+  """A database from before the theme column must not break on open."""
+  path = tmp_path / "older.db"
+  with sqlite3.connect(path) as raw:
+    raw.execute(
+      "CREATE TABLE user_preferences ("
+      "user_id INTEGER PRIMARY KEY, "
+      "clock TEXT NOT NULL DEFAULT '12'"
+      ")"
+    )
+
+  connection = data_db.connect(path)
+  columns = {
+    row._mapping["name"]
+    for row in connection.exec_driver_sql("PRAGMA table_info(user_preferences)")
+  }
+  connection.close()
+
+  assert "theme" in columns

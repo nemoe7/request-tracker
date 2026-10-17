@@ -138,7 +138,8 @@ CREATE TABLE IF NOT EXISTS notification_preferences (
 );
 CREATE TABLE IF NOT EXISTS user_preferences (
   user_id INTEGER PRIMARY KEY REFERENCES users(id),
-  clock TEXT NOT NULL DEFAULT '12'
+  clock TEXT NOT NULL DEFAULT '12',
+  theme TEXT NOT NULL DEFAULT 'system'
 );
 CREATE TABLE IF NOT EXISTS site_messages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

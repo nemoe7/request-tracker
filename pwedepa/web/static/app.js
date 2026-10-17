@@ -1,6 +1,7 @@
 "use strict";
 
-/* Theme: System (default), Light, Dark, persisted per device. */
+/* Theme: System (default), Light, Dark. A signed-in account holds the choice;
+   a signed-out page or a frozen demo keeps it in the browser. */
 const themeButtons = document.querySelectorAll("[data-theme-set]");
 
 function markThemeButtons() {
@@ -11,8 +12,16 @@ function markThemeButtons() {
 }
 
 function setTheme(theme) {
-  document.documentElement.dataset.theme = theme;
+  const root = document.documentElement;
+  root.dataset.theme = theme;
   localStorage.setItem("pwedepa-theme", theme);
+  if (root.dataset.themeScope === "account") {
+    fetch(root.dataset.themeEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ theme }),
+    }).catch(() => {});
+  }
   markThemeButtons();
 }
 

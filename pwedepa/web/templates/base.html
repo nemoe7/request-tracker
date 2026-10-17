@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="system">
+<html lang="en" data-theme="{{ theme }}" data-theme-scope="{{ 'account' if user else 'browser' }}" data-theme-endpoint="{{ url_for('settings.theme') }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,8 +8,15 @@
   <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='icons/icon-static.png') }}">
   <script>
-    document.documentElement.dataset.theme =
-      localStorage.getItem("pwedepa-theme") || "system";
+    (function () {
+      var root = document.documentElement;
+      if (root.dataset.themeScope === "browser") {
+        root.dataset.theme =
+          localStorage.getItem("pwedepa-theme") || root.dataset.theme;
+      } else {
+        localStorage.setItem("pwedepa-theme", root.dataset.theme);
+      }
+    })();
   </script>
   <link rel="preload" as="font" type="font/woff2" crossorigin href="{{ url_for('static', filename='fonts/inter-latin-400-normal.woff2') }}">
   <link rel="preload" as="font" type="font/woff2" crossorigin href="{{ url_for('static', filename='fonts/inter-latin-600-normal.woff2') }}">

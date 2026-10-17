@@ -80,8 +80,10 @@ def create_app(config: dict | None = None) -> Flask:
     user = current_user()
     count = 0
     clock = preferences_data.DEFAULT_CLOCK
+    theme = preferences_data.DEFAULT_THEME
     if user is not None:
       clock = preferences_data.get_clock(db(), user.id)
+      theme = preferences_data.get_theme(db(), user.id)
       if notifications_data.pip_visible(db(), user.id):
         count = notifications_data.count_for_user(db(), user.id)
     staff = user is not None and is_staff(user)
@@ -93,6 +95,7 @@ def create_app(config: dict | None = None) -> Flask:
       "can_view_as_client": staff,
       "notification_count": count,
       "clock": clock,
+      "theme": theme,
       "demo_mode": bool(app.config.get("DEMO_MODE")),
       "demo_switch": bool(app.config.get("DEMO_SWITCH")),
     }

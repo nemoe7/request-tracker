@@ -172,6 +172,7 @@ Table notification_preferences {
 Table user_preferences {
   user_id integer [pk]
   clock text [not null, default: '12']
+  theme text [not null, default: 'system']
 }
 
 Table site_messages {

@@ -52,10 +52,18 @@ def connect(path: str | Path) -> Connection:
 
 
 def initialize(db: Connection) -> None:
-  """Create every table when it is missing."""
+  """Create every table when it is missing, and add a column an older file lacks."""
   for statement in SCHEMA.split(";"):
     if statement.strip():
       db.exec_driver_sql(statement)
+  columns = {
+    row._mapping["name"]
+    for row in db.exec_driver_sql("PRAGMA table_info(user_preferences)")
+  }
+  if "theme" not in columns:
+    db.exec_driver_sql(
+      "ALTER TABLE user_preferences ADD COLUMN theme TEXT NOT NULL DEFAULT 'system'"
+    )
   db.commit()
 
 

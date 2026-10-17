@@ -66,6 +66,15 @@ def test_the_frozen_manifest_opens_its_own_site(tmp_path):
     assert urljoin(here, icon["src"]).startswith(SITE)
 
 
+def test_the_frozen_theme_stays_a_browser_choice(tmp_path):
+  """A frozen page has no account, so the theme must come from the browser."""
+  out = _frozen_site(tmp_path)
+  page = (out / "settings" / "index.html").read_text(encoding="utf-8")
+
+  assert 'data-theme-scope="browser"' in page
+  assert 'data-theme-scope="account"' not in page
+
+
 def test_frozen_demo_opens_rail_filters_and_selected_records(tmp_path):
   out = tmp_path / "site"
   env = {**os.environ, "PWEDEPA_PAGES_OUT": str(out)}

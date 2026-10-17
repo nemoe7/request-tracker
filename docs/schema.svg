@@ -300,11 +300,13 @@
 <text class="col dim" x="886" y="1140" text-anchor="end">text</text>
 <text class="col" x="636" y="1159">created_by_id</text>
 <text class="col dim" x="886" y="1159" text-anchor="end">integer</text>
-<rect x="320" y="1150" width="270" height="76" rx="8" fill="#1E293B" stroke="#334155"/>
+<rect x="320" y="1150" width="270" height="95" rx="8" fill="#1E293B" stroke="#334155"/>
 <rect x="320" y="1150" width="270" height="30" rx="8" fill="#2563EB"/>
 <text class="head" x="330" y="1170">user_preferences</text>
 <text class="col" x="330" y="1195">user_id</text>
 <text class="col dim" x="580" y="1195" text-anchor="end">integer</text>
 <text class="col" x="330" y="1214">clock</text>
 <text class="col dim" x="580" y="1214" text-anchor="end">text</text>
+<text class="col" x="330" y="1233">theme</text>
+<text class="col dim" x="580" y="1233" text-anchor="end">text</text>
 </svg>

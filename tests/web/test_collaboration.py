@@ -320,6 +320,21 @@ def test_clock_preference_and_stamp_rendering(cast, db):
   assert b'name="clock"' in Mara.get("/settings").data
 
 
+def test_theme_preference_is_saved_on_the_account(cast, db):
+  Mara, Mara_user = cast["Mara"]
+  page = Mara.get("/settings")
+  assert b'data-theme="system"' in page.data
+  assert b'data-theme-scope="account"' in page.data
+  assert preferences_data.get_theme(db, Mara_user.id) == "system"
+
+  Mara.post("/settings/theme", data={"theme": "dark"})
+  assert preferences_data.get_theme(db, Mara_user.id) == "dark"
+  assert b'data-theme="dark"' in Mara.get("/settings").data
+
+  Mara.post("/settings/theme", data={"theme": "neon"})
+  assert preferences_data.get_theme(db, Mara_user.id) == "dark"
+
+
 def test_settings_profile_and_admin_pages(cast, db):
   admin, _ = cast["admin"]
   Mara, Mara_user = cast["Mara"]

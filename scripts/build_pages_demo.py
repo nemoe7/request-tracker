@@ -142,6 +142,8 @@ def rewrite(
   own = f"{page}/" if page else "./"
   html = html.replace('"/static/', '"static/')
   html = html.replace('method="post"', 'method="get"')
+  # A frozen page has no account behind it, so its theme stays a browser choice.
+  html = html.replace('data-theme-scope="account"', 'data-theme-scope="browser"')
   html = html.replace(
     '<meta charset="utf-8">',
     f'<meta charset="utf-8">\n  <base href="{prefix}">\n  <script>{BASE_PIN}</script>',
