@@ -2,14 +2,13 @@ import re
 from datetime import UTC, datetime
 
 import pytest
+from _paths import record_url
 
 from pwedepa.auth import Role, assign_role, sessions, users
 from pwedepa.core import Request
 from pwedepa.data import db as data_db
 from pwedepa.data import requests as requests_data
 from pwedepa.web import SESSION_COOKIE, create_app
-
-from _paths import record_url
 
 AT = datetime(2026, 10, 16, 12, 0, tzinfo=UTC)
 
