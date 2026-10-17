@@ -308,6 +308,44 @@ def test_the_worker_check_covers_every_copied_script(tmp_path):
   assert "serviceWorker" in (scripts / "extra.js").read_text(encoding="utf-8")
 
 
+def test_a_nested_worker_file_reaches_the_check(tmp_path):
+  """A worker below the top folder must not vanish from the copy without a word."""
+  sys.path.insert(0, str(ROOT / "scripts"))
+  import build_pages_demo
+
+  source = tmp_path / "source"
+  (source / "nested").mkdir(parents=True)
+  (source / "app.js").write_text("console.log('app');\n", encoding="utf-8")
+  (source / "nested" / "sw.js").write_text(
+    'navigator.serviceWorker.register("/sw.js");\n', encoding="utf-8"
+  )
+  static = tmp_path / "static"
+
+  build_pages_demo.copy_static(static, source=source)
+  assert (static / "nested" / "sw.js").exists()
+
+  with pytest.raises(SystemExit, match="sw.js"):
+    build_pages_demo.keep_workers_out(static)
+
+
+def test_a_lost_script_stops_the_copy(tmp_path):
+  """A file the copy leaves behind must be named, not dropped."""
+  sys.path.insert(0, str(ROOT / "scripts"))
+  import build_pages_demo
+
+  source = tmp_path / "source"
+  (source / "nested").mkdir(parents=True)
+  (source / "app.js").write_text("console.log('app');\n", encoding="utf-8")
+  (source / "nested" / "extra.js").write_text(
+    "console.log('extra');\n", encoding="utf-8"
+  )
+  static = tmp_path / "static"
+  static.mkdir()
+  (static / "app.js").write_text("console.log('app');\n", encoding="utf-8")
+
+  assert build_pages_demo.missing_scripts(source, static) == ["nested/extra.js"]
+
+
 def test_the_frozen_app_script_stays_valid(tmp_path):
   """A strip of one line can cut a block and kill every script on the page."""
   out = _frozen_site(tmp_path)

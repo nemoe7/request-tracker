@@ -159,6 +159,32 @@ def rewrite(
   )
 
 
+def missing_scripts(source: Path, static: Path) -> list[str]:
+  """Return the scripts the copy left behind, the top worker file aside."""
+  expected = {
+    path.relative_to(source)
+    for path in source.rglob("*.js")
+    if path.relative_to(source) != Path("sw.js")
+  }
+  copied = {path.relative_to(static) for path in static.rglob("*.js")}
+  return sorted(str(path) for path in expected - copied)
+
+
+def copy_static(static: Path, source: Path | None = None) -> None:
+  """Copy the app files, keep only the top worker out, and name a lost script."""
+  source = source or ROOT / "pwedepa" / "web" / "static"
+  shutil.copytree(
+    source,
+    static,
+    ignore=lambda folder, names: (
+      ["sw.js"] if Path(folder) == source and "sw.js" in names else []
+    ),
+  )
+  lost = missing_scripts(source, static)
+  if lost:
+    raise SystemExit(f"the frozen site lost {', '.join(lost)}")
+
+
 def keep_workers_out(static: Path) -> None:
   """Take the worker out of every copied script, and refuse a leftover."""
   for script in sorted(static.rglob("*.js")):
@@ -242,11 +268,7 @@ def main() -> int:
   for route, folder in client_pages:
     freeze(route, folder, nav=nav)
   static = out / "static"
-  shutil.copytree(
-    ROOT / "pwedepa" / "web" / "static",
-    static,
-    ignore=shutil.ignore_patterns("sw.js"),
-  )
+  copy_static(static)
   if (static / "sw.js").exists():
     raise SystemExit("the frozen site still carries a worker")
   keep_workers_out(static)
