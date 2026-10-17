@@ -551,8 +551,10 @@ form.is-auto [data-save] { display: none; }
   .workspace-grid, .workspace-grid.is-open, .workspace-grid.is-main { grid-template-columns: 1fr; }
   .workspace-grid:not(.is-open) .inspector { display: none; }
   .workspace-grid .inspector { order: 1; }
-  .workspace-grid .records { order: 2; }
-  .workspace-grid .filters { order: 3; }
+  .workspace-grid .records { display: contents; }
+  .workspace-grid .list-toolbar { order: 2; padding: 14px 16px 6px; }
+  .workspace-grid .records > .mail-table,
+  .workspace-grid .records > .muted { order: 4; margin: 0 16px; width: calc(100% - 32px); }
   .workspace-grid.is-open .records, .workspace-grid.is-open .filters { display: none; }
   .workspace-grid.is-open .inspector { order: 0; border: 0; border-radius: 0; padding: 16px; max-width: none; margin: 0; }
   .back-to-list { display: inline-flex; margin-bottom: 10px; }
@@ -563,8 +565,13 @@ form.is-auto [data-save] { display: none; }
   .issue-actions .btn { padding: 8px 10px; }
   .list-actions { margin-left: 0; width: 100%; }
   .list-actions .filter-form { flex: 1 1 auto; }
-  .filters { border: 0; border-radius: 0; background: none; padding: 0; }
-  .filters-body { padding: 4px 2px 8px; }
+  .wrap:has(.workspace-grid) { padding: 0; }
+  .workspace-grid { padding-inline: 0; gap: 0; }
+  .workspace-grid .panel.inspector { border: 0; border-radius: 0; background: var(--bg); }
+  .workspace-grid .filters {
+    order: 3; border: 0; border-radius: 0; background: none; padding: 0 16px 8px;
+  }
+  .filters-body { padding: 4px 0 8px; }
   .record-row { flex-direction: column; align-items: flex-start; gap: 6px; }
   .admin-page .record-row { flex-direction: row; align-items: center; }
   .notice { flex-direction: column; align-items: flex-start; gap: 8px; }

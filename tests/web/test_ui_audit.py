@@ -107,7 +107,7 @@ def test_the_phone_reserves_no_room_for_a_staff_bar(app, db):
 
 
 def test_the_phone_workspace_folds_its_filters(app, db):
-  """On a phone the list leads, and one row opens the rail."""
+  """On a phone the filters sit above the list, and one row opens them."""
   client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   page = client.get("/").get_data(as_text=True)
   rail = page[
@@ -123,8 +123,16 @@ def test_the_phone_workspace_folds_its_filters(app, db):
   )
   phone = css[phone_at:]
   assert ".filters-toggle:not(:checked) ~ .filters-body { display: none; }" in phone
-  orders = dict(re.findall(r"\.workspace-grid \.(\w+) \{ order: (\d)", phone))
-  assert int(orders["records"]) < int(orders["filters"]), "the list leads on a phone"
+  orders = dict(re.findall(r"\.workspace-grid \.([\w-]+) \{\s*order: (\d)", phone))
+  list_orders = re.findall(
+    r"\.workspace-grid \.records > \.([\w-]+) \{\s*order: (\d)", phone
+  )
+  assert int(orders["list-toolbar"]) < int(orders["filters"]), (
+    "the filters sit above the list"
+  )
+  assert int(orders["filters"]) < min(int(order) for _, order in list_orders), (
+    "the filters sit above the list"
+  )
 
 
 def test_the_stylesheet_holds_one_phone_block(app):
