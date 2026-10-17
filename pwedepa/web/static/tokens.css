@@ -24,6 +24,7 @@
 
 :root,
 :root[data-theme="light"] {
+  --font-scale: 1;
   --bg: #F4F6F8;
   --surface: #FFFFFF;
   --surface-2: #F8FAFC;

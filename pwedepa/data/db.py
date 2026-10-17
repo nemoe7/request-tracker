@@ -11,7 +11,7 @@ from sqlalchemy.engine import Connection, Engine
 
 # The number this code needs. A file carries its own number in PRAGMA
 # user_version, and a step in initialize() moves a lower file up one version.
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 SCHEMA = files(__package__).joinpath("schema.sql").read_text(encoding="utf-8")
 
@@ -81,6 +81,8 @@ def initialize(db: Connection, path: str | Path | None = None) -> None:
     _step_one(db)
   if found < 2:
     _step_two(db)
+  if found < 3:
+    _step_three(db)
   # A later step reads the number, adds its guard, and moves the number again.
   db.exec_driver_sql(f"PRAGMA user_version = {SCHEMA_VERSION}")
   db.commit()
@@ -139,3 +141,15 @@ def transaction(db: Connection) -> Iterator[Connection]:
     db.rollback()
     raise
   db.commit()
+
+
+def _step_three(db: Connection) -> None:
+  """Give an old file the text size column."""
+  columns = {
+    row._mapping["name"]
+    for row in db.exec_driver_sql("PRAGMA table_info(user_preferences)")
+  }
+  if "font_size" not in columns:
+    db.exec_driver_sql(
+      "ALTER TABLE user_preferences ADD COLUMN font_size INTEGER NOT NULL DEFAULT 100"
+    )

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="{{ theme }}" data-theme-scope="{{ 'account' if user else 'browser' }}" data-theme-endpoint="{{ url_for('settings.theme') }}">
+<html lang="en" data-theme="{{ theme }}" data-font-size="{{ font_size }}" data-theme-scope="{{ 'account' if user else 'browser' }}" data-theme-endpoint="{{ url_for('settings.theme') }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,6 +16,8 @@
       } else {
         localStorage.setItem("pwedepa-theme", root.dataset.theme);
       }
+      var size = Number(root.dataset.fontSize) || 100;
+      root.style.setProperty("--font-scale", String(size / 100));
     })();
   </script>
   <link rel="preload" as="font" type="font/woff2" crossorigin href="{{ url_for('static', filename='fonts/inter-latin-400-normal.woff2') }}">

@@ -899,7 +899,9 @@ def test_the_share_row_gives_every_control_one_height(app):
   )
   button = rules.get(".share-form .btn", "")
   assert "min-height: var(--control-h)" in button, "Create link must match the fields"
-  assert "font-size: 14px" in button, "Create link must match the field text"
+  assert "font-size: calc(14px * var(--font-scale))" in button, (
+    "Create link must match the field text"
+  )
 
 
 def test_settings_rows_share_grouped_lists(app, db):
@@ -1038,8 +1040,8 @@ def test_admin_row_buttons_match_their_fields(app):
   assert "min-height: var(--control-h)" in button, "the button must not stand shorter"
   tokens = app.test_client().get("/static/tokens.css").data.decode()
   assert "--control-h: 44px" in tokens
-  assert "font-size: 14px" in field
-  assert "font-size: 14px" in button
+  assert "font-size: calc(14px * var(--font-scale))" in field
+  assert "font-size: calc(14px * var(--font-scale))" in button
 
 
 def test_the_role_forms_offer_only_sensible_roles(app, db):
@@ -1178,3 +1180,23 @@ def test_the_inbox_reads_as_one_list_of_rows(app, db):
   assert 'class="notice-top"' not in inbox, "the row holds its own dismiss control"
   assert "Request #1 moved to Pending." in inbox
   assert 'aria-label="Dismiss notification"' in inbox
+
+
+def test_the_settings_page_sets_a_text_size(app, db):
+  from pwedepa.data import preferences
+
+  person = users.create_user(db, "Ada", "Ada Admin", at=AT)
+  token = sessions.create_session(db, person.id, at=AT).token
+  client = app.test_client()
+  client.set_cookie(SESSION_COOKIE, token)
+
+  body = client.get("/settings").data
+  assert b"data-font-size-form" in body
+  assert b'min="85" max="130"' in body
+
+  response = client.post("/settings/font-size", data={"font_size": "130"})
+  assert response.status_code == 302
+  assert preferences.get_font_size(db, person.id) == 130
+
+  client.post("/settings/font-size", data={"font_size": "84"})
+  assert preferences.get_font_size(db, person.id) == 130
