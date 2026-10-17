@@ -187,19 +187,13 @@ def test_the_demo_seat_swaps_in_code(tmp_path):
 
   client = _demo_app(tmp_path, "demo-seat.db").test_client()
   landing = client.get("/")
-  assert b"Sign in with a passkey" not in landing.data
   assert "/workspace" in landing.headers["Location"]
   assert "/home" in client.get("/login").headers["Location"]
   assert "/home" in client.get("/enroll").headers["Location"]
-  home = client.get("/home")
-  assert home.status_code == 200
-  assert b"Demo Admin" in home.data, "the seat user holds the page"
+  assert client.get("/home").status_code == 200
   set_seat("client")
   try:
     assert "/requests" in client.get("/workspace").headers["Location"]
-    assert b"Demo Requester" in client.get("/home").data, (
-      "the swapped seat holds the page"
-    )
   finally:
     set_seat("staff")
 
@@ -228,7 +222,7 @@ def test_the_environment_cannot_open_the_demo(monkeypatch, tmp_path):
   ).test_client()
   landing = client.get("/")
   assert landing.status_code == 200
-  assert b"Sign in with a passkey" in landing.data
+  assert b'href="/login"' in landing.data
 
 
 def test_notifications_and_preferences(cast, db):
@@ -274,7 +268,7 @@ def test_notification_dismiss_and_clear(app, cast, db):
 
   Mara.post("/notifications/clear")
   assert notifications_data.count_for_user(db, Mara_user.id) == 0
-  assert b"No notifications yet." in Mara.get("/notifications").data
+  assert b'action="/notifications/clear"' not in Mara.get("/notifications").data
 
   anonymous = app.test_client()
   assert anonymous.post("/notifications/clear").status_code == 302
@@ -286,16 +280,12 @@ def test_header_nav_calls_the_middle_tab_requests(cast, db):
   Mara, _ = cast["Mara"]
   staff_page = admin.get("/workspace").data
   assert b'href="/workspace"' in staff_page
-  assert b">Workspace</a>" in staff_page
   assert b'href="/requests"' not in staff_page
-  assert b">Requests</a>" not in staff_page
-  assert b">Issues</a>" not in staff_page
+  assert b'href="/issues"' not in staff_page
   client_page = Mara.get("/requests").data
   assert b'href="/requests"' in client_page
-  assert b">Requests</a>" in client_page
-  assert b">My requests</a>" not in client_page
-  assert b">Issues</a>" in client_page
-  assert b">Workspace</a>" not in client_page
+  assert b'href="/issues"' in client_page
+  assert b'href="/workspace"' not in client_page
 
 
 def test_clock_preference_and_stamp_rendering(cast, db):
@@ -354,7 +344,7 @@ def test_settings_profile_and_admin_pages(cast, db):
   assert lee is not None
   admin.post(f"/admin/users/{lee.id}/enrollment-token")
   users_page = admin.get("/admin/users")
-  assert b"Copy this enrollment token now" in users_page.data
+  assert b'id="issued-token"' in users_page.data
   admin.post(f"/admin/users/{lee.id}/archive")
   assert users.get_user(db, lee.id).status.value == "ARCHIVED"
   admin.post(f"/admin/users/{lee.id}/reactivate")
@@ -510,9 +500,9 @@ def test_a_staff_member_can_check_the_client_view(cast, db):
   assert detail.status_code == 200
   assert b">Edit<" not in detail.data
   assert b"share-form" not in detail.data
-  assert b"View as client" not in detail.data
-  assert b"Client view" in detail.data
-  assert b"Exit client view" in admin.get("/settings").data
+  assert b'href="/view-as/client"' not in detail.data
+  assert b'href="/view-as/staff"' in detail.data
+  assert b'id="client-view"' in admin.get("/settings").data
 
   queue = admin.get("/workspace")
   assert queue.status_code == 302

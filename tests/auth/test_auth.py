@@ -320,9 +320,19 @@ def test_admin_cli_creates_an_admin_and_prints_a_token_once(db, tmp_path, capsys
   )
   output = capsys.readouterr().out
   assert code == 0
-  assert "Enrollment token:" in output
+  token = next(
+    line.split(": ", 1)[1].strip()
+    for line in output.splitlines()
+    if line.startswith("Enrollment token: ")
+  )
 
   connection = data_db.connect(database)
   root = users.get_user_by_username(connection, "root")
   assert grants.actor_for_user(connection, root.id).is_admin
+  assert (
+    enrollment.validate_enrollment_token(
+      connection, token, at=datetime.now(UTC)
+    ).user_id
+    == root.id
+  )
   connection.close()

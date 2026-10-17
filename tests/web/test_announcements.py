@@ -68,44 +68,47 @@ def test_a_staff_member_publishes_an_announcement(db, staff):
   assert len(saved) == 1
   assert saved[0].author_id == person.id
   page = client.get("/gym").get_data(as_text=True)
-  assert "A new floor" in page
-  assert "The floor opens on Monday." in page
-  assert "Ada" in page
+  assert saved[0].title in page
+  assert saved[0].body in page
+  assert person.display_name in page
 
 
 def test_an_announcement_stays_on_its_domain(db, staff):
   client, _ = staff
   _post(client, "/gym/announcements")
+  saved = announcements_data.list_for_domain(db, "Gym")[0]
 
-  assert "A new floor" in client.get("/gym").get_data(as_text=True)
-  assert "A new floor" not in client.get("/asset-tracker").get_data(as_text=True)
+  assert saved.title in client.get("/gym").get_data(as_text=True)
+  assert saved.title not in client.get("/asset-tracker").get_data(as_text=True)
 
 
 def test_an_edit_replaces_the_text_and_marks_the_time(db, staff):
   client, _ = staff
   _post(client, "/gym/announcements")
 
+  new_body = "The floor opens on Tuesday."
   done = _post(
     client,
     "/gym/announcements/1/edit",
     title="A new floor",
-    body="The floor opens on Tuesday.",
+    body=new_body,
   )
   assert done.status_code == 302
   saved = announcements_data.get(db, 1)
-  assert saved.body == "The floor opens on Tuesday."
+  assert saved.body == new_body
   assert saved.edited_at is not None
   page = client.get("/gym").get_data(as_text=True)
-  assert "The floor opens on Tuesday." in page
+  assert saved.body in page
 
 
 def test_the_edit_form_opens_filled_in(db, staff):
   client, _ = staff
   _post(client, "/gym/announcements")
 
+  saved = announcements_data.list_for_domain(db, "Gym")[0]
   page = client.get("/gym/announcements/1/edit")
   assert page.status_code == 200
-  assert b"The floor opens on Monday." in page.data
+  assert saved.body.encode() in page.data
 
 
 def test_a_client_cannot_manage_announcements(db, requester):
@@ -156,13 +159,14 @@ def test_a_new_announcement_reaches_each_subscriber(db, staff, requester):
   person_client.post("/gym/subscribe")
 
   _post(admin_client, "/gym/announcements", title="Floor is open", body="Come in.")
+  saved = announcements_data.list_for_domain(db, "Gym")[0]
 
   inbox = person_client.get("/notifications").get_data(as_text=True)
-  assert "Floor is open" in inbox
+  assert saved.title in inbox
   assert 'href="/gym"' in inbox, "the inbox points at the Domain page"
-  assert "Floor is open" not in admin_client.get("/notifications").get_data(
-    as_text=True
-  ), "the author hears nothing"
+  assert saved.title not in admin_client.get("/notifications").get_data(as_text=True), (
+    "the author hears nothing"
+  )
 
 
 def test_a_subscriber_hears_only_about_their_own_domain(db, staff, requester):
@@ -176,10 +180,9 @@ def test_a_subscriber_hears_only_about_their_own_domain(db, staff, requester):
     title="Ladder audit",
     body="Label every ladder.",
   )
+  saved = announcements_data.list_for_domain(db, "Asset Tracker")[0]
 
-  assert "Ladder audit" not in person_client.get("/notifications").get_data(
-    as_text=True
-  )
+  assert saved.title not in person_client.get("/notifications").get_data(as_text=True)
 
 
 def test_a_muted_activity_switch_keeps_the_announcement_out(db, staff, requester):
@@ -191,7 +194,6 @@ def test_a_muted_activity_switch_keeps_the_announcement_out(db, staff, requester
   )
 
   _post(admin_client, "/gym/announcements", title="Floor is open", body="Come in.")
+  saved = announcements_data.list_for_domain(db, "Gym")[0]
 
-  assert "Floor is open" not in person_client.get("/notifications").get_data(
-    as_text=True
-  )
+  assert saved.title not in person_client.get("/notifications").get_data(as_text=True)

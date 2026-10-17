@@ -73,9 +73,9 @@ def test_the_client_sees_what_is_visible_now(app, db):
   body = client.get("/requests").get_data(as_text=True)
 
   assert 'id="today"' in body
-  assert "My own request" in body
-  assert "A public request" in body
-  assert "A private request" not in body
+  assert "/gym/requests/1" in body
+  assert "/gym/requests/2" in body
+  assert "/gym/requests/3" not in body
 
 
 def test_each_card_opens_the_wide_card(app, db):
@@ -96,8 +96,8 @@ def test_a_selected_item_opens_as_the_wide_card(app, db):
 
   body = client.get("/requests?selected=1").get_data(as_text=True)
 
+  assert 'class="client-dash is-open is-main"' in body
   assert 'class="panel inspector is-main"' in body
-  assert "is-open is-main" in body
   assert 'class="back-to-list"' in body
 
 
@@ -110,4 +110,4 @@ def test_another_persons_private_item_opens_no_card(app, db):
   body = client.get("/requests?selected=3").get_data(as_text=True)
 
   assert 'class="panel inspector is-main"' not in body
-  assert "A private request" not in body
+  assert "/gym/requests/3" not in body

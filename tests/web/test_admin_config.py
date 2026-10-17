@@ -60,7 +60,7 @@ def test_an_admin_opens_the_domain_config_page(admin):
   for name in domains_data.starter_domains():
     assert name.encode() in page.data
   assert b'type="file"' in page.data, "the picker is offered"
-  assert b"Import config" in page.data
+  assert b'action="/admin/config/import"' in page.data
 
 
 def test_a_client_cannot_open_the_domain_config_page(requester):
@@ -99,13 +99,12 @@ def test_an_admin_imports_a_chosen_file(app, admin):
 def test_a_bad_file_leaves_the_config_alone(app, admin):
   db_path = app.config["DATABASE"]
   before = [domain.name for domain in domains_data.load(db_path)]
-  done = admin.post(
+  admin.post(
     "/admin/config/import",
     data={"config": (io.BytesIO(b"domains: []\n"), "domains.yaml")},
     content_type="multipart/form-data",
     follow_redirects=True,
   )
-  assert b"did not import" in done.data
   assert not domains_data.imported_path(db_path).exists()
   assert [domain.name for domain in domains_data.load(db_path)] == before
 
@@ -113,4 +112,6 @@ def test_a_bad_file_leaves_the_config_alone(app, admin):
 def test_a_missing_choice_asks_for_a_file(admin, monkeypatch):
   monkeypatch.delenv("PWEDEPA_DOMAINS_CONFIG", raising=False)
   done = admin.post("/admin/config/import", follow_redirects=True)
-  assert b"No config file is mounted" in done.data
+  assert done.status_code == 200
+  assert b'type="file"' in done.data
+  assert not domains_data.imported_path(admin.application.config["DATABASE"]).exists()

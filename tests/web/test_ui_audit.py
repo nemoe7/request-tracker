@@ -531,7 +531,7 @@ def test_notification_categories_keep_their_own_cards(app, db):
   assert body.count(b"<fieldset") == body.count(b"</fieldset>") >= 2
   card = body[body.rindex(b"<fieldset") : body.rindex(b"</fieldset>")]
   assert b"<legend>" in card
-  assert b"Save notifications" in card, "a stray card for the button is the bug"
+  assert b'class="ios-row ios-action"' in card, "a stray card for the button is the bug"
   css = client.get("/static/app.css").data
   split = css[css.index(b".ios-split") :]
   assert b".ios-split .ios-fieldset {" in split
@@ -543,8 +543,8 @@ def test_the_passkey_block_hides_an_empty_row(app, db):
   """An empty passkey list shows one row: the button that adds one."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   body = client.get("/settings").data
-  assert b"No passkeys yet." not in body
-  assert b"Add a passkey" in body
+  assert b"data-revoke-passkey" not in body
+  assert b'id="add-passkey"' in body
 
 
 def test_the_switch_takes_its_on_color_from_a_token(app):
