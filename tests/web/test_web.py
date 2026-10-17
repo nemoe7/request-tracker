@@ -158,7 +158,9 @@ def test_the_enroll_page_asks_for_a_name(client):
 
 
 def test_enrollment_flow_creates_a_session(client, db, monkeypatch):
-  issued = enrollment.issue_enrollment_token(db, role=Role.REQUESTER, at=AT)
+  issued = enrollment.issue_enrollment_token(
+    db, role=Role.REQUESTER, at=datetime.now(UTC)
+  )
 
   start = client.post(
     "/enroll/options", json={"token": issued.token, "username": "mara"}
