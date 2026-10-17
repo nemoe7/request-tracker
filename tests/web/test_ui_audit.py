@@ -778,7 +778,7 @@ def test_prose_in_the_workspace_renders_safe_html(app, db):
   assert "<script>alert(1)</script>" not in page
 
 
-def test_the_workspace_centers_the_open_request(app, db):
+def test_the_workspace_keeps_the_rail_when_a_request_opens(app, db):
   client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   record = Request(
     id=1,
@@ -807,15 +807,16 @@ def test_the_workspace_centers_the_open_request(app, db):
     "the closed card leaves the row"
   )
   assert re.search(
-    r"\.workspace-grid\.is-open \{[^}]*grid-template-columns: minmax\(0, 1fr\)"
-    r"[^}]*max-width: 1100px",
+    r"\.workspace-grid\.is-open \{[^}]*grid-template-columns: 240px minmax\(0, 1fr\)",
     css,
-  ), "the open request holds one centered column"
+  ), "the rail stays beside the open request"
   assert re.search(
-    r"\.workspace-grid\.is-open \.filters, \.workspace-grid\.is-open \.records "
-    r"\{ display: none;",
+    r"\.workspace-grid\.is-open \.records \{ display: none;",
     css,
-  ), "the table steps aside"
+  ), "the list steps aside for the request"
+  assert ".workspace-grid.is-open .filters { display: none; }" in css, (
+    "a phone hides the folded rail"
+  )
   assert ".workspace-grid.is-open.is-main .inspector {" in css, (
     "the open request drops the card frame"
   )

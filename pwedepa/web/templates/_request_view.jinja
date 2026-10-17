@@ -16,7 +16,7 @@
           <input class="reason" type="text" name="reason" placeholder="Reason (needed to revoke)">
         </form>
         {% endif %}
-        {% if can_edit %}<a class="btn" href="{{ url_for('records.request_edit', request_id=record.id) }}">Edit</a>{% endif %}
+        {% if can_edit %}<a class="icon-btn" href="{{ url_for('records.request_edit', request_id=record.id) }}" aria-label="Edit" title="Edit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#pencil"/></svg></a>{% endif %}
       </div>
       {% endif %}
     </div>

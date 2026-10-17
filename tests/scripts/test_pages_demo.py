@@ -145,7 +145,7 @@ def test_a_client_copy_keeps_her_controls_in_the_client_pages(tmp_path):
   copies = sorted((out / "home" / "requests").glob("*/index.html"))
   assert copies, "a client record copy exists"
   controls = (
-    r'<a class="btn" href="([^"]+)">Edit</a>',
+    r'<a class="icon-btn" href="([^"]+)" aria-label="Edit"',
     r'<form class="(?:actions|share-form|comment-form)"[^>]*action="([^"]+)"',
   )
   for page in copies:
