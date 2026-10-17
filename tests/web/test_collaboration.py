@@ -495,6 +495,7 @@ def test_a_staff_member_can_check_the_client_view(cast, db):
   assert b">Edit<" not in detail.data
   assert b"share-form" not in detail.data
   assert b"Exit client view" in detail.data
+  assert b"Client view" in detail.data
 
   queue = admin.get("/workspace")
   assert queue.status_code == 302
@@ -517,6 +518,7 @@ def test_the_staff_view_keeps_its_controls(cast, db):
   detail = admin.get("/requests/1")
   assert b">Edit<" in detail.data
   assert b"View as client" in detail.data
+  assert b"read only" not in detail.data
   assert admin.get("/workspace").status_code == 200
 
 
@@ -524,3 +526,14 @@ def test_a_client_cannot_turn_on_the_client_view(cast):
   """The toggle belongs to the staff seat, so a client has no such page."""
   Mara, _ = cast["Mara"]
   assert Mara.get("/view-as/client").status_code == 404
+
+
+def test_a_staff_member_can_sign_out_from_the_client_view(cast):
+  """The read-only guard must not trap a person in the mode."""
+  admin, _ = cast["admin"]
+  admin.get("/view-as/client")
+
+  signed_out = admin.post("/logout")
+  assert signed_out.status_code == 200
+  with admin.session_transaction() as flask_session:
+    assert "view_as" not in flask_session

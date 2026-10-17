@@ -104,6 +104,9 @@ def create_app(config: dict | None = None) -> Flask:
 
     if not client_view() or request.method in ("GET", "HEAD", "OPTIONS"):
       return
+    # Signing out is not a write to the data, and it must never be refused.
+    if request.endpoint == "auth.logout":
+      return
     from .routes._helpers import current_user
     from .routes.records import is_staff
 

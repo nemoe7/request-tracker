@@ -2,7 +2,7 @@
 
 import json
 
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, current_app, jsonify, request, session
 from werkzeug.wrappers import Response
 
 from pwedepa.auth import (
@@ -140,6 +140,7 @@ def logout() -> Response:
   token = request.cookies.get(SESSION_COOKIE)
   if token:
     revoke_session(db(), token, at=now())
+  session.pop("view_as", None)
   response = jsonify(ok=True, redirect="/")
   response.delete_cookie(SESSION_COOKIE, path="/")
   return response
