@@ -220,6 +220,8 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .record-row .meta { margin: 2px 0 0; }
 .record-row-side { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
 .record-row-side .mini { font-size: 13px; }
+.section-actions { margin: 0 0 12px; }
+.card-actions { display: flex; gap: 10px; flex-shrink: 0; }
 .status-word { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
 .meta { color: var(--muted); font-size: 12px; font-family: ui-monospace, "SF Mono", Menlo, monospace; margin: 6px 0 0; }
 .muted { color: var(--muted); font-size: 14px; }

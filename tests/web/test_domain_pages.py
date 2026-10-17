@@ -158,3 +158,28 @@ def test_an_unknown_domain_is_dropped(db, Mara):
   )
 
   assert requests_data.get(db, 1).domains == ()
+
+
+def test_a_domain_page_lists_its_records_as_dense_rows(db, Mara):
+  client, person = Mara
+  _request(db, 1, person.id, title="Rope climb plan", domains=("Gym",))
+  issues_data.save(
+    db,
+    Issue(
+      id=1,
+      title="A loose bolt",
+      description="x",
+      requester_id=person.id,
+      created_at=AT,
+      updated_at=AT,
+      domains=("Gym",),
+    ),
+  )
+
+  page = client.get("/gym").get_data(as_text=True)
+
+  assert page.count('class="record-list"') == 2, (
+    "requests and issues each hold one list"
+  )
+  assert page.count('class="record-row"') == 2, "each record reads as one row"
+  assert "Rope climb plan" in page and "A loose bolt" in page

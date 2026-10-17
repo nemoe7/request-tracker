@@ -41,8 +41,9 @@ pick.
 - A request lives at `/<slug>/requests/<id>` and an issue at `/<slug>/issues/<id>`.
   The old `/<id>` pages answer 404, and both forms offer the configured Domains.
 - The Domain page shows the description, its requests and issues, and its
-  announcements newest first. An announcement holds a title, a body, the author,
-  the publish time, and the edit time.
+  announcements newest first. The records read as dense rows with a state, and a
+  phone stacks each row. An announcement holds a title, a body, the author, the
+  publish time, and the edit time.
 - The slug keys an announcement and a subscription, so a rename keeps both. A pinned
   slug keeps the URL too.
 - A person follows a Domain from a toggle on its page. A new announcement notifies

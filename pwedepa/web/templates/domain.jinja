@@ -6,20 +6,18 @@
   <p class="eyebrow">Domain</p>
   <div class="page-head">
     <h1>{{ domain.name }}</h1>
+    {% if user and not demo_mode %}
+    <form method="post" action="{{ url_for('announcements.subscribe', slug=domain.slug) }}">
+      <button class="btn" type="submit">{% if subscribed %}Unsubscribe{% else %}Subscribe{% endif %}</button>
+    </form>
+    {% endif %}
   </div>
   <p class="desc">{{ domain.description or "No description yet." }}</p>
 
   <h2 class="section-title">Announcements</h2>
-  <div class="page-actions">
-    {% if user and not demo_mode %}
-    <form method="post" action="{{ url_for('announcements.subscribe', slug=domain.slug) }}">
-      <button class="btn" type="submit">{% if subscribed %}Unsubscribe from announcements{% else %}Subscribe to announcements{% endif %}</button>
-    </form>
-    {% endif %}
-    {% if is_staff and not demo_mode %}
-    <a class="btn" href="{{ url_for('announcements.new', slug=domain.slug) }}">New announcement</a>
-    {% endif %}
-  </div>
+  {% if is_staff and not demo_mode %}
+  <p class="section-actions"><a class="btn" href="{{ url_for('announcements.new', slug=domain.slug) }}">New announcement</a></p>
+  {% endif %}
   {% if announcements %}
   <div class="card-list">
     {% for announcement in announcements %}
@@ -27,8 +25,10 @@
       <div class="card-top">
         <h2>{{ announcement.title }}</h2>
         {% if is_staff and not demo_mode %}
-        <a class="mini" href="{{ url_for('announcements.edit', slug=domain.slug, announcement_id=announcement.id) }}">Edit</a>
-        <a class="mini" href="{{ url_for('announcements.confirm_delete', slug=domain.slug, announcement_id=announcement.id) }}">Remove</a>
+        <span class="card-actions">
+          <a class="mini" href="{{ url_for('announcements.edit', slug=domain.slug, announcement_id=announcement.id) }}">Edit</a>
+          <a class="mini" href="{{ url_for('announcements.confirm_delete', slug=domain.slug, announcement_id=announcement.id) }}">Remove</a>
+        </span>
         {% endif %}
       </div>
       <p class="announcement-body">{{ announcement.body }}</p>
@@ -42,35 +42,34 @@
 
   <h2 class="section-title">Requests</h2>
   {% if requests %}
-  <div class="card-list">
+  <ul class="record-list">
     {% for record in requests %}
-    <article class="card is-linked">
-      <div class="card-top">
+    <li class="record-row">
+      <div class="record-row-main">
         <h2><a href="{{ record_path(record, slug=domain.slug) }}">{{ record.title }}</a></h2>
-        {{ pill(record.status) }}
+        <p class="meta">#{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
       </div>
-      <p class="status-word">{{ status_words[record.status] }}</p>
-      <p class="meta">#{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
-    </article>
+      <div class="record-row-side">{{ pill(record.status) }}</div>
+    </li>
     {% endfor %}
-  </div>
+  </ul>
   {% else %}
   <p class="muted">No requests here yet.</p>
   {% endif %}
 
   <h2 class="section-title">Issues</h2>
   {% if issues %}
-  <div class="card-list">
+  <ul class="record-list">
     {% for record in issues %}
-    <article class="card is-linked">
-      <div class="card-top">
+    <li class="record-row">
+      <div class="record-row-main">
         <h2><a href="{{ record_path(record, "issue", slug=domain.slug) }}">{{ record.title }}</a></h2>
-        {{ pill(record.status) }}
+        <p class="meta">#{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
       </div>
-      <p class="meta">#{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
-    </article>
+      <div class="record-row-side">{{ pill(record.status) }}</div>
+    </li>
     {% endfor %}
-  </div>
+  </ul>
   {% else %}
   <p class="muted">No issues here yet.</p>
   {% endif %}
