@@ -438,3 +438,27 @@ document.querySelectorAll("form[data-auto-submit]").forEach((form) => {
 
   window.PwedePaModal = { open, close };
 })();
+
+// Textareas grow with their wrapped text, so a drag handle never shows.
+(() => {
+  const fit = (element) => {
+    if (!(element instanceof HTMLTextAreaElement) || !element.offsetParent) return;
+    element.style.height = "auto";
+    const border = element.offsetHeight - element.clientHeight;
+    element.style.height = `${element.scrollHeight + border}px`;
+  };
+  const fitAll = () => document.querySelectorAll("textarea").forEach(fit);
+
+  document.addEventListener("input", (event) => {
+    if (event.target instanceof HTMLTextAreaElement) fit(event.target);
+  });
+  document.addEventListener("focusin", (event) => {
+    if (event.target instanceof HTMLTextAreaElement) fit(event.target);
+  });
+  window.addEventListener("resize", fitAll);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", fitAll);
+  } else {
+    fitAll();
+  }
+})();

@@ -13,6 +13,7 @@ h1 { font-size: 28px; font-weight: 800; }
 h2 { font-size: 20px; font-weight: 600; }
 a { color: var(--accent); }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+textarea { resize: none; }
 .muted { color: var(--muted); }
 .eyebrow {
   font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
@@ -625,6 +626,6 @@ select:not([multiple]) { appearance: none; -webkit-appearance: none; min-height:
 .modal-card h2 { margin: 0 0 10px; font-size: 17px; text-transform: none; letter-spacing: 0; color: var(--text); }
 .modal-form { display: grid; gap: 8px; }
 .modal-form label { font-size: 13px; color: var(--muted); }
-.modal-form textarea { min-height: 84px; resize: vertical; }
+.modal-form textarea { min-height: 84px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
 body.has-modal { overflow: hidden; }
