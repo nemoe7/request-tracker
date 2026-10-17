@@ -17,7 +17,7 @@ python -m venv .venv
 .venv/bin/python -m pwedepa.web
 ```
 
-The app answers on `http://127.0.0.1:5000`. Demo mode asks for the seat in code, so a preview needs no environment variable.
+The app answers on `http://127.0.0.1:5000`, served by uvicorn. Demo mode asks for the seat in code, so a preview needs no environment variable.
 
 Deployment runs two containers behind Tailscale Funnel. The steps live in `docs/deploy.md`.
 

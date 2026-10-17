@@ -275,6 +275,24 @@ def test_a_real_secret_or_a_local_run_passes_the_check():
   check_secret("pwedepa-dev-secret", "http://localhost:5000")
 
 
+def test_the_container_entry_serves_through_uvicorn(monkeypatch, tmp_path):
+  """The image must not start on the Flask development server."""
+  from pwedepa.web import __main__ as entry
+
+  served = {}
+  monkeypatch.setattr(
+    entry.uvicorn, "run", lambda application, **options: served.update(options)
+  )
+  monkeypatch.setenv("PWEDEPA_HOST", "0.0.0.0")
+  monkeypatch.setenv("PWEDEPA_PORT", "5055")
+  monkeypatch.setenv("PWEDEPA_DB", str(tmp_path / "entry.db"))
+
+  entry.main()
+
+  assert served["host"] == "0.0.0.0"
+  assert served["port"] == 5055
+
+
 def test_the_health_route_answers_from_the_database(app):
   """A deploy waits on this route, so it must prove the database opens."""
   response = app.test_client().get("/health")

@@ -27,6 +27,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - `compose.yml` runs the published image, and `compose.dev.yml` builds the checkout for local runs.
 - The frozen demo opens every rail filter, its status filter included, from a link and a page of its own.
 - The workspace inspector and the admin audit page read only the rows they show.
+- The app serves through uvicorn in place of the Flask development server, so a deploy runs on a production server.
 
 ### Fixed
 
