@@ -108,9 +108,9 @@ def test_the_server_answers_health_over_a_socket(served):
 
 
 def test_a_session_cookie_opens_the_workspace(served):
-  status, url, body = _fetch(f"{served['base']}/workspace", cookie=served["cookie"])
+  status, url, body = _fetch(f"{served['base']}/", cookie=served["cookie"])
   assert status == 200
-  assert url.endswith("/workspace")
+  assert url.rstrip("/") == served["base"]
   assert "Workspace" in body
 
 

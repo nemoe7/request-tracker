@@ -357,22 +357,22 @@ def test_workspace_queues_counts_and_inspector(cast, db):
       updated_at=AT,
     ),
   )
-  page = admin.get("/workspace")
+  page = admin.get("/")
   assert b"queue=triage" in page.data
   assert mine.title.encode() in page.data
   assert issue.title.encode() in page.data
 
-  blocked = admin.get("/workspace?queue=blocked")
+  blocked = admin.get("/?queue=blocked")
   assert issue.title.encode() in blocked.data
-  facilities = admin.get("/workspace?queue=triage&domain=Facilities")
+  facilities = admin.get("/?queue=triage&domain=Facilities")
   assert mine.title.encode() in facilities.data
   assert other.title.encode() not in facilities.data
 
-  junior_view = Sam.get("/workspace?queue=assigned")
+  junior_view = Sam.get("/?queue=assigned")
   assert issue.title.encode() in junior_view.data
   assert Sam.get(record_url(1, "issues")).status_code == 200
 
-  pending = admin.get("/workspace?queue=triage&status=PENDING")
+  pending = admin.get("/?queue=triage&status=PENDING")
   assert mine.title.encode() not in pending.data
 
 

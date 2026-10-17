@@ -81,7 +81,7 @@ def test_frozen_demo_opens_rail_filters_and_selected_records(tmp_path):
 def test_the_frozen_rail_offers_one_link_per_status(tmp_path):
   """A file host ignores a form query, so every status needs a page and a link."""
   out = _frozen_site(tmp_path)
-  page = (out / "workspace" / "index.html").read_text(encoding="utf-8")
+  page = (out / "index.html").read_text(encoding="utf-8")
 
   assert "<select" not in page, "the rail still offers a select"
   links = {
@@ -102,7 +102,7 @@ def test_the_frozen_rail_offers_one_link_per_status(tmp_path):
 def test_the_status_links_sit_in_the_rail_like_the_domain_links(tmp_path):
   """A wrapper class with no rule would send a reader after a rule that is absent."""
   out = _frozen_site(tmp_path)
-  page = (out / "workspace" / "index.html").read_text(encoding="utf-8")
+  page = (out / "index.html").read_text(encoding="utf-8")
   rail = re.search(r"<h2>Status</h2>(.*?)</aside>", page, re.DOTALL).group(1)
 
   assert rail.lstrip().startswith('<a class="queue-item')
@@ -131,12 +131,12 @@ def test_the_client_tabs_lead_to_client_shaped_pages(tmp_path):
 
 def test_the_frozen_switch_links_stay_in_the_frozen_sets(tmp_path):
   out = _frozen_site()
-  staff = (out / "workspace" / "index.html").read_text(encoding="utf-8")
+  staff = (out / "index.html").read_text(encoding="utf-8")
   client = (out / "home" / "index.html").read_text(encoding="utf-8")
-  assert re.search(r'<a href="[^"]*workspace/" class="on">Staff</a>', staff)
-  assert re.search(r'<a href="[^"]*home/">Client</a>', staff)
-  assert re.search(r'<a href="[^"]*home/" class="on">Client</a>', client)
-  assert re.search(r'<a href="[^"]*workspace/">Staff</a>', client)
+  assert re.search(r'<a href="[^"]*" class="on">Staff</a>', staff)
+  assert re.search(r'<a href="home/">Client</a>', staff)
+  assert re.search(r'<a href="home/" class="on">Client</a>', client)
+  assert re.search(r'<a href="[^"]*">Staff</a>', client)
 
 
 def test_a_client_copy_keeps_her_controls_in_the_client_pages(tmp_path):

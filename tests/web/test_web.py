@@ -113,20 +113,18 @@ def _login(client, monkeypatch):
   )
 
 
-def test_landing_renders_and_home_requires_login(client):
-  landing = client.get("/")
-  assert landing.status_code == 200
-  assert b'href="/login"' in landing.data
-  assert b'id="tagline"' in landing.data
-  assert b'id="tagline-marks"' in landing.data
+def test_a_guest_meets_the_sign_in_page(client):
+  root = client.get("/")
+  assert root.status_code == 302
+  assert root.headers["Location"].endswith("/login")
 
-  script = client.get("/static/app.js")
-  assert b'"#tagline"' in script.data
-  assert b'"#tagline-marks"' in script.data
+  page = client.get("/login")
+  assert page.status_code == 200
+  assert b'href="/enroll"' in page.data
 
-  home = client.get("/home")
-  assert home.status_code == 302
-  assert "/login" in home.headers["Location"]
+  home = client.get("/home", follow_redirects=True)
+  assert home.status_code == 200
+  assert b'href="/enroll"' in home.data
 
 
 def test_login_flow_sets_a_hardened_cookie(client, db, user, monkeypatch):
@@ -139,9 +137,9 @@ def test_login_flow_sets_a_hardened_cookie(client, db, user, monkeypatch):
   assert "Secure" in cookie
   assert "SameSite=Lax" in cookie
 
-  home = client.get("/home")
-  assert home.status_code == 200
-  assert b"Ada Lovelace" in home.data
+  settings = client.get("/settings")
+  assert settings.status_code == 200
+  assert b"Ada Lovelace" in settings.data
 
 
 def test_login_finish_rejects_an_unknown_flow(client, db, user, monkeypatch):
@@ -182,7 +180,7 @@ def test_enrollment_flow_creates_a_session(client, db, monkeypatch):
   )
   assert finish.status_code == 200
   assert "HttpOnly" in finish.headers["Set-Cookie"]
-  assert client.get("/home").status_code == 200
+  assert client.get("/settings").status_code == 200
   created = users.get_user_by_username(db, "mara")
   assert created is not None
   assert created.display_name == "Mara Reyes"
@@ -197,10 +195,10 @@ def test_enrollment_flow_creates_a_session(client, db, monkeypatch):
 def test_logout_revokes_the_session(client, db, user, monkeypatch):
   _register_passkey(db, user, monkeypatch)
   assert _login(client, monkeypatch).status_code == 200
-  assert client.get("/home").status_code == 200
+  assert client.get("/settings").status_code == 200
 
   assert client.post("/logout").status_code == 200
-  assert client.get("/home").status_code == 302
+  assert client.get("/settings").status_code == 302
 
 
 def test_signed_in_user_can_add_a_passkey(client, db, user, monkeypatch):
@@ -217,11 +215,11 @@ def test_signed_in_user_can_add_a_passkey(client, db, user, monkeypatch):
   assert finish.status_code == 200
   assert credentials.list_passkeys(db, user.id)
 
-  home = client.get("/home")
-  assert b"1 passkey" in home.data
+  page = client.get("/settings")
+  assert b'data-revoke-passkey="' in page.data
 
 
-def test_home_survives_concurrent_requests(app, db, user):
+def test_settings_survives_concurrent_requests(app, db, user):
   import threading
 
   issued = sessions.create_session(db, user.id, at=AT)
@@ -230,7 +228,7 @@ def test_home_survives_concurrent_requests(app, db, user):
   def hit():
     thread_client = app.test_client()
     thread_client.set_cookie("pwedepa_session", issued.token)
-    results.append(thread_client.get("/home").status_code)
+    results.append(thread_client.get("/settings").status_code)
 
   threads = [threading.Thread(target=hit) for _ in range(4)]
   for thread in threads:

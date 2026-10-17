@@ -103,28 +103,6 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js").catch(() => {});
 }
 
-/* Tagline: asks "pwede pa...?" while loading, answers "pwede na!" when done. */
-const taglineMarks = document.querySelector("#tagline-marks");
-if (taglineMarks) {
-  const frames = [".", "..", "...", "...?"];
-  let frame = 0;
-  const timer = setInterval(() => {
-    frame = (frame + 1) % frames.length;
-    taglineMarks.textContent = frames[frame];
-  }, 450);
-  window.addEventListener("load", () => {
-    setTimeout(() => {
-      clearInterval(timer);
-      const tagline = document.querySelector("#tagline");
-      tagline.classList.add("swap");
-      setTimeout(() => {
-        tagline.textContent = "pwede na!";
-        tagline.classList.remove("swap");
-      }, 170);
-    }, 1200);
-  });
-}
-
 /* Prefetch linked pages on intent, so navigation answers at once. */
 const prefetched = new Set();
 document.querySelectorAll('a[href^="/"]').forEach((link) => {
@@ -304,7 +282,7 @@ document.querySelector("#login-button")?.addEventListener("click", async () => {
   setStatus("Waiting for your passkey…");
   try {
     const done = await runCeremony("/login/options", "/login/finish", {}, false);
-    window.location.assign(done.redirect || "/home");
+    window.location.assign(done.redirect || "/");
   } catch (error) {
     setStatus(ceremonyError(error));
   }
@@ -320,7 +298,7 @@ document.querySelector("#enroll-form")?.addEventListener("submit", async (event)
     const done = await runCeremony(
       "/enroll/options", "/enroll/finish", { token, username, display_name }, true,
     );
-    window.location.assign(done.redirect || "/home");
+    window.location.assign(done.redirect || "/");
   } catch (error) {
     setStatus(ceremonyError(error));
   }

@@ -45,7 +45,7 @@ def _client(app, db, name, display, roles=()):
 
 def test_requester_leaves_workspace_for_requests(app, db):
   client = _client(app, db, "Mara", "Mara Reyes", roles=(Role.REQUESTER,))
-  response = client.get("/workspace")
+  response = client.get("/")
   assert response.status_code == 302
   assert "/requests" in response.headers["Location"]
 
@@ -58,7 +58,7 @@ def test_the_requests_list_answers_at_requests(app, db):
 
 def test_assignee_keeps_workspace(app, db):
   client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
-  assert client.get("/workspace").status_code == 200
+  assert client.get("/").status_code == 200
 
 
 def _nav_tabs(html: str) -> list[str]:
@@ -69,19 +69,19 @@ def _nav_tabs(html: str) -> list[str]:
 
 def test_staff_see_the_workspace_alone(app, db):
   client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
-  tabs = _nav_tabs(client.get("/workspace").get_data(as_text=True))
+  tabs = _nav_tabs(client.get("/").get_data(as_text=True))
   assert tabs == ["Workspace"]
 
 
 def test_admins_see_the_workspace_alone(app, db):
   client = _client(app, db, "Ana", "Ana Lim", roles=(Role.ADMIN,))
-  tabs = _nav_tabs(client.get("/workspace").get_data(as_text=True))
+  tabs = _nav_tabs(client.get("/").get_data(as_text=True))
   assert tabs == ["Workspace"]
 
 
 def test_the_phone_drops_a_single_stop_nav(app, db):
   staff = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
-  staff_page = staff.get("/workspace").get_data(as_text=True)
+  staff_page = staff.get("/").get_data(as_text=True)
   assert '<body class="is-staff">' in staff_page
   css = staff.get("/static/app.css").data.decode()
   blocks = re.findall(r"@media \(max-width: 899px\) \{(.*?)\n\}", css, re.DOTALL)
@@ -97,7 +97,7 @@ def test_the_phone_drops_a_single_stop_nav(app, db):
 def test_the_phone_workspace_folds_its_filters(app, db):
   """On a phone the list leads, and one row opens the rail."""
   client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
-  page = client.get("/workspace").get_data(as_text=True)
+  page = client.get("/").get_data(as_text=True)
   rail = page[
     page.index('class="panel filters"') : page.index('class="panel inspector"')
   ]
@@ -152,7 +152,7 @@ def test_the_row_link_reaches_the_card_handler(app, db):
     ),
   )
   client = _client(app, db, "Admin", "Admin", roles=(Role.ADMIN,))
-  page = client.get("/workspace").get_data(as_text=True)
+  page = client.get("/").get_data(as_text=True)
   assert re.search(r'href="[^"]*selected=1', page), "the row link carries the id"
   js = client.get("/static/app.js").get_data(as_text=True)
   assert "a[href*='selected='" in js, "the handler binds the live row link"
@@ -204,9 +204,9 @@ def test_demo_keeps_pages_fresh_and_lets_assets_revalidate(demo_app):
   assert "no-cache" in asset.headers.get("Cache-Control", "")
 
 
-def test_the_header_defers_the_animated_icon(app):
-  client = app.test_client()
-  body = client.get("/").data
+def test_the_header_defers_the_animated_icon(app, db):
+  client = _client(app, db, "Ada", "Ada Lovelace", roles=(Role.REQUESTER,))
+  body = client.get("/requests").data
   assert b'class="icon-animated" data-src="/static/icons/icon-animated.webp"' in body
   assert b'class="icon-animated" src=' not in body
   assert b"dataset.src" in client.get("/static/app.js").data
@@ -444,7 +444,7 @@ def test_wide_screens_stretch_the_shell(app):
 
 def test_workspace_centers_the_inspector(app, db):
   client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
-  body = client.get("/workspace").data
+  body = client.get("/").data
   assert body.index(b"panel inspector") < body.index(b"panel records")
   assert b"<th>Requester</th>" not in body
   assert b"<th>Domain</th>" not in body
@@ -463,12 +463,12 @@ def test_workspace_opens_two_cards_then_swaps_the_centre_one(app, db):
   )
   requests_data.save(db, record)
 
-  closed = client.get("/workspace").data.decode()
+  closed = client.get("/").data.decode()
   assert 'class="workspace-grid"' in closed, "the list opens alone, with no card"
   assert 'class="workspace-grid is-open"' not in closed
   assert f"selected={record.id}" in closed, "a row keeps a real link to its card"
 
-  opened = client.get(f"/workspace?selected={record.id}").data.decode()
+  opened = client.get(f"/?selected={record.id}").data.decode()
   # The opened card is the widest track, so the grid carries both marks.
   assert 'class="workspace-grid is-open is-main"' in opened
 
@@ -556,7 +556,7 @@ def test_the_switch_takes_its_on_color_from_a_token(app):
 
 def test_header_controls_live_in_the_user_menu(app, db):
   client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
-  body = client.get("/workspace").data
+  body = client.get("/").data
   assert b"user-menu" in body
   assert b"theme-toggle" not in body
   assert b'aria-label="Notifications"' in body
@@ -655,7 +655,7 @@ def test_the_script_opens_the_card_as_wide_as_a_reload(app):
 
 def test_titles_lead_with_the_product(app, db):
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
-  for path in ("/settings", "/admin/users", "/workspace"):
+  for path in ("/settings", "/admin/users", "/"):
     body = client.get(path).data.decode()
     title = re.search(r"<title>(.*?)</title>", body).group(1)
     assert title.startswith("PwedePa | "), title

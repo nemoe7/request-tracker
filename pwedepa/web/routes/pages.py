@@ -4,13 +4,13 @@ from flask import (
   current_app,
   redirect,
   render_template,
+  request,
   send_from_directory,
   session,
   url_for,
 )
 from werkzeug.wrappers import Response
 
-from pwedepa.auth import list_passkeys
 from pwedepa.data import site as site_data
 
 from .. import now
@@ -39,39 +39,30 @@ def health() -> Response:
   return Response("ok\n", mimetype="text/plain")
 
 
-@bp.get("/")
-def landing() -> str | Response:
-  user = current_user()
-  if user is not None:
-    from .records import is_staff
+@bp.get("/workspace")
+def old_workspace() -> Response:
+  """The workspace lives at the base URL; old links follow it."""
+  return redirect(url_for("records.workspace", **request.args), code=302)
 
-    if is_staff(user):
-      return redirect(url_for("records.workspace"))
-    return redirect(url_for("records.requests"))
-  return render_template("landing.html", site_message=site_data.get_active(db(), now()))
+
+@bp.get("/home")
+def home() -> Response:
+  """The account page became Settings; the base URL holds the work."""
+  return redirect(url_for("records.workspace"))
 
 
 @bp.get("/login")
 def login() -> str | Response:
   if current_user() is not None:
-    return redirect(url_for("pages.home"))
-  return render_template("login.html")
+    return redirect(url_for("records.workspace"))
+  return render_template("login.html", site_message=site_data.get_active(db(), now()))
 
 
 @bp.get("/enroll")
 def enroll() -> str | Response:
   if current_user() is not None:
-    return redirect(url_for("pages.home"))
+    return redirect(url_for("records.workspace"))
   return render_template("enroll.html")
-
-
-@bp.get("/home")
-def home() -> str | Response:
-  user = current_user()
-  if user is None:
-    return redirect(url_for("pages.login"))
-  passkeys = list_passkeys(db(), user.id)
-  return render_template("home.html", user=user, passkeys=passkeys)
 
 
 @bp.get("/view-as/<mode>")
