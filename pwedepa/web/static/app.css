@@ -307,7 +307,7 @@ body.is-guest .auth-card { margin: 0 auto; }
 /* Settings: Apple Settings pattern. */
 .settings-shell { display: grid; grid-template-columns: 260px minmax(0, 720px); gap: 28px; justify-content: center; align-items: start; }
 .settings-rail { position: sticky; top: 72px; align-self: start; }
-.settings-profile { display: flex; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; margin-bottom: 14px; }
+.settings-profile { display: flex; gap: 12px; align-items: center; padding: 4px 12px 16px; }
 .avatar.big { width: 52px; height: 52px; font-size: 22px; }
 .profile-name { font-weight: 700; font-size: 17px; margin: 0; }
 .profile-sub { color: var(--muted); font-size: 13px; margin: 2px 0 0; }
@@ -319,7 +319,11 @@ body.is-guest .auth-card { margin: 0 auto; }
 .settings-nav .chev { display: none; width: 18px; height: 18px; margin-left: auto; }
 .settings-main h1 { margin: 4px 0 18px; }
 .ios-group { margin-bottom: 26px; scroll-margin-top: 68px; }
-.ios-group > h2, .ios-fieldset > legend { font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0 0 8px 16px; font-weight: 600; }
+/* The phone keeps the small label; a wide screen shows the whole head. */
+.pane-head { margin: 0 0 8px 16px; }
+.pane-head > .pane-icon, .pane-head > p { display: none; }
+.pane-back { display: none; }
+.ios-group > .pane-head > h2, .ios-fieldset > legend { font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0; font-weight: 600; }
 .ios-group form, .ios-list { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
 .ios-list { margin-bottom: 14px; }
 .ios-fieldset { border: 0; margin: 0 0 14px; padding: 0; background: transparent; }
@@ -359,14 +363,34 @@ form.is-auto [data-save] { display: none; }
     .settings-main > .ios-group#profile,
     .settings-main > .ios-group:target { display: block; }
     .settings-main:has(> .ios-group:target) > .ios-group#profile:not(:target) { display: none; }
+    .settings-main > .ios-group > .pane-head {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      margin: 0 0 20px; padding: 22px 20px; text-align: center;
+      background: var(--surface-2); border: 1px solid var(--line); border-radius: 16px;
+    }
+    .pane-head > .pane-icon { display: grid; width: 56px; height: 56px; border-radius: 14px; place-items: center; }
+    .pane-head > .pane-icon .icon { width: 30px; height: 30px; }
+    .ios-group > .pane-head > h2 { font-size: 24px; text-transform: none; letter-spacing: -0.01em; color: var(--text); }
+    .pane-head > p { display: block; max-width: 430px; margin: 0; color: var(--muted); font-size: 14px; }
+    .settings-shell:not(:has(.ios-group:target)) .settings-nav a[href="#profile"],
     .settings-shell:has(#profile:target) .settings-nav a[href="#profile"],
     .settings-shell:has(#appearance:target) .settings-nav a[href="#appearance"],
     .settings-shell:has(#notifications:target) .settings-nav a[href="#notifications"],
     .settings-shell:has(#passkeys:target) .settings-nav a[href="#passkeys"],
     .settings-shell:has(#client-view:target) .settings-nav a[href="#client-view"],
     .settings-shell:has(#admin:target) .settings-nav a[href="#admin"] {
-      background: var(--surface-2);
+      background: var(--accent-fill);
+      color: #fff;
       font-weight: 600;
+    }
+    .settings-shell:not(:has(.ios-group:target)) .settings-nav a[href="#profile"] .chev,
+    .settings-shell:has(#profile:target) .settings-nav a[href="#profile"] .chev,
+    .settings-shell:has(#appearance:target) .settings-nav a[href="#appearance"] .chev,
+    .settings-shell:has(#notifications:target) .settings-nav a[href="#notifications"] .chev,
+    .settings-shell:has(#passkeys:target) .settings-nav a[href="#passkeys"] .chev,
+    .settings-shell:has(#client-view:target) .settings-nav a[href="#client-view"] .chev,
+    .settings-shell:has(#admin:target) .settings-nav a[href="#admin"] .chev {
+      color: #fff;
     }
   }
 }
@@ -410,6 +434,16 @@ form.is-auto [data-save] { display: none; }
   .settings-nav a { border-radius: 0; padding: 12px 14px; border-bottom: 1px solid var(--line); }
   .settings-nav a:last-child { border-bottom: 0; }
   .settings-nav .chev { display: block; }
+  /* One screen at a time: the list is the home, and a section is its own page. */
+  .settings-main > h1, .settings-main > .pane-back { display: none; }
+  .settings-main > .ios-group { display: none; }
+  .settings-main > .ios-group:target { display: block; }
+  .settings-main > .ios-group:target > .pane-head { margin-left: 0; }
+  .settings-shell:has(.ios-group:target) .settings-rail { display: none; }
+  .settings-shell:has(.ios-group:target) .settings-main > .pane-back {
+    display: inline-flex; align-items: center; gap: 4px; min-height: 44px;
+    margin-bottom: 6px; color: var(--accent); font-weight: 600; text-decoration: none;
+  }
   .tabs {
     display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
     justify-content: space-around; gap: 0; padding: 6px 8px calc(6px + env(safe-area-inset-bottom));

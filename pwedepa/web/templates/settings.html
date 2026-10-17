@@ -25,10 +25,15 @@
   </aside>
 
   <div class="settings-main">
+    <a class="pane-back" href="#"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-left"/></svg>Settings</a>
     <h1>Settings</h1>
 
     <section class="ios-group" id="profile" aria-label="Profile">
-      <h2>Profile</h2>
+      <header class="pane-head">
+        <span class="pane-icon ios-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg></span>
+        <h2>Profile</h2>
+        <p>Your name, username, and account status.</p>
+      </header>
       <form method="post" action="{{ url_for('settings.profile') }}">
         <label class="ios-row">
           <span class="ios-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg></span>
@@ -50,7 +55,11 @@
     </section>
 
     <section class="ios-group" id="appearance" aria-label="Appearance">
-      <h2>Appearance</h2>
+      <header class="pane-head">
+        <span class="pane-icon ios-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg></span>
+        <h2>Appearance</h2>
+        <p>The theme and the time format this account keeps.</p>
+      </header>
       <div class="ios-list">
         <div class="ios-row">
           <span class="ios-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg></span>
@@ -77,7 +86,11 @@
     </section>
 
     <section class="ios-group" id="notifications" aria-label="Notifications">
-      <h2>Notifications</h2>
+      <header class="pane-head">
+        <span class="pane-icon ios-chip chip-red"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#bell"/></svg></span>
+        <h2>Notifications</h2>
+        <p>What reaches your inbox, and when the pip shows.</p>
+      </header>
       <p class="ios-note" role="status" data-autosave-status></p>
       <form class="ios-split" method="post"{% if not demo_mode %} data-autosave{% endif %} action="{{ url_for('settings.notification_preferences') }}">
         {% for pref in preferences %}
@@ -107,7 +120,11 @@
     </section>
 
     <section class="ios-group" id="passkeys" aria-label="Passkeys">
-      <h2>Passkeys</h2>
+      <header class="pane-head">
+        <span class="pane-icon ios-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#key-round"/></svg></span>
+        <h2>Passkeys</h2>
+        <p>The keys that sign you in on this device.</p>
+      </header>
       <div class="ios-list">
         {% for key in passkeys %}
         <div class="ios-row">
@@ -123,7 +140,11 @@
 
     {% if show_client_view %}
     <section class="ios-group" id="client-view" aria-label="Client view">
-      <h2>Client view</h2>
+      <header class="pane-head">
+        <span class="pane-icon ios-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg></span>
+        <h2>Client view</h2>
+        <p>Records read only, as a client sees them.</p>
+      </header>
       <div class="ios-list">
         <a class="ios-row link-row" href="{{ url_for('pages.view_as', mode='staff' if view_as_client else 'client') }}">
           <span class="ios-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg></span>
@@ -137,7 +158,11 @@
 
     {% if is_admin %}
     <section class="ios-group" id="admin" aria-label="Admin">
-      <h2>Admin</h2>
+      <header class="pane-head">
+        <span class="pane-icon ios-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg></span>
+        <h2>Admin</h2>
+        <p>Users, share links, the audit log, and Domain config.</p>
+      </header>
       <div class="ios-list">
         <a class="ios-row link-row" href="{{ url_for('admin.overview') }}">
           <span class="ios-chip chip-gray"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg></span>

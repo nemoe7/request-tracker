@@ -617,6 +617,53 @@ def test_the_four_admin_pages_share_one_width(app, db):
     assert b'class="admin-page"' in body, path
 
 
+def test_each_settings_pane_carries_a_head(app, db):
+  """Mac Settings leads each pane with its icon, name, and one line."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  body = client.get("/settings").data.decode()
+  heads = re.findall(r'<header class="pane-head">.*?</header>', body, re.DOTALL)
+  sections = re.findall(r'<section class="ios-group" id="([\w-]+)"', body)
+  assert len(heads) == len(sections) >= 5, "every pane needs one head"
+  for head in heads:
+    assert 'class="pane-icon' in head, "the head carries its icon tile"
+    assert "<h2>" in head and "<p>" in head, "the head carries a name and one line"
+  css = client.get("/static/app.css").data.decode()
+  assert ".pane-head > .pane-icon, .pane-head > p { display: none; }" in css, (
+    "the phone keeps the small label"
+  )
+  wide = css[
+    css.index("@media (min-width: 900px)") : css.index("@media (max-width: 899px)")
+  ]
+  assert ".settings-main > .ios-group > .pane-head" in wide, (
+    "the wide head carries the card"
+  )
+  assert "display: flex; flex-direction: column" in wide
+  assert ".ios-group > .pane-head > h2" in wide, "the head carries the title"
+  assert (
+    '.settings-shell:not(:has(.ios-group:target)) .settings-nav a[href="#profile"]'
+    in wide
+  ), "the first pane opens with its row marked"
+  for pane in ("profile", "appearance", "notifications", "passkeys", "admin"):
+    assert f'.settings-nav a[href="#{pane}"]' in wide, "each pane marks its own row"
+  assert "background: var(--accent-fill)" in wide, "the picked row takes the accent"
+
+
+def test_the_phone_opens_one_settings_page_at_a_time(app, db):
+  """The phone lists the sections first, then pushes one section page."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  body = client.get("/settings").data.decode()
+  assert 'class="pane-back"' in body, "a pushed page needs its way back"
+  css = client.get("/static/app.css").data.decode()
+  phone = css[css.index("@media (max-width: 899px)") :]
+  assert ".settings-main > .ios-group { display: none; }" in phone
+  assert ".settings-main > .ios-group:target { display: block; }" in phone
+  assert (
+    ".settings-shell:has(.ios-group:target) .settings-rail { display: none; }" in phone
+  )
+  assert ".settings-main > .pane-back" in phone, "the back row shows on a phone"
+  assert "chevron-left" in body, "the back row carries the left chevron"
+
+
 def test_wide_screens_show_one_settings_pane(app, db):
   """Mac Settings shows one pane. The phone keeps every group stacked."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
