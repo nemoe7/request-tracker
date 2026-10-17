@@ -376,6 +376,17 @@ def test_workspace_queues_counts_and_inspector(cast, db):
   assert mine.title.encode() not in pending.data
 
 
+def test_the_workspace_holds_no_my_requests_queue(cast, db):
+  admin, admin_user = cast["admin"]
+  _save_request(db, 1, admin_user.id, domains=("Facilities",))
+
+  page = admin.get("/")
+
+  assert b"queue=mine" not in page.data, "the queue drops its own-requests filter"
+  stale = admin.get("/?queue=mine")
+  assert stale.status_code == 200, "an old link still opens the list"
+
+
 def test_two_new_requests_keep_their_own_numbers(cast, db):
   """The form writes the row SQLite numbered, so no request replaces another."""
   Mara, _ = cast["Mara"]

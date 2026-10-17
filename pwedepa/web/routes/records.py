@@ -306,7 +306,6 @@ def workspace() -> str | Response:
 
   counts = {
     "triage": sum(1 for r in all_requests if r.status is RequestStatus.OPEN),
-    "mine": sum(1 for r in all_requests if r.requester_id == user.id),
     "assigned": sum(1 for i in all_issues if i.assignee_id == user.id),
     "blocked": sum(1 for i in all_issues if i.status is IssueStatus.BLOCKED),
     "public": sum(1 for r in all_requests if r.visibility is Visibility.PUBLIC),
@@ -331,8 +330,6 @@ def workspace() -> str | Response:
     ]
     if queue == "triage":
       rows = [r for r in rows if r.status is RequestStatus.OPEN]
-    elif queue == "mine":
-      rows = [r for r in rows if r.requester_id == user.id]
     elif queue == "public":
       rows = [r for r in rows if r.visibility is Visibility.PUBLIC]
     row_kind = "request"

@@ -68,7 +68,7 @@ def test_the_frozen_theme_stays_a_browser_choice(tmp_path):
 def test_frozen_demo_opens_rail_filters_and_selected_records(tmp_path):
   out = _frozen_site()
   index = (out / "index.html").read_text(encoding="utf-8")
-  queue = re.search(r'href="(workspace/queue/mine)/"', index)
+  queue = re.search(r'href="(workspace/queue/public)/"', index)
   assert queue, "a queue link should open its own frozen page"
   page = (out / queue.group(1) / "index.html").read_text(encoding="utf-8")
   assert re.search(r'class="queue-item is-active" href="[^"]*"', page)

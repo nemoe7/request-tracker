@@ -12,7 +12,7 @@
     <label class="filters-row" for="filters-toggle">Filters<svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg></label>
     <div class="filters-body">
       <h2>Queue</h2>
-      {% for key, label in [("triage", "Needs triage"), ("mine", "My requests"), ("assigned", "Assigned to me"), ("blocked", "Blocked"), ("public", "Public")] %}
+      {% for key, label in [("triage", "Needs triage"), ("assigned", "Assigned to me"), ("blocked", "Blocked"), ("public", "Public")] %}
       <a class="queue-item{% if queue == key %} is-active{% endif %}" href="{{ url_for('records.workspace', queue=key, domain=domain, visibility=visibility, status=status_filter) }}">{{ label }}<span class="count">{{ counts[key] }}</span></a>
       {% endfor %}
       <h2>Domain</h2>
