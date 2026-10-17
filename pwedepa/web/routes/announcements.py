@@ -12,11 +12,11 @@ from flask import (
 )
 from werkzeug.wrappers import Response
 
+from pwedepa.auth.audit import record_audit
 from pwedepa.data import announcements as announcements_data
 from pwedepa.data import domains as domains_data
 from pwedepa.data import notifications as notifications_data
 from pwedepa.data import subscriptions
-from pwedepa.auth.audit import record_audit
 
 from .. import now
 from ._helpers import current_user, db
