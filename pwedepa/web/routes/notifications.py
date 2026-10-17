@@ -9,7 +9,7 @@ from pwedepa.data import issues as issues_data
 from pwedepa.data import notifications as notifications_data
 from pwedepa.data import requests as requests_data
 
-from ._helpers import current_user, db, record_path
+from ._helpers import current_user, db, record_path, request_open_path
 
 bp = Blueprint("notifications", __name__)
 
@@ -28,7 +28,7 @@ def inbox() -> str | Response:
       names[notice.actor_id] = actor.display_name if actor else "Someone"
     if notice.object_type == "request":
       record = requests_data.get(db(), notice.object_id)
-      links[notice.id] = record_path(record) if record else ""
+      links[notice.id] = request_open_path(record) if record else ""
     elif notice.object_type == "issue":
       record = issues_data.get(db(), notice.object_id)
       links[notice.id] = record_path(record, "issue") if record else ""

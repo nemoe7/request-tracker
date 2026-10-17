@@ -14,7 +14,7 @@ from pwedepa.auth import (
   sessions,
   users,
 )
-from pwedepa.core import Issue, Request, RequestStatus
+from pwedepa.core import Issue, Request, RequestStatus, Visibility
 from pwedepa.data import db as data_db
 from pwedepa.data import issues as issues_data
 from pwedepa.data import notifications as notifications_data
@@ -496,7 +496,7 @@ def test_workspace_puts_the_reading_pane_right_of_the_list(app, db):
 
 
 def test_the_workspace_list_carries_one_toolbar(app, db):
-  """One row over the list holds the title, the status filter, and the action."""
+  """One row over the list holds the title and the status filter."""
   client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   requests_data.save(
     db,
@@ -514,8 +514,9 @@ def test_the_workspace_list_carries_one_toolbar(app, db):
   toolbar = page[page.index('class="list-toolbar"') : page.index("<table")]
   assert "<h1>Workspace</h1>" in toolbar
   assert 'id="status-filter"' in toolbar, "the status filter sits in the row"
-  assert "New request" in toolbar, "the action sits in the row"
-  assert 'class="btn primary"' not in toolbar, "a staff page does not lead with it"
+  assert "New request" not in toolbar, "staff triage keeps the client action out"
+  top = page[page.index('class="top-actions"') : page.index("</header>")]
+  assert 'aria-label="New request"' in top, "the top bar carries the action"
   assert page.index('class="list-toolbar"') < page.index(
     '<table class="record-table mail-table"'
   )
@@ -733,6 +734,28 @@ def test_the_record_pages_read_like_a_github_issue(app, db):
     people = "Requester" if "requests" in path else "Assignee"
     for label in (people, "Labels", "Priority", "Details"):
       assert f"<h2>{label}</h2>" in side, f"{path} misses {label} in its sidebar"
+
+
+def test_a_staff_request_link_opens_in_the_workspace(app, db):
+  """A staff page keeps the workspace around an opened request."""
+  _client(app, db, "sam", "Sam Cruz")
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  requester_id = users.get_user_by_username(db, "sam").id
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title="Broken projector",
+      description="The projector in Room 4 is dead.",
+      requester_id=requester_id,
+      visibility=Visibility.PUBLIC,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+
+  page = client.get("/requests").get_data(as_text=True)
+  assert 'href="/?selected=1"' in page, "staff open a request in the workspace"
 
 
 def test_the_workspace_centers_the_open_request(app, db):

@@ -81,7 +81,7 @@
       <section class="side-block">
         <h2>Details</h2>
         <dl class="facts">
-          <div><dt>Source request</dt><dd>{% if source_request %}<a href="{{ record_path(source_request) }}">Request #{{ source_request.id }}</a>{% else %}—{% endif %}</dd></div>
+          <div><dt>Source request</dt><dd>{% if source_request %}<a href="{{ request_open_path(source_request) }}">Request #{{ source_request.id }}</a>{% else %}—{% endif %}</dd></div>
           <div><dt>Visibility</dt><dd>{{ record.visibility.value | capitalize }}</dd></div>
           <div><dt>Updated</dt><dd>{{ (record.updated_at | stamp(clock)) if record.updated_at else "—" }}</dd></div>
         </dl>

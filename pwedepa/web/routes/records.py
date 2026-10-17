@@ -13,7 +13,7 @@ from flask import (
 )
 from werkzeug.wrappers import Response
 
-from pwedepa.auth import Role, actor_for_user, list_roles, list_users
+from pwedepa.auth import actor_for_user, list_users
 from pwedepa.core import (
   Actor,
   ConfirmationRequired,
@@ -51,6 +51,7 @@ from ._helpers import (
   current_user,
   db,
   domain_matches,
+  is_staff,
   record_path,
   safe_next,
 )
@@ -798,9 +799,3 @@ def issue_edit_save(issue_id: int) -> Response:
   issues_data.save(db(), change.object)
   _append_all("issue", record, change)
   return redirect(record_path(record, "issue"))
-
-
-def is_staff(user) -> bool:
-  """True when the user holds a staff role (admin or assignee)."""
-  roles = list_roles(db(), user.id)
-  return Role.ADMIN in roles or Role.ASSIGNEE in roles

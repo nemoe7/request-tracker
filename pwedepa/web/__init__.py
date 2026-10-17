@@ -91,9 +91,10 @@ def create_app(config: dict | None = None) -> Flask:
   if config:
     app.config.update(config)
 
-  from .routes._helpers import domain_path, record_path
+  from .routes._helpers import domain_path, record_path, request_open_path
 
   app.jinja_env.globals["record_path"] = record_path
+  app.jinja_env.globals["request_open_path"] = request_open_path
   app.jinja_env.globals["domain_path"] = domain_path
   app.jinja_env.globals["build_label"] = build_label
 
