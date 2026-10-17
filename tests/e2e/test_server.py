@@ -1,7 +1,7 @@
 """End to end: start the real server, then talk to it over a socket.
 
-No test client and no in-process app. A separate process serves the pages, and
-the test reads them the way a browser does: a real port, a real cookie, real
+No test client and no in-process app. A separate process serves the pages. The
+test reads them the way a browser does: a real port, a real cookie, real
 redirects, and the database on disk.
 """
 
