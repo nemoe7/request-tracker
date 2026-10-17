@@ -140,3 +140,22 @@ def test_ci_watches_first_party_code_and_docs_only():
     for doc in ("README.md", "CHANGELOG.md", "docs/**/*.md"):
       assert doc in paths, f"the {event} list misses {doc}"
     assert ".github/workflows/**" in paths, "a workflow edit must run its tests"
+
+
+def test_ci_watches_the_deployment_files_its_tests_read():
+  """A deploy-only commit must run the deploy tests."""
+  document = yaml.safe_load(
+    (gate_workflows.WORKFLOW_DIR / "ci.yml").read_text(encoding="utf-8")
+  )
+  triggers = gate_workflows.triggers_of(document)
+  deploy_files = (
+    "Dockerfile",
+    "config*.yml",
+    "compose*.yml",
+    ".env.example",
+    ".dockerignore",
+  )
+  for event in ("push", "pull_request"):
+    paths = triggers[event]["paths"]
+    for name in deploy_files:
+      assert name in paths, f"the {event} list misses {name}"
