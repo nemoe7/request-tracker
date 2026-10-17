@@ -16,7 +16,7 @@
       <h2>{{ selected.title }}</h2>
       <p>{{ pill(selected.status) }}<span class="vis">{{ selected.visibility.value | capitalize }}</span></p>
       <div class="desc prose">{{ selected.description | prose if selected.description else "No description." }}</div>
-      <a class="btn" href="{{ request_open_path(selected) }}">Open request</a>
+      <a class="btn" href="{{ request_open_path(selected) }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#arrow-right"/></svg>Open request</a>
     </div>
   </section>
   {% else %}
