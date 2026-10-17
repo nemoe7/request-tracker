@@ -348,6 +348,47 @@ document.querySelector("#add-passkey")?.addEventListener("click", async () => {
   }
 });
 
+const fontForm = document.querySelector("[data-font-size-form]");
+
+if (fontForm) {
+  const range = fontForm.querySelector("[data-font-size-range]");
+  const number = fontForm.querySelector("[data-font-size-number]");
+  const note = document.querySelector("[data-font-size-status]");
+  const apply = (value) => {
+    document.documentElement.style.setProperty("--font-scale", String(value / 100));
+  };
+  const valid = (value) => Number.isInteger(value) && value >= 85 && value <= 130;
+  range.addEventListener("input", () => {
+    number.value = range.value;
+    apply(Number(range.value));
+  });
+  number.addEventListener("input", () => {
+    const value = Number(number.value);
+    if (valid(value)) apply(value);
+  });
+  const settle = async () => {
+    const value = Math.min(130, Math.max(85, Number(number.value) || 100));
+    number.value = value;
+    range.value = value;
+    apply(value);
+    try {
+      const body = new FormData(fontForm);
+      body.set("font_size", String(value));
+      const response = await fetch(fontForm.action, {
+        method: "POST",
+        body,
+        headers: { "X-Requested-With": "fetch" },
+      });
+      if (!response.ok) throw new Error("The text size did not save.");
+      if (note) note.textContent = `Text size ${value}%.`;
+    } catch (error) {
+      if (note) note.textContent = error.message;
+    }
+  };
+  range.addEventListener("change", settle);
+  number.addEventListener("change", settle);
+}
+
 document.querySelector("#logout-button")?.addEventListener("click", async () => {
   const done = await postJson("/logout", {}).catch(() => ({ redirect: "/" }));
   window.location.assign(done.redirect || "/");

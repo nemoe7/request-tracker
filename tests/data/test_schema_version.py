@@ -110,3 +110,27 @@ def test_a_file_from_the_future_stops_with_the_path_and_the_reset(tmp_path):
   message = str(caught.value)
   assert str(path) in message
   assert f"rm {path}" in message
+
+
+def test_a_version_two_file_gains_the_text_size_column(tmp_path):
+  path = tmp_path / "v2.db"
+  raw = sqlite3.connect(path)
+  raw.execute(
+    "CREATE TABLE user_preferences (user_id INTEGER PRIMARY KEY, "
+    "clock TEXT NOT NULL DEFAULT '12', theme TEXT NOT NULL DEFAULT 'system')"
+  )
+  raw.execute("PRAGMA user_version = 2")
+  raw.commit()
+  raw.close()
+
+  connection = db.connect(path)
+  try:
+    columns = {
+      row._mapping["name"]
+      for row in connection.exec_driver_sql("PRAGMA table_info(user_preferences)")
+    }
+  finally:
+    connection.close()
+
+  assert "font_size" in columns
+  assert _version(path) == db.SCHEMA_VERSION

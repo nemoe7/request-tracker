@@ -177,9 +177,11 @@ def create_app(config: dict | None = None) -> Flask:
     count = 0
     clock = preferences_data.DEFAULT_CLOCK
     theme = preferences_data.DEFAULT_THEME
+    font_size = preferences_data.DEFAULT_FONT_SIZE
     if user is not None:
       clock = preferences_data.get_clock(db(), user.id)
       theme = preferences_data.get_theme(db(), user.id)
+      font_size = preferences_data.get_font_size(db(), user.id)
       if notifications_data.pip_visible(db(), user.id):
         count = notifications_data.count_for_user(db(), user.id)
     staff = user is not None and is_staff(user)
@@ -192,6 +194,7 @@ def create_app(config: dict | None = None) -> Flask:
       "notification_count": count,
       "clock": clock,
       "theme": theme,
+      "font_size": font_size,
       "demo_mode": bool(app.config.get("DEMO_MODE")),
       "demo_switch": bool(app.config.get("DEMO_SWITCH")),
     }
