@@ -763,7 +763,7 @@ def test_workspace_opens_the_reading_pane_beside_the_list(app, db):
   assert ".workspace-grid:not(.is-open) .inspector {" in css, (
     "the closed card leaves the row"
   )
-  wide = css[css.index("@media (min-width: 1200px)") :]
+  wide = css[css.index("@media (min-width: 1360px)") :]
   assert re.search(
     r"\.workspace-grid\.is-open[^{]*\{[^}]*minmax\(430px, 520px\)", wide
   ), "the reading pane holds room for the request view"
