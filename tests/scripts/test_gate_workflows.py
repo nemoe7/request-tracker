@@ -159,3 +159,23 @@ def test_ci_watches_the_deployment_files_its_tests_read():
     paths = triggers[event]["paths"]
     for name in deploy_files:
       assert name in paths, f"the {event} list misses {name}"
+
+
+def test_the_scans_skip_a_skills_only_commit():
+  """A skills sync starts no code scan. A code change still does."""
+  codeql = yaml.safe_load(
+    (gate_workflows.WORKFLOW_DIR / "codeql.yml").read_text(encoding="utf-8")
+  )
+  for event in ("push", "pull_request"):
+    paths = gate_workflows.triggers_of(codeql)[event]["paths"]
+    for entry in ("pwedepa/**", "tests/**", "scripts/**", ".github/workflows/**"):
+      assert entry in paths, f"codeql {event} misses {entry}"
+    assert ".agents/**" not in paths, f"codeql {event} admits the skills tree"
+
+  scan = yaml.safe_load(
+    (gate_workflows.WORKFLOW_DIR / "secret-scan.yml").read_text(encoding="utf-8")
+  )
+  paths = gate_workflows.triggers_of(scan)["push"]["paths"]
+  assert "**" in paths, "the scan keeps its whole-tree default"
+  assert "!.agents/**" in paths, "the scan skips the skills tree"
+  assert "!ARENA.md" in paths, "the scan skips the agent rules"

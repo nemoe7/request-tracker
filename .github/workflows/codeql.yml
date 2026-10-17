@@ -3,8 +3,17 @@ name: CodeQL
 on:
   push:
     branches: [main]
+    paths: &code
+      - "pwedepa/**"
+      - "tests/**"
+      - "scripts/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "ruff.toml"
+      - ".github/workflows/**"
   pull_request:
     branches: [main]
+    paths: *code
   schedule:
     - cron: "17 6 * * 1"
 
