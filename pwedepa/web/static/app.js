@@ -27,12 +27,30 @@ function setTheme(theme) {
 /* Notification switches save as they flip, the way iOS Settings does, so the
    page never reloads and the button only exists for a browser without JS. */
 document.querySelectorAll("form[data-autosave]").forEach((form) => {
+  const status = form.querySelector("[data-autosave-status]");
+  let saved = new FormData(form);
+  let queue = Promise.resolve();
   form.addEventListener("change", () => {
-    fetch(form.action, {
-      method: "POST",
-      headers: { "X-Autosave": "1" },
-      body: new URLSearchParams(new FormData(form)),
-    }).catch(() => {});
+    const body = new URLSearchParams(new FormData(form));
+    queue = queue
+      .then(() =>
+        fetch(form.action, {
+          method: "POST",
+          headers: { "X-Autosave": "1" },
+          body,
+        }),
+      )
+      .then((response) => {
+        if (!response.ok) throw new Error(String(response.status));
+        saved = new FormData(form);
+        if (status) status.textContent = "";
+      })
+      .catch(() => {
+        form.querySelectorAll("input[type=checkbox]").forEach((box) => {
+          box.checked = saved.has(box.name);
+        });
+        if (status) status.textContent = "That switch did not save. Check the connection.";
+      });
   });
 });
 }
