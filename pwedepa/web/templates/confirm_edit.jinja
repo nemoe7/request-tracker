@@ -10,7 +10,7 @@
       <input type="hidden" name="confirmed" value="1">
       <div class="form-actions">
         <button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg>Edit anyway</button>
-        <a class="btn" href="{{ record_path(record) }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clock"/></svg>Keep it pending</a>
+        <a class="btn" href="{{ request_open_path(record) }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clock"/></svg>Keep it pending</a>
       </div>
     </form>
   </div>
