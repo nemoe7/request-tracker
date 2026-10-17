@@ -252,6 +252,7 @@ select:focus-visible, textarea:focus-visible {
 .admin-section { margin-top: 18px; }
 .inline-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin: 10px 0; }
 .inline-form input[type="text"], .inline-form select { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; min-height: 44px; }
+.inline-form .btn { min-height: 44px; font-size: 14px; padding-block: 10px; }
 .admin-user-list { display: grid; gap: 16px; margin-top: 18px; }
 
 /* The admin cards cap their width, so a wide window leaves no long empty card. */

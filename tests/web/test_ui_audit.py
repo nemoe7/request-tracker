@@ -595,3 +595,14 @@ def test_wide_screens_show_one_settings_pane(app, db):
   assert wide < hide < phone, "the pane switch belongs to the wide screen only"
   assert ".settings-main > .ios-group:target { display: block; }" in css
   assert ".settings-main > .ios-group#profile," in css
+
+
+def test_admin_row_buttons_match_their_fields(app):
+  """A row with a picker and a button shows one control height."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  field = css[css.index(".inline-form input") :].split("}", 1)[0]
+  button = css[css.index(".inline-form .btn") :].split("}", 1)[0]
+  assert "min-height: 44px" in field
+  assert "min-height: 44px" in button, "the button must not stand shorter"
+  assert "font-size: 14px" in field
+  assert "font-size: 14px" in button
