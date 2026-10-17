@@ -52,6 +52,8 @@ One root `AGENTS.md` only. Do not add nested `AGENTS.md` files unless a package 
 - Use a neutral voice, lists, and tables. Write at most four sentences in a paragraph.
 - Keep each subject in its own short section: what it does, where it runs, what it stores, and the config names it reads.
 - `README.md` covers install, run, and images. `docs/deploy.md` covers deployment, `docs/design.md` the settled design calls, and `CHANGELOG.md` what changed per version.
+- ALWAYS document every UI design decision in `docs/design.md`.
+- ALWAYS ask the owner for the exact words before you add a new design line to `docs/design.md`.
 
 ## Testing
 
