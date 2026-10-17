@@ -50,9 +50,11 @@ def print_first_token(app: Flask) -> None:
 def seed_first_start(app: Flask) -> int:
   """Fill an empty database from a seed block in force, when the file names one."""
   from pwedepa.data import config as config_data
+  from pwedepa.data import domain_store
   from pwedepa.data.seed import seed_from_config
 
   settings = config_data.read(app.config["DATABASE"])
+  domain_store.seed_from_file(app.config["DATABASE"], settings)
   return seed_from_config(app.config["DATABASE"], settings, at=now())
 
 
