@@ -9,12 +9,8 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = ROOT / "config.yml"
-MOUNTED_ENV = "PWEDEPA_CONFIG"
-# The name before the rename, still read for one release.
-LEGACY_MOUNTED_ENV = "PWEDEPA_DOMAINS_CONFIG"
 IMPORTED_NAME = "domains.imported.yaml"
-# A dev run reads this file beside config.yml, when the file exists.
-ENV = "PWEDEPA_ENV"
+# The overlay a checkout carries. The released image ships no such file.
 DEV_NAME = "config.dev.yml"
 
 
@@ -46,26 +42,19 @@ def imported_path(db_path: str | Path | None = None) -> Path:
   return _db_path(db_path).parent / IMPORTED_NAME
 
 
-def mounted_path() -> Path | None:
-  raw = os.environ.get(MOUNTED_ENV) or os.environ.get(LEGACY_MOUNTED_ENV)
-  return Path(raw) if raw else None
-
-
 def dev_path() -> Path:
-  """Return the file a dev run reads, beside the released config."""
+  """Return the overlay beside config.yml, when a checkout carries one."""
   return CONFIG.with_name(DEV_NAME)
 
 
 def active_path(db_path: str | Path | None = None) -> Path:
-  """Return the file in force: an import, the mount, the dev file, the package."""
+  """Return the file in force: an import, the dev overlay, else config.yml."""
   imported = imported_path(db_path)
   if imported.is_file():
     return imported
-  mounted = mounted_path()
-  if mounted is not None and mounted.is_file():
-    return mounted
-  if os.environ.get(ENV) == "dev" and dev_path().is_file():
-    return dev_path()
+  overlay = dev_path()
+  if overlay.is_file():
+    return overlay
   return CONFIG
 
 
@@ -121,10 +110,14 @@ def load(db_path: str | Path | None = None) -> tuple[Domain, ...]:
       f"config.yml is missing: looked at {CONFIG} and {imported_path(db_path)}"
     )
   text = path.read_text(encoding="utf-8")
-  # A dev file may name only its own keys, so the Domains come from config.yml.
+  # A file without the list leaves the Domains to config.yml.
   if path != CONFIG and not isinstance(mapping(text).get("domains"), list):
+    path = CONFIG
     text = CONFIG.read_text(encoding="utf-8")
-  return parse(text)
+  try:
+    return parse(text)
+  except DomainConfigError as error:
+    raise DomainConfigError(f"{path}: {error}") from error
 
 
 def _entry(domain: Domain) -> dict[str, str]:

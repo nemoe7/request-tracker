@@ -23,11 +23,7 @@
 
 <section class="panel admin-section">
   <h2>Import</h2>
-  {% if mounted_exists %}
-  <p class="muted">The app found a mounted file at <code>{{ mounted }}</code>. An import reads it.</p>
-  {% else %}
-  <p class="muted">No config file is mounted. Choose a YAML file to import.</p>
-  {% endif %}
+  <p class="muted">An import reads the file you choose, then the app reads that copy before <code>config.yml</code>.</p>
   <form class="form" method="post" action="{{ url_for('admin.domain_config_import') }}" enctype="multipart/form-data">
     <div class="field">
       <label for="config-file">Config file</label>

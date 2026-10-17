@@ -67,19 +67,22 @@ def test_a_client_cannot_open_the_domain_config_page(requester):
   assert requester.get("/admin/config").status_code == 403
 
 
-def test_an_admin_imports_the_mounted_file(app, admin, monkeypatch, tmp_path):
-  mounted = tmp_path / "mounted.yaml"
-  mounted.write_bytes(NEW_CONFIG)
-  monkeypatch.setenv("PWEDEPA_CONFIG", str(mounted))
-
-  done = admin.post("/admin/config/import")
-  assert done.status_code == 302
-
+def test_an_import_replaces_the_copy_before_it(app, admin):
   db_path = app.config["DATABASE"]
+  first = b"domains:\n  - name: Garden\n"
+  second = b"domains:\n  - name: Gym\n"
+  for raw in (first, second):
+    done = admin.post(
+      "/admin/config/import",
+      data={"config": (io.BytesIO(raw), "config.yml")},
+      content_type="multipart/form-data",
+    )
+    assert done.status_code == 302
+
   assert domains_data.imported_path(db_path).is_file()
-  assert [domain.name for domain in domains_data.load(db_path)] == ["Garden"]
+  assert [domain.name for domain in domains_data.load(db_path)] == ["Gym"]
   page = admin.get("/admin/config")
-  assert domains_data.load(db_path)[0].name.encode() in page.data
+  assert b"Gym" in page.data
 
 
 def test_an_admin_imports_a_chosen_file(app, admin):
@@ -109,9 +112,7 @@ def test_a_bad_file_leaves_the_config_alone(app, admin):
   assert [domain.name for domain in domains_data.load(db_path)] == before
 
 
-def test_a_missing_choice_asks_for_a_file(admin, monkeypatch):
-  monkeypatch.delenv("PWEDEPA_CONFIG", raising=False)
-  monkeypatch.delenv("PWEDEPA_DOMAINS_CONFIG", raising=False)
+def test_a_missing_choice_asks_for_a_file(admin):
   done = admin.post("/admin/config/import", follow_redirects=True)
   assert done.status_code == 200
   assert b'type="file"' in done.data

@@ -83,13 +83,10 @@ def overview() -> str | Response:
 @bp.get("/admin/config")
 def domain_config() -> str | Response:
   db_path = current_app.config["DATABASE"]
-  mounted = domains_data.mounted_path()
   return render_template(
     "admin_config.html",
     domains=domains_data.load(db_path),
     active=domains_data.active_path(db_path),
-    mounted=mounted,
-    mounted_exists=bool(mounted and mounted.is_file()),
     imported=domains_data.imported_path(db_path),
     imported_exists=domains_data.imported_path(db_path).is_file(),
   )
@@ -99,16 +96,11 @@ def domain_config() -> str | Response:
 def domain_config_import() -> Response:
   db_path = current_app.config["DATABASE"]
   uploaded = request.files.get("config")
-  if uploaded is not None and uploaded.filename:
-    raw = uploaded.read()
-    source = uploaded.filename
-  else:
-    mounted = domains_data.mounted_path()
-    if mounted is None or not mounted.is_file():
-      flash("No config file is mounted. Choose a file to import.")
-      return redirect(url_for("admin.domain_config"))
-    raw = mounted.read_bytes()
-    source = str(mounted)
+  if uploaded is None or not uploaded.filename:
+    flash("Choose a config file to import.")
+    return redirect(url_for("admin.domain_config"))
+  raw = uploaded.read()
+  source = uploaded.filename
   try:
     found = domains_data.import_bytes(raw, db_path)
   except domains_data.DomainConfigError as error:

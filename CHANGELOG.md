@@ -17,8 +17,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Domains from `config.yml`, each with a slug and a description, and an import
   from Admin. Every request and issue URL starts with its Domain, and the old URLs
   answer 404.
-- A dev run reads `config.dev.yml` over `config.yml`. That file can seed a demo
-  request and a demo issue on a first start.
+- A checkout reads `config.dev.yml` in place of `config.yml`, with no variable in
+  play. That file carries the Domains, and it can seed a demo request and a demo
+  issue on a first start.
 - Domain announcements, with the author and the publish and edit times. Staff
   remove one from a page that asks first.
 - A Domain subscription toggle. A follower hears about each new announcement in

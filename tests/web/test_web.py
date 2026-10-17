@@ -332,3 +332,15 @@ def test_the_font_waits_for_no_paint(app):
     sheet = client.get("/static/tokens.css").get_data(as_text=True)
   assert "font-display: swap" in sheet
   assert "font-display: optional" not in sheet
+
+
+def test_a_start_without_domains_names_the_config_file(tmp_path, monkeypatch):
+  from pwedepa.data import domains as domains_data
+
+  path = tmp_path / "config.yml"
+  path.write_text("database: app.db\n", encoding="utf-8")
+  monkeypatch.setattr(domains_data, "CONFIG", path)
+
+  with pytest.raises(domains_data.DomainConfigError) as error:
+    create_app({"DATABASE": str(tmp_path / "test.db")})
+  assert str(path) in str(error.value)

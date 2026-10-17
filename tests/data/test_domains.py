@@ -36,6 +36,18 @@ def test_the_config_sits_at_the_project_root():
   assert CONFIG.is_file(), "the deploy files carry the config to the image"
 
 
+def test_the_root_config_is_a_template():
+  text = (ROOT / "config.yml").read_text(encoding="utf-8")
+  assert domains_data.mapping(text) == {}, "a deploy supplies the real keys"
+
+
+def test_the_dev_config_stands_alone():
+  text = (ROOT / "config.dev.yml").read_text(encoding="utf-8")
+  settings = domains_data.mapping(text)
+  assert [entry["name"] for entry in settings["domains"]] == list(starter_domains())
+  assert settings["seed"], "a checkout seeds a first start"
+
+
 def test_a_slug_is_lowercase_and_joins_words():
   assert domains_data.slugify("3D Print/Model") == "3d-print-model"
   assert domains_data.slugify("Handyman / DIY") == "handyman-diy"
@@ -59,21 +71,23 @@ def test_no_caller_indexes_the_config_by_position():
 def test_a_missing_config_names_the_file_and_both_paths(monkeypatch, tmp_path):
   db_path = tmp_path / "app.db"
   monkeypatch.setattr(domains_data, "CONFIG", tmp_path / "config.yml")
-  monkeypatch.delenv("PWEDEPA_CONFIG", raising=False)
-  monkeypatch.delenv("PWEDEPA_DOMAINS_CONFIG", raising=False)
   with pytest.raises(FileNotFoundError) as error:
     domains_data.load(db_path)
   assert str(tmp_path / "config.yml") in str(error.value)
 
 
-def test_the_old_mount_name_still_names_the_config(monkeypatch, tmp_path):
+def test_a_config_variable_names_no_file(monkeypatch, tmp_path):
   db_path = tmp_path / "app.db"
-  mounted = tmp_path / "mounted.yml"
-  mounted.write_text("domains:\n  - name: Gym\n", encoding="utf-8")
-  monkeypatch.delenv("PWEDEPA_CONFIG", raising=False)
-  monkeypatch.setenv("PWEDEPA_DOMAINS_CONFIG", str(mounted))
+  config = tmp_path / "config.yml"
+  config.write_text("domains:\n  - name: Gym\n", encoding="utf-8")
+  elsewhere = tmp_path / "elsewhere.yml"
+  elsewhere.write_text("domains:\n  - name: Garden\n", encoding="utf-8")
+  monkeypatch.setattr(domains_data, "CONFIG", config)
+  monkeypatch.setenv("PWEDEPA_CONFIG", str(elsewhere))
+  monkeypatch.setenv("PWEDEPA_DOMAINS_CONFIG", str(elsewhere))
 
-  assert domains_data.active_path(db_path) == mounted
+  assert domains_data.active_path(db_path) == config
+  assert [domain.name for domain in domains_data.load(db_path)] == ["Gym"]
 
 
 def test_a_duplicate_slug_stops_the_import():

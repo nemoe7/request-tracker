@@ -18,7 +18,7 @@ def test_dockerfile_runs_the_web_app_as_one_service():
   assert "pwedepa.web" in text
   assert "PWEDEPA_HOST" in text
   assert "USER" in text
-  assert "COPY config.yml ./" in text, "the image carries the domains config"
+  assert "COPY config.yml ./" in text, "the image carries the config template"
 
 
 def test_the_image_carries_the_package_it_starts():
@@ -47,8 +47,10 @@ def test_compose_names_every_container():
 def test_compose_mounts_the_config_read_only():
   service = _compose()["services"]["pwedepa"]
   mounts = [str(volume) for volume in service["volumes"]]
-  assert "./config.yml:/config/config.yml:ro" in mounts
-  assert service["environment"]["PWEDEPA_CONFIG"] == "/config/config.yml"
+  assert "./config.yml:/app/config.yml:ro" in mounts
+  assert "PWEDEPA_CONFIG" not in service["environment"], (
+    "the app reads the file at its own path, not one an env var names"
+  )
 
 
 def test_deploy_compose_pulls_the_published_image():
@@ -64,8 +66,10 @@ def test_dev_compose_builds_the_checkout_locally():
   assert service["build"] == "."
   assert service["image"] == "pwedepa:dev"
   assert service["container_name"] == "pwedepa-dev"
-  assert any(
-    str(volume).startswith("pwedepa-dev-data:/data") for volume in service["volumes"]
+  mounts = [str(volume) for volume in service["volumes"]]
+  assert any(volume.startswith("pwedepa-dev-data:/data") for volume in mounts)
+  assert "./config.dev.yml:/app/config.dev.yml:ro" in mounts, (
+    "the dev file sits beside config.yml, where the app reads it whole"
   )
 
 

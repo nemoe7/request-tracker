@@ -7,11 +7,14 @@ from . import domains
 
 
 def read(db_path: str | Path | None = None) -> dict:
-  """Return the keys in force: config.yml, then the file that wins over it."""
-  base = domains.CONFIG
-  settings = domains.mapping(base.read_text(encoding="utf-8")) if base.is_file() else {}
+  """Return the keys in force: the dev file whole, else config.yml, plus an import."""
   path = domains.active_path(db_path)
-  if path != base and path.is_file():
+  if not path.is_file():
+    return {}
+  # The dev file is standalone, so it replaces config.yml. An import only adds Domains.
+  base = domains.dev_path() if domains.dev_path().is_file() else domains.CONFIG
+  settings = domains.mapping(base.read_text(encoding="utf-8")) if base.is_file() else {}
+  if path != base:
     settings.update(domains.mapping(path.read_text(encoding="utf-8")))
   return settings
 

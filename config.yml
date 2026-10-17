@@ -1,18 +1,21 @@
+# A template for the operator. No key here takes effect until it is uncommented,
+# so a deploy mounts its own copy over this file at /app/config.yml.
+
 # The Domains this app offers. The admin page imports this file.
 # Each entry needs a name. Add `slug:` to hold the URL when a name changes.
-domains:
-  - name: 3D Print/Model
-    description: Models, parts, and print jobs.
-  - name: Asset Tracker
-    description: Shared gear and who holds it.
-  - name: Gym
-    description: Training plans and session notes.
-  - name: Handyman/DIY
-    description: Repairs and build projects at home.
-  - name: Request Tracker
-    description: This app and its own requests.
-  - name: daedalus
-    description: The home server and its services.
+# domains:
+#   - name: 3D Print/Model
+#     description: Models, parts, and print jobs.
+#   - name: Asset Tracker
+#     description: Shared gear and who holds it.
+#   - name: Gym
+#     description: Training plans and session notes.
+#   - name: Handyman/DIY
+#     description: Repairs and build projects at home.
+#   - name: Request Tracker
+#     description: This app and its own requests.
+#   - name: daedalus
+#     description: The home server and its services.
 
 # The SQLite file. Default: pwedepa.db in the working directory.
 # database: /data/pwedepa.db

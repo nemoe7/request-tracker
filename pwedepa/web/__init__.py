@@ -47,6 +47,15 @@ def print_first_token(app: Flask) -> None:
     connection.close()
 
 
+def seed_first_start(app: Flask) -> int:
+  """Fill an empty database from a seed block in force, when the file names one."""
+  from pwedepa.data import config as config_data
+  from pwedepa.data.seed import seed_from_config
+
+  settings = config_data.read(app.config["DATABASE"])
+  return seed_from_config(app.config["DATABASE"], settings, at=now())
+
+
 def create_app(config: dict | None = None) -> Flask:
   app = Flask(__name__)
   app.secret_key = os.environ.get("PWEDEPA_SECRET_KEY", DEVELOPMENT_SECRET)
@@ -69,10 +78,15 @@ def create_app(config: dict | None = None) -> Flask:
     # Lax stops a form on another site from riding on the session cookie.
     SESSION_COOKIE_SAMESITE="Lax",
     DEMO_MODE=False,  # the frozen build asks for demo mode in code
-    DEMO_SWITCH=False,  # the frozen build holds both page sets, so it shows the switch
+    # The frozen build holds both page sets, so it shows the switch.
+    DEMO_SWITCH=False,
   )
   if config:
     app.config.update(config)
+  # A template or a broken file stops the start, so no page shows the error.
+  from pwedepa.data import domains as domains_data
+
+  domains_data.load(app.config["DATABASE"])
 
   from .routes._helpers import domain_path, record_path
 
@@ -91,11 +105,6 @@ def create_app(config: dict | None = None) -> Flask:
       return response
 
   data_db.connect(app.config["DATABASE"]).close()
-  # A dev run fills an empty database from its seed block, and adds nothing again.
-  if os.environ.get("PWEDEPA_ENV") == "dev":
-    from pwedepa.data.seed import seed_from_config
-
-    seed_from_config(app.config["DATABASE"], config_data.read(), at=now())
   app.extensions["webauthn"] = WebAuthnConfig(
     rp_id=app.config["WEBAUTHN_RP_ID"],
     rp_name=app.config["WEBAUTHN_RP_NAME"],
@@ -187,4 +196,4 @@ def now() -> datetime:
 
 from .routes import register_blueprints
 
-__all__ = ["SESSION_COOKIE", "create_app", "now"]
+__all__ = ["SESSION_COOKIE", "create_app", "now", "seed_first_start"]

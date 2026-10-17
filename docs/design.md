@@ -19,10 +19,10 @@ pick.
 
 ## Domains
 
-- `config.yml` at the project root holds each Domain name and description. The slug
-  comes from the name, and `slug:` pins it.
-- An admin imports the file in Admin, Domain config. The page reads a mounted file
-  first, then a picked file, and the app reads the imported copy before both.
+- `config.yml` at the project root is a template. A deploy copy holds each Domain
+  name and description. The slug comes from the name, and `slug:` pins it.
+- An admin imports a picked file in Admin, Domain config. The app reads that copy
+  before the config file in force.
 - A request lives at `/<slug>/requests/<id>` and an issue at `/<slug>/issues/<id>`.
   The old `/<id>` pages answer 404, and both forms offer the configured Domains.
 - The Domain page shows the description, its requests and issues, and its
@@ -36,14 +36,13 @@ pick.
 
 ## Settings file
 
-- `config.yml` holds the Domains, plus four short keys: `database`, `origin`, `rp_id`,
-  and `seed`. A key in the file wins over its environment variable.
-- `PWEDEPA_CONFIG` names a mounted file. The older `PWEDEPA_DOMAINS_CONFIG` still
-  names it for one release.
-- `PWEDEPA_ENV=dev` reads `config.dev.yml` when that file exists. The released image
-  never sets it.
-- A `seed:` list fills the requests and issues tables once, on a dev start, and only
-  while both are empty.
+- `config.yml` is a template, and a deploy mounts the real file over it. It holds
+  the Domains and three short keys: `database`, `origin`, and `rp_id`. The dev file
+  adds `seed`. A key in the file wins over its environment variable.
+- `config.dev.yml` sits beside `config.yml`, and the app reads it whole in place of
+  that file. No variable turns it on, and the released image ships without it.
+- A `seed:` list fills the requests and issues tables once, on a first start, and
+  only while both are empty.
 
 ## Color
 

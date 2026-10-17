@@ -41,9 +41,9 @@ reaches the app at `http://pwedepa:5000` on the compose network.
 docker compose -f compose.dev.yml up -d --build
 ```
 
-The dev file supplies a sample secret and a localhost origin, so it needs no
-`.env`. It sets `PWEDEPA_ENV=dev`, so the app reads `config.dev.yml` over
-`config.yml`, and that file seeds a demo request and a demo issue on a first start.
+The dev compose file supplies a sample secret and a localhost origin, so it needs
+no `.env`. The app reads `config.dev.yml` whole whenever that file sits beside
+`config.yml`, and it seeds a demo request and a demo issue on a first start.
 
 ## Tailscale Funnel
 
@@ -77,10 +77,10 @@ setting: Settings, Pages, source: GitHub Actions.
 - Back up the `pwedepa-data` volume. It holds the only database copy.
 - The `tailscale-state` volume holds the node identity. Restart the sidecar
   after you edit `tailscale/serve.json`.
-- Keep `config.yml` at the project root. The image copies it to `/app/config.yml`
-  and compose mounts it read-only at `/config/config.yml`. A key in that file
-  wins over the same environment variable. The old `PWEDEPA_DOMAINS_CONFIG`
-  variable names the mount for one release.
+- `config.yml` at the project root is a template: every key waits, commented out.
+  Uncomment the keys a deploy needs, or mount a real file read-only at
+  `/app/config.yml`. A key in that file wins over the same environment variable,
+  and no variable names a config file.
 - The passkey library stays on 3.x. Read its changelog before a major bump.
 - Demo mode stays off in deployment. Code asks for it, and no environment
   variable sets it.
