@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 import pytest
 from _paths import record_url
 
-from pwedepa.auth import Role, assign_role, sessions, users
+from pwedepa.auth import Role, assign_role, list_roles, sessions, users
 from pwedepa.core import Request
 from pwedepa.data import db as data_db
 from pwedepa.data import requests as requests_data
@@ -606,3 +606,30 @@ def test_admin_row_buttons_match_their_fields(app):
   assert "min-height: 44px" in button, "the button must not stand shorter"
   assert "font-size: 14px" in field
   assert "font-size: 14px" in button
+
+
+def test_the_role_forms_offer_only_sensible_roles(app, db):
+  """Assign lists what is missing. Revoke lists what is held."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  listing = client.get("/admin/users").data.decode()
+  card = listing[listing.index("admin-user-list") :]
+  opening = card.index('aria-label="Role to assign"')
+  assign = card[opening : card.index("</select>", opening)]
+  assert 'value="ADMIN"' not in assign, "a held role has nothing to assign"
+  assert 'value="REQUESTER"' in assign
+  assert 'aria-label="Role to revoke"' not in card, "own Admin stays held"
+
+
+def test_an_admin_cannot_take_their_own_admin_role(app, db):
+  person = users.create_user(db, "Ada", "Ada Admin", at=AT)
+  assign_role(db, person.id, Role.ADMIN, at=AT)
+  token = sessions.create_session(db, person.id, at=AT).token
+  client = app.test_client()
+  client.set_cookie(SESSION_COOKIE, token)
+  answer = client.post(
+    f"/admin/users/{person.id}/roles",
+    data={"role": "ADMIN", "action": "revoke"},
+    follow_redirects=True,
+  )
+  assert Role.ADMIN in list_roles(db, person.id)
+  assert b"You cannot remove your own Admin role" in answer.data

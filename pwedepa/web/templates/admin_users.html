@@ -44,11 +44,21 @@
     <div class="chip-list">
       {% for role in details[person.id].roles %}<span class="pill st-open"><span class="dot"></span>{{ role.value | capitalize }}</span>{% else %}<span class="muted">No roles</span>{% endfor %}
     </div>
+    {% set held = details[person.id].roles %}
+    {% set free_roles = roles | reject("in", held) | list %}
+    {% if free_roles %}
     <form class="inline-form" method="post" action="{{ url_for('admin.change_role', user_id=person.id) }}">
-      <select name="role" aria-label="Role" required><option value="" selected>Choose a role</option>{% for role in roles %}<option value="{{ role }}">{{ role | capitalize }}</option>{% endfor %}</select>
+      <select name="role" aria-label="Role to assign" required><option value="" selected>Choose a role</option>{% for role in free_roles %}<option value="{{ role }}">{{ role | capitalize }}</option>{% endfor %}</select>
       <button class="btn" type="submit" name="action" value="assign">Assign</button>
+    </form>
+    {% else %}<p class="muted">This person holds every role.</p>{% endif %}
+    {% set revocable = held | rejectattr("value", "equalto", "ADMIN") | list if person.id == g.admin_user.id else held %}
+    {% if revocable %}
+    <form class="inline-form" method="post" action="{{ url_for('admin.change_role', user_id=person.id) }}">
+      <select name="role" aria-label="Role to revoke" required><option value="" selected>Choose a role to remove</option>{% for role in revocable %}<option value="{{ role.value }}">{{ role.value | capitalize }}</option>{% endfor %}</select>
       <button class="btn danger" type="submit" name="action" value="revoke">Revoke</button>
     </form>
+    {% endif %}
 
     <h3>Direct grants</h3>
     {% if details[person.id].grants %}
