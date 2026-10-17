@@ -505,7 +505,7 @@ def test_a_staff_member_can_check_the_client_view(cast, db):
 
   detail = admin.get(record_url(1))
   assert detail.status_code == 200
-  assert b">Edit<" not in detail.data
+  assert b'aria-label="Edit"' not in detail.data
   assert b"share-form" not in detail.data
   assert b'href="/view-as/client"' not in detail.data
   assert b'href="/view-as/staff"' in detail.data

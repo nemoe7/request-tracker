@@ -77,7 +77,7 @@
 
   <aside class="panel inspector{% if selected %} is-main{% endif %}" aria-label="Request">
     {% if selected %}
-    <a class="back-to-list" href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter) }}">Back to the list</a>
+    <a class="back-to-list" href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter) }}" aria-label="Back to the list" title="Back to the list"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#arrow-left"/></svg></a>
     {% set record = selected %}
     {% set actions = selected_actions %}
     {% set can_edit = selected_can_edit %}

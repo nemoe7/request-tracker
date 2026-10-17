@@ -100,7 +100,6 @@ body.is-guest .auth-card { margin: 0 auto; }
 .flash { background: var(--st-pending-bg); color: var(--st-pending); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 14px; }
 .flash p { margin: 2px 0; }
 .workspace-grid { display: grid; grid-template-columns: 240px minmax(0, 1fr) 0; gap: 16px; align-items: start; max-width: 1320px; margin: 0 auto; transition: grid-template-columns 200ms var(--ease); }
-.workspace-grid.is-open { grid-template-columns: 240px minmax(300px, 0.85fr) minmax(430px, 1.15fr); }
 .workspace-grid.is-main { grid-template-columns: 240px minmax(300px, 0.85fr) minmax(430px, 1.15fr); }
 .list-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
 .list-toolbar h1 { font-size: 22px; margin-right: auto; }
@@ -116,13 +115,15 @@ body.is-guest .auth-card { margin: 0 auto; }
 .client-dash .compact-list a { color: var(--text); }
 .group-title { display: flex; justify-content: space-between; align-items: center; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 6px; }
 .group-title:not(:first-child) { margin-top: 22px; }
-.back-to-list { display: none; }
+.back-to-list { display: none; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; color: var(--muted); text-decoration: none; }
+.back-to-list:hover { background: var(--surface-2); color: var(--text); }
+.back-to-list .icon { width: 18px; height: 18px; }
 .workspace-grid:not(.is-open) .inspector { height: 0; min-width: 0; padding: 0; border-width: 0; overflow: hidden; visibility: hidden; }
 .workspace-grid .inspector { scroll-margin-top: 72px; }
-.workspace-grid.is-open { grid-template-columns: minmax(0, 1fr); max-width: 1100px; }
-.workspace-grid.is-open .filters, .workspace-grid.is-open .records { display: none; }
-.workspace-grid.is-open.is-main .inspector { grid-column: 1; padding: 0; border: 0; background: none; }
-.workspace-grid.is-open .back-to-list { display: inline-block; margin-bottom: 14px; font-size: 14px; }
+.workspace-grid.is-open { grid-template-columns: 240px minmax(0, 1fr); }
+.workspace-grid.is-open .records { display: none; }
+.workspace-grid.is-open.is-main .inspector { grid-column: 2; padding: 0; border: 0; background: none; }
+.workspace-grid.is-open .back-to-list { display: inline-flex; margin-bottom: 14px; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
 .panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 16px 0 8px; }
 .panel h2:first-child { margin-top: 0; }

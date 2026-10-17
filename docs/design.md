@@ -18,9 +18,10 @@ pick.
   member keeps their own read list. One toolbar over the table holds the title, the
   status filter, and the Issues link. New request sits in the top bar as an icon,
   because staff triage and clients make requests. The open row carries an accent
-  edge on its first cell. The opened request centers on the page in the same view
-  as its page, with state controls, the comment box, and sharing. A Back to the
-  list link returns to the filtered table. A staff link to a request opens the
+  edge on its first cell. The opened request replaces the list in the main column,
+  and the rail stays, as Gmail reads a message. It carries the same view as its
+  page, with state controls, the comment box, and sharing. A Back arrow returns
+  to the filtered table, and a pencil opens the edit form. A staff link to a request opens the
   workspace instead of the record page. Clients keep the record page.
 - Request and issue pages follow the GitHub issue shape. The title carries the
   number and the state. One comment timeline holds the description and the
