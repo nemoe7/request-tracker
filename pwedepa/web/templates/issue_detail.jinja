@@ -72,7 +72,7 @@
             <option value="{{ value }}"{% if record.priority.value == value %} selected{% endif %}>{{ value | capitalize }}</option>
             {% endfor %}
           </select>
-          <button class="btn" type="submit">Save priority</button>
+          <button class="btn icon-only" type="submit" aria-label="Save priority" title="Save priority"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button>
         </form>
         {% else %}
         <p>{{ record.priority.value | capitalize }}</p>

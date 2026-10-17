@@ -40,7 +40,7 @@
           <option value="{{ value }}"{% if status_filter == value %} selected{% endif %}>{{ value | capitalize }}</option>
           {% endfor %}
         </select>
-        <noscript><button class="btn" type="submit">Apply status</button></noscript>
+        <noscript><button class="btn" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg>Apply status</button></noscript>
       </form>
       <a class="btn" href="{{ url_for('records.issue_board') }}">Issues</a>
       </div>

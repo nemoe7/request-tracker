@@ -45,7 +45,7 @@
       </select>
     </div>
     <div class="form-actions">
-      <button class="btn primary" type="submit">Save changes</button>
+      <button class="btn primary icon-only" type="submit" aria-label="Save changes" title="Save changes"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button>
       <a class="btn" href="{{ record_path(record, 'issue') }}">Cancel</a>
     </div>
   </form>
