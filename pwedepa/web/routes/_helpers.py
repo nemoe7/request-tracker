@@ -88,9 +88,9 @@ def record_slug(record) -> str:
   return domains_data.slug_for(record.domains, domains_data.load(db_path()))
 
 
-def record_path(record, kind: str = "request") -> str:
-  """Return the domain-first URL for one record."""
-  return f"/{record_slug(record)}/{kind}s/{record.id}"
+def record_path(record, kind: str = "request", slug: str | None = None) -> str:
+  """Return the domain-first URL for one record, under slug when given."""
+  return f"/{slug or record_slug(record)}/{kind}s/{record.id}"
 
 
 def domain_path(name: str) -> str:

@@ -79,10 +79,27 @@ def test_a_domain_page_shows_its_description_and_its_records(db, Mara):
 def test_a_record_opens_under_each_of_its_domains(db, Mara):
   client, person = Mara
   _request(db, 1, person.id, domains=("Gym", "Asset Tracker"))
+  issues_data.save(
+    db,
+    Issue(
+      id=1,
+      title="A loose bolt",
+      description="x",
+      requester_id=person.id,
+      created_at=AT,
+      updated_at=AT,
+      domains=("Gym", "Asset Tracker"),
+    ),
+  )
 
   assert client.get("/gym/requests/1").status_code == 200
   assert client.get("/asset-tracker/requests/1").status_code == 200
   assert client.get("/daedalus/requests/1").status_code == 404
+  gym = client.get("/gym").get_data(as_text=True)
+  asset = client.get("/asset-tracker").get_data(as_text=True)
+  assert 'href="/gym/requests/1"' in gym
+  assert 'href="/asset-tracker/requests/1"' in asset
+  assert 'href="/asset-tracker/issues/1"' in asset
 
 
 def test_the_old_record_urls_answer_404(db, Mara):
