@@ -78,8 +78,8 @@
           <span class="ios-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clock"/></svg></span>
           <span class="ios-label">Time format</span>
           <span class="seg-control" role="group" aria-label="Time format">
-            <button type="submit" name="clock" value="12"{% if clock != "24" %} class="is-active"{% endif %}>12-hour</button>
-            <button type="submit" name="clock" value="24"{% if clock == "24" %} class="is-active"{% endif %}>24-hour</button>
+            <button type="submit" name="clock" value="12"{% if clock != "24" %} class="is-active"{% endif %}><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clock"/></svg>12-hour</button>
+            <button type="submit" name="clock" value="24"{% if clock == "24" %} class="is-active"{% endif %}><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clock"/></svg>24-hour</button>
           </span>
         </div>
       </form>
