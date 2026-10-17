@@ -1,4 +1,5 @@
 {% extends "base.jinja" %}
+{% from "_parts.jinja" import confirm_modal %}
 {% block title %}PwedePa | Notifications{% endblock %}
 {% block content %}
 <div class="narrow">
@@ -6,9 +7,8 @@
     <h1>Notifications</h1>
     <div class="page-actions">
       {% if notices %}
-      <form method="post" action="{{ url_for('notifications.clear') }}">
-        <button class="btn danger-quiet" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#trash"/></svg>Clear all</button>
-      </form>
+      <button class="btn danger-quiet" type="button" data-modal-open="clear-notices"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#trash"/></svg>Clear all</button>
+      {{ confirm_modal("clear-notices", url_for('notifications.clear'), "Clear all notifications?", "Every notification leaves this list. This cannot be undone.", "Clear all") }}
       {% endif %}
       <a class="btn" href="{{ url_for('settings.settings') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg>Notification settings</a>
     </div>

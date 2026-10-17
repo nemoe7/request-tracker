@@ -25,6 +25,18 @@
 </li>
 {%- endmacro %}
 
+{% macro confirm_modal(id, action, title, body, submit) -%}
+{% call modal(id, title) %}
+<form class="modal-form" method="post" action="{{ action }}">
+  <p>{{ body }}</p>
+  <div class="modal-actions">
+    <button class="btn" type="button" data-modal-close>Cancel</button>
+    <button class="btn danger" type="submit">{{ submit }}</button>
+  </div>
+</form>
+{% endcall %}
+{%- endmacro %}
+
 {% macro modal(id, title) -%}
 <div class="modal" id="{{ id }}" hidden>
   <div class="modal-scrim" data-modal-close></div>
