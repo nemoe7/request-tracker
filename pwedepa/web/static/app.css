@@ -302,9 +302,25 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
   .record-table td { display: block; border-bottom: 0; padding: 3px 8px; }
   .record-table tr { display: block; border-bottom: 1px solid var(--line); padding: 6px 0; }
   .mail-table { table-layout: auto; }
-  .mail-table .mail-from { font-size: calc(12px * var(--font-scale)); }
-  .mail-table .mail-title { white-space: normal; }
-  .mail-table .mail-time { text-align: left; }
+  .mail-table tr.mail-row {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "from time" "title title" "snippet status";
+    column-gap: 10px; row-gap: 3px; padding: 10px 2px;
+  }
+  .mail-table .mail-from {
+    grid-area: from; padding: 0; border: 0; font-size: calc(12px * var(--font-scale));
+    color: var(--muted);
+  }
+  .mail-table .mail-title { display: contents; }
+  .mail-table .mail-link { grid-area: title; white-space: normal; }
+  .mail-table .mail-snippet {
+    grid-area: snippet; margin-left: 0; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mail-table .mail-status { grid-area: status; padding: 0; border: 0; justify-self: end; }
+  .mail-table .mail-time {
+    grid-area: time; padding: 0; border: 0; text-align: right;
+  }
 }
 .page-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .filter-form { display: grid; gap: 8px; }
@@ -542,7 +558,13 @@ form.is-auto [data-save] { display: none; }
   .back-to-list { display: inline-flex; margin-bottom: 10px; }
   .issue-layout { grid-template-columns: 1fr; gap: 20px; }
   .issue-head h1 { font-size: calc(24px * var(--font-scale)); }
-  .issue-actions { margin-left: 0; }
+  .issue-actions { margin-left: 0; gap: 6px; }
+  .issue-actions .actions { gap: 6px; }
+  .issue-actions .btn { padding: 8px 10px; }
+  .list-actions { margin-left: 0; width: 100%; }
+  .list-actions .filter-form { flex: 1 1 auto; }
+  .filters { border: 0; border-radius: 0; background: none; padding: 0; }
+  .filters-body { padding: 4px 2px 8px; }
   .record-row { flex-direction: column; align-items: flex-start; gap: 6px; }
   .admin-page .record-row { flex-direction: row; align-items: center; }
   .notice { flex-direction: column; align-items: flex-start; gap: 8px; }

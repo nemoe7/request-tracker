@@ -135,6 +135,20 @@ def test_the_stylesheet_holds_one_phone_block(app):
   )
 
 
+def test_the_phone_list_reads_as_three_line_rows(app):
+  """A phone row keeps the Gmail lines: who and when, the title, the preview."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  phone = css[css.index("@media (max-width: 639px)") :]
+  assert ".mail-table tr.mail-row {" in phone, "a phone row is its own grid"
+  assert 'grid-template-areas: "from time" "title title" "snippet status"' in phone, (
+    "the row reads in three lines"
+  )
+  assert ".mail-table .mail-title { display: contents; }" in phone, (
+    "the title cell feeds the row grid"
+  )
+  assert "grid-area: time;" in phone and "grid-area: status;" in phone
+
+
 def test_the_brand_tile_holds_the_bare_face(app):
   """The owner dropped the chip, so the face fills its tile on the bar."""
   css = app.test_client().get("/static/app.css").data.decode()
