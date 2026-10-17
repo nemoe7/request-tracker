@@ -124,6 +124,15 @@ def test_a_created_request_reads_back_by_id(served):
   assert "E2E chairs" in body
 
 
+def test_the_script_reaches_the_browser_through_the_server(served):
+  """A page can render while its script never arrives with a usable type."""
+  request = urllib.request.Request(f"{served['base']}/static/app.js")
+  with urllib.request.urlopen(request, timeout=5) as answer:
+    assert answer.status == 200
+    assert "javascript" in answer.headers["Content-Type"]
+    assert answer.read()
+
+
 def test_a_missing_record_answers_a_styled_404(served):
   status, _, body = _fetch(f"{served['base']}/requests/9999", cookie=served["cookie"])
   assert status == 404
@@ -131,6 +140,6 @@ def test_a_missing_record_answers_a_styled_404(served):
 
 
 def test_a_signed_out_read_lands_on_the_login_page(served):
-  status, url, body = _fetch(f"{served['base']}/requests")
+  status, url, _ = _fetch(f"{served['base']}/requests")
   assert status == 200
-  assert "login" in url or "Sign in" in body or "sign in" in body.lower()
+  assert url.endswith("/login")
