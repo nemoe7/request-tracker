@@ -33,6 +33,13 @@ def test_the_image_carries_the_package_it_starts():
   )
 
 
+def test_the_image_names_its_build():
+  """The header reads a stamp the build writes. The image context has no git."""
+  text = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+  assert "ARG VERSION=" in text
+  assert "pwedepa/_version.txt" in text
+
+
 def test_the_config_sits_at_the_repo_root():
   assert (ROOT / "config.yml").is_file()
 

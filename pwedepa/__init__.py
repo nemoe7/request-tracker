@@ -6,7 +6,7 @@ from pathlib import Path
 
 __version__ = "0.1.0"
 
-# The image build writes this file; a checkout has no such file.
+# The image build writes this file. A checkout has no such file.
 STAMP = Path(__file__).with_name("_version.txt")
 
 
@@ -16,7 +16,7 @@ def build_label() -> str:
   if STAMP.is_file():
     stamped = STAMP.read_text(encoding="utf-8").strip()
     if stamped:
-      # The CI image is stamped `dev-<hash>`; the header shows the hash alone.
+      # CI stamps the image `dev-<hash>`. The header shows the hash alone.
       return stamped.removeprefix("dev-")
   root = Path(__file__).resolve().parent.parent
   if (root / ".git").exists():
