@@ -41,13 +41,13 @@ def health() -> Response:
 
 @bp.get("/workspace")
 def old_workspace() -> Response:
-  """The workspace lives at the base URL; old links follow it."""
+  """The workspace lives at the base URL. Old links follow it."""
   return redirect(url_for("records.workspace", **request.args), code=302)
 
 
 @bp.get("/home")
 def home() -> Response:
-  """The account page became Settings; the base URL holds the work."""
+  """The account page became Settings. The base URL holds the work."""
   return redirect(url_for("records.workspace"))
 
 
