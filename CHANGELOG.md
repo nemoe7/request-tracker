@@ -12,36 +12,19 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Passkey sign-in and enrollment, with admin user management and an audit trail.
 - Requests as intake and issues as accepted work. A request raises into a new issue.
 - Status moves, field edits, comments, and archives on both record types.
-- Share links with expiry, permissions, and revoke.
+- Share links with expiry, permissions, and revoke. The page and the endpoint read one rule.
+- One guard in front of every admin route.
 - Retained notifications, with per-category settings.
 - Starter Domains from `domains.json`, editable without a code change.
-- A frozen demo build that the Pages workflow publishes.
+- A frozen demo build that the Pages workflow publishes. Every rail filter, the status filter included, opens from a link and a page of its own. A card swap keeps every link on a real page. The demo ships no worker file, and the build refuses a script that still names one.
+- The app serves through uvicorn, a production server, with one adapter in front of Flask.
 - A Tailscale sidecar in `compose.yml`, with named containers: `pwedepa-app` and `pwedepa-tailscale`.
 - `.env.example`, and a session secret that compose demands before it starts.
 - The passkey ID follows the public origin, unless a deploy sets `PWEDEPA_RP_ID`.
-- The Docker workflow publishes the dev image from a passing CI run on `main`, and both platform legs land behind one tag.
+- The Docker workflow publishes the dev image from a passing CI run on `main`, and both platform legs land behind one tag. Each pushed image starts once before the tags merge.
 - An approved release draft publishes the version tag and `latest`, through the approved tag in that run's log.
-
-### Changed
-
 - `compose.yml` runs the published image, and `compose.dev.yml` builds the checkout for local runs.
-- The frozen demo opens every rail filter, its status filter included, from a link and a page of its own.
 - The workspace inspector and the admin audit page read only the rows they show.
-- The app serves through uvicorn in place of the Flask development server, so a deploy runs on a production server.
-
-### Fixed
-
-- A card swap keeps every link in the frozen demo on a real page.
-- The share rule lives in one place, so the page and the endpoint answer the same.
-- One guard runs before every admin route.
-- The service worker keeps only its own origin in the cache.
-- The database prepares its schema once for each file.
-- A session stamps its use at most once an hour.
-- The workspace reads its three preference rows in one query.
-- The share form reads every day count the number field allows, so a value such as `1e3` no longer fails the page.
-- A submitted value the page cannot send returns a sentence, and an edit keeps the field it cannot read.
-
-### Removed
-
-- The unused Alembic dependency, and a helper for terminal states with no caller.
-- The worker file from the frozen demo, because a worker at the host root cannot install.
+- The workspace reads its three preference rows in one query, and a session stamps its use at most once an hour.
+- The schema prepares once for each database file, and the service worker keeps only its own origin in the cache.
+- The share form reads every day count the number field allows. A submitted value the page cannot send returns a sentence, and an edit keeps the field it cannot read.
