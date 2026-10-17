@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="248" viewBox="0 0 800 248" font-family="-apple-system, Segoe UI, Roboto, sans-serif">
+<rect width="800" height="248" fill="#0C1118"/>
+<text x="24" y="32" fill="#93A5B8" font-size="11" font-weight="600" letter-spacing="1.4">CHANGE LOG</text>
+<line x1="42" y1="56" x2="42" y2="206" stroke="#243144" stroke-width="1"/>
+<circle cx="42" cy="60" r="4" fill="#0C1118" stroke="#6EA8FE" stroke-width="2"/>
+<text x="62" y="64" fill="#93A5B8" font-size="10" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">2026-10-17</text>
+<text x="62" y="84" fill="#E4EBF3" font-size="13">The request action reads Reject, and a reason comes in a dialog.</text>
+<circle cx="42" cy="112" r="4" fill="#0C1118" stroke="#6EA8FE" stroke-width="2"/>
+<text x="62" y="116" fill="#93A5B8" font-size="10" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">2026-10-17</text>
+<text x="62" y="136" fill="#E4EBF3" font-size="13">The workspace reads as one mail table with a reading pane.</text>
+<circle cx="42" cy="164" r="4" fill="#0C1118" stroke="#6EA8FE" stroke-width="2"/>
+<text x="62" y="168" fill="#93A5B8" font-size="10" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">2026-10-16</text>
+<text x="62" y="188" fill="#E4EBF3" font-size="13">Dark theme ships first, and every shot uses it.</text>
+<text x="24" y="232" fill="#93A5B8" font-size="11">One line per pick, newest first, with the day it landed.</text>
+</svg>

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="292" viewBox="0 0 800 292" font-family="-apple-system, Segoe UI, Roboto, sans-serif">
+<rect width="800" height="292" fill="#0C1118"/>
+<text x="24" y="32" fill="#93A5B8" font-size="11" font-weight="600" letter-spacing="1.4">THEME AND MOTION</text>
+<rect x="24" y="62" width="156" height="116" fill="#131B26" stroke="#243144" stroke-width="2" rx="10"/>
+<rect x="38" y="78" width="128" height="14" fill="#182233" rx="4"/>
+<rect x="38" y="102" width="56" height="44" fill="#182233" rx="4"/>
+<rect x="102" y="102" width="64" height="10" fill="#243144" rx="3"/>
+<rect x="102" y="118" width="50" height="8" fill="#243144" rx="3"/>
+<rect x="102" y="132" width="58" height="8" fill="#243144" rx="3"/>
+<text x="38" y="166" fill="#E4EBF3" font-size="12" font-weight="600">System</text>
+<text x="102" y="166" fill="#93A5B8" font-size="10">reads the device</text>
+<rect x="200" y="62" width="156" height="116" fill="#131B26" stroke="#243144" stroke-width="2" rx="10"/>
+<rect x="214" y="78" width="128" height="14" fill="#182233" rx="4"/>
+<rect x="214" y="102" width="56" height="44" fill="#182233" rx="4"/>
+<rect x="278" y="102" width="64" height="10" fill="#243144" rx="3"/>
+<rect x="278" y="118" width="50" height="8" fill="#243144" rx="3"/>
+<rect x="278" y="132" width="58" height="8" fill="#243144" rx="3"/>
+<text x="214" y="166" fill="#E4EBF3" font-size="12" font-weight="600">Light</text>
+<text x="278" y="166" fill="#93A5B8" font-size="10">paper surfaces</text>
+<rect x="376" y="62" width="156" height="116" fill="#131B26" stroke="#6EA8FE" stroke-width="2" rx="10"/>
+<rect x="390" y="78" width="128" height="14" fill="#182233" rx="4"/>
+<rect x="390" y="102" width="56" height="44" fill="#182233" rx="4"/>
+<rect x="454" y="102" width="64" height="10" fill="#243144" rx="3"/>
+<rect x="454" y="118" width="50" height="8" fill="#243144" rx="3"/>
+<rect x="454" y="132" width="58" height="8" fill="#243144" rx="3"/>
+<text x="390" y="166" fill="#E4EBF3" font-size="12" font-weight="600">Dark</text>
+<text x="454" y="166" fill="#93A5B8" font-size="10">ships first</text>
+<rect x="560" y="62" width="216" height="116" fill="#131B26" stroke="#243144" stroke-width="1" rx="10"/>
+<text x="576" y="86" fill="#93A5B8" font-size="9" letter-spacing="1.2">ONE CURVE</text>
+<path d="M578 154 C 596 88, 640 88, 758 100" stroke="#6EA8FE" stroke-width="2" fill="none" stroke-linecap="round"/>
+<text x="576" y="172" fill="#E4EBF3" font-size="9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">cubic-bezier(0.22, 1, 0.36, 1)</text>
+<text x="24" y="210" fill="#93A5B8" font-size="12">160–220 ms on every move. Reduced motion turns animation off.</text>
+<text x="24" y="238" fill="#93A5B8" font-size="12">The control cycles System, Light, and Dark. The choice lives on the</text>
+<text x="24" y="256" fill="#93A5B8" font-size="12">account; signed-out pages keep a browser copy.</text>
+<text x="24" y="280" fill="#93A5B8" font-size="12">An inline head script sets the theme before the first paint.</text>
+</svg>

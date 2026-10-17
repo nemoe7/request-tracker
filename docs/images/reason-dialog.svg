@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="460" viewBox="0 0 800 460" font-family="-apple-system, Segoe UI, Roboto, sans-serif">
+<rect width="800" height="460" fill="#0C1118"/>
+<rect x="0" y="0" width="800" height="40" fill="#131B26"/>
+<rect x="0" y="39" width="800" height="1" fill="#243144"/>
+<text x="16" y="26" fill="#E4EBF3" font-size="15" font-weight="700">PwedePa</text>
+<circle cx="776" cy="20" r="6" fill="none" stroke="#93A5B8" stroke-width="1.5"/>
+<circle cx="748" cy="20" r="6" fill="none" stroke="#93A5B8" stroke-width="1.5"/>
+<circle cx="720" cy="20" r="6" fill="none" stroke="#93A5B8" stroke-width="1.5"/>
+<text x="16" y="70" fill="#93A5B8" font-size="10" letter-spacing="1">QUEUE</text>
+<rect x="8" y="73" width="184" height="28" rx="6" fill="#182233"/>
+<text x="18" y="91" fill="#E4EBF3" font-size="12">• Needs triage</text>
+<rect x="8" y="107" width="184" height="28" rx="6" fill="none"/>
+<text x="18" y="125" fill="#93A5B8" font-size="12">Assigned to me</text>
+<rect x="8" y="141" width="184" height="28" rx="6" fill="none"/>
+<text x="18" y="159" fill="#93A5B8" font-size="12">Blocked</text>
+<rect x="8" y="175" width="184" height="28" rx="6" fill="none"/>
+<text x="18" y="193" fill="#93A5B8" font-size="12">Public</text>
+<text x="16" y="232" fill="#93A5B8" font-size="10" letter-spacing="1">DOMAIN</text>
+<text x="18" y="253" fill="#93A5B8" font-size="12">All domains</text>
+<text x="18" y="279" fill="#93A5B8" font-size="12">3D Print/Model</text>
+<text x="18" y="305" fill="#93A5B8" font-size="12">Asset Tracker</text>
+<path d="M0 40 V460" stroke="#243144" stroke-width="1"/>
+<rect x="220" y="80" width="560" height="330" fill="#131B26" opacity="0.5"/>
+<rect x="0" y="40" width="800" height="420" fill="#000" opacity="0.55"/>
+<rect x="210" y="130" width="380" height="230" rx="12" fill="#131B26" stroke="#243144"/>
+<text x="230" y="164" fill="#E4EBF3" font-size="18" font-weight="700">Reject this?</text>
+<text x="230" y="194" fill="#93A5B8" font-size="12">Reason</text>
+<rect x="230" y="206" width="340" height="76" rx="8" fill="#182233" stroke="#6EA8FE" stroke-width="2"/>
+<text x="242" y="230" fill="#93A5B8" font-size="12">Why this is rejected</text>
+<rect x="420" y="306" width="76" height="34" rx="8" fill="#182233" stroke="#243144"/>
+<text x="438" y="328" fill="#E4EBF3" font-size="13">Cancel</text>
+<rect x="504" y="306" width="70" height="34" rx="8" fill="#182233" stroke="#243144"/>
+<text x="522" y="328" fill="#FF9C94" font-size="13">Reject</text>
+</svg>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="404" viewBox="0 0 800 404" font-family="-apple-system, Segoe UI, Roboto, sans-serif">
+<rect width="800" height="404" fill="#0C1118"/>
+<text x="24" y="32" fill="#93A5B8" font-size="11" font-weight="600" letter-spacing="1.4">DOMAINS · ONE PAGE</text>
+<rect x="24" y="56" width="752" height="304" fill="#131B26" stroke="#243144" stroke-width="1" rx="10"/>
+<text x="48" y="92" fill="#E4EBF3" font-size="20" font-weight="700">3D Print/Model</text>
+<text x="48" y="114" fill="#93A5B8" font-size="12">Models, parts, and the print queue for the workshop.</text>
+<text x="660" y="92" fill="#93A5B8" font-size="11">Following</text>
+<rect x="644" y="100" width="40" height="22" fill="#1D4ED8" rx="11"/>
+<circle cx="674" cy="111" r="8" fill="#FFFFFF"/>
+<line x1="48" y1="132" x2="752" y2="132" stroke="#243144" stroke-width="1"/>
+<text x="48" y="154" fill="#93A5B8" font-size="9" letter-spacing="1.2">ANNOUNCEMENTS</text>
+<text x="48" y="178" fill="#E4EBF3" font-size="12" font-weight="600">New printer hours</text>
+<text x="48" y="194" fill="#93A5B8" font-size="11">The workshop opens at 9.</text>
+<text x="752" y="178" fill="#93A5B8" font-size="10" text-anchor="end">Oct 16</text>
+<text x="48" y="224" fill="#E4EBF3" font-size="12" font-weight="600">Filament pickup</text>
+<text x="48" y="240" fill="#93A5B8" font-size="11">Bring your own spool.</text>
+<text x="752" y="224" fill="#93A5B8" font-size="10" text-anchor="end">Oct 12</text>
+<line x1="48" y1="252" x2="752" y2="252" stroke="#243144" stroke-width="1"/>
+<text x="48" y="272" fill="#93A5B8" font-size="9" letter-spacing="1.2">REQUESTS</text>
+<text x="120" y="294" fill="#E4EBF3" font-size="11">Broken projector in Room 4</text>
+<rect x="690" y="283" width="62" height="22" fill="#6EA8FE22" stroke="#6EA8FE55" stroke-width="1" rx="11"/>
+<circle cx="702" cy="294" r="3" fill="#6EA8FE"/>
+<text x="710" y="298" fill="#6EA8FE" font-size="10">Open</text>
+<text x="48" y="322" fill="#93A5B8" font-size="9" letter-spacing="1.2">ISSUES</text>
+<text x="120" y="344" fill="#E4EBF3" font-size="11">Shelves for the reading corner</text>
+<rect x="690" y="333" width="70" height="22" fill="#F5B04C22" stroke="#F5B04C55" stroke-width="1" rx="11"/>
+<circle cx="702" cy="344" r="3" fill="#F5B04C"/>
+<text x="710" y="348" fill="#F5B04C" font-size="10">Pending</text>
+<text x="24" y="386" fill="#93A5B8" font-size="11">Dense rows: description, announcements newest first, then records.</text>
+</svg>

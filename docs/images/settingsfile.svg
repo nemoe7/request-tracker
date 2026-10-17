@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="330" viewBox="0 0 800 330" font-family="-apple-system, Segoe UI, Roboto, sans-serif">
+<rect width="800" height="330" fill="#0C1118"/>
+<text x="24" y="32" fill="#93A5B8" font-size="11" font-weight="600" letter-spacing="1.4">SETTINGS FILE</text>
+<rect x="24" y="56" width="420" height="246" fill="#131B26" stroke="#243144" stroke-width="1" rx="10"/>
+<rect x="24" y="56" width="420" height="32" fill="#182233" rx="10"/>
+<text x="40" y="77" fill="#93A5B8" font-size="10" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">config.yml</text>
+<text x="44.0" y="112" fill="#6EA8FE" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">database:</text>
+<text x="108.8" y="112" fill="#E4EBF3" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">/data/pwede.db</text>
+<text x="44.0" y="134" fill="#6EA8FE" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">origin:</text>
+<text x="94.4" y="134" fill="#E4EBF3" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">https://pwede.example</text>
+<text x="44.0" y="156" fill="#6EA8FE" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">rp_id:</text>
+<text x="87.2" y="156" fill="#E4EBF3" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">pwede.example</text>
+<text x="44.0" y="200" fill="#6EA8FE" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">domains:</text>
+<text x="58.4" y="222" fill="#6EA8FE" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">- name:</text>
+<text x="108.8" y="222" fill="#E4EBF3" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">3D Print/Model</text>
+<text x="72.8" y="244" fill="#6EA8FE" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">slug:</text>
+<text x="108.8" y="244" fill="#E4EBF3" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">3d-print</text>
+<text x="72.8" y="266" fill="#6EA8FE" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">pinned:</text>
+<text x="123.19999999999999" y="266" fill="#E4EBF3" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">true</text>
+<text x="470" y="84" fill="#E4EBF3" font-size="12">A template, mounted over by a deploy.</text>
+<text x="470" y="118" fill="#93A5B8" font-size="12">Three short keys — database,</text>
+<text x="470" y="136" fill="#93A5B8" font-size="12">origin, and rp_id — plus the</text>
+<text x="470" y="154" fill="#93A5B8" font-size="12">Domains. A key wins over its</text>
+<text x="470" y="172" fill="#93A5B8" font-size="12">environment variable.</text>
+<line x1="470" y1="194" x2="776" y2="194" stroke="#243144" stroke-width="1"/>
+<text x="470" y="218" fill="#93A5B8" font-size="12">config.dev.yml replaces the file</text>
+<text x="470" y="236" fill="#93A5B8" font-size="12">whole, and ships nowhere.</text>
+<text x="470" y="270" fill="#93A5B8" font-size="12">seed: fills both tables once, on</text>
+<text x="470" y="288" fill="#93A5B8" font-size="12">a first start, only while empty.</text>
+</svg>

@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="404" viewBox="0 0 800 404" font-family="-apple-system, Segoe UI, Roboto, sans-serif">
+<rect width="800" height="404" fill="#0C1118"/>
+<text x="24" y="32" fill="#93A5B8" font-size="11" font-weight="600" letter-spacing="1.4">COLOR · SCHEME 2, SLATE AND BLUE</text>
+<text x="24" y="72" fill="#93A5B8" font-size="10" letter-spacing="1.2">LIGHT</text>
+<rect x="24" y="82" width="64" height="40" fill="#F4F6F8" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="56" y="142" fill="#93A5B8" font-size="9" text-anchor="middle">bg</text>
+<rect x="94" y="82" width="64" height="40" fill="#FFFFFF" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="126" y="142" fill="#93A5B8" font-size="9" text-anchor="middle">surface</text>
+<rect x="164" y="82" width="64" height="40" fill="#F8FAFC" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="196" y="142" fill="#93A5B8" font-size="9" text-anchor="middle">surface-2</text>
+<rect x="234" y="82" width="64" height="40" fill="#DCE3EA" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="266" y="142" fill="#93A5B8" font-size="9" text-anchor="middle">line</text>
+<rect x="304" y="82" width="64" height="40" fill="#17222E" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="336" y="142" fill="#93A5B8" font-size="9" text-anchor="middle">text</text>
+<rect x="374" y="82" width="64" height="40" fill="#5B6B7B" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="406" y="142" fill="#93A5B8" font-size="9" text-anchor="middle">muted</text>
+<rect x="444" y="82" width="64" height="40" fill="#2563EB" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="476" y="142" fill="#93A5B8" font-size="9" text-anchor="middle">accent</text>
+<rect x="514" y="82" width="64" height="40" fill="#2563EB" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="546" y="142" fill="#93A5B8" font-size="9" text-anchor="middle">accent-fill</text>
+<rect x="584" y="82" width="64" height="40" fill="#DC2626" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="616" y="142" fill="#93A5B8" font-size="9" text-anchor="middle">danger</text>
+<rect x="654" y="82" width="64" height="40" fill="#B45309" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="686" y="142" fill="#93A5B8" font-size="9" text-anchor="middle">warn</text>
+<rect x="724" y="82" width="64" height="40" fill="#15803D" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="756" y="142" fill="#93A5B8" font-size="9" text-anchor="middle">ok</text>
+<text x="24" y="168" fill="#93A5B8" font-size="10" letter-spacing="1.2">DARK</text>
+<rect x="24" y="178" width="64" height="40" fill="#0C1118" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="56" y="238" fill="#93A5B8" font-size="9" text-anchor="middle">bg</text>
+<rect x="94" y="178" width="64" height="40" fill="#131B26" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="126" y="238" fill="#93A5B8" font-size="9" text-anchor="middle">surface</text>
+<rect x="164" y="178" width="64" height="40" fill="#182233" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="196" y="238" fill="#93A5B8" font-size="9" text-anchor="middle">surface-2</text>
+<rect x="234" y="178" width="64" height="40" fill="#243144" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="266" y="238" fill="#93A5B8" font-size="9" text-anchor="middle">line</text>
+<rect x="304" y="178" width="64" height="40" fill="#E4EBF3" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="336" y="238" fill="#93A5B8" font-size="9" text-anchor="middle">text</text>
+<rect x="374" y="178" width="64" height="40" fill="#93A5B8" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="406" y="238" fill="#93A5B8" font-size="9" text-anchor="middle">muted</text>
+<rect x="444" y="178" width="64" height="40" fill="#6EA8FE" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="476" y="238" fill="#93A5B8" font-size="9" text-anchor="middle">accent</text>
+<rect x="514" y="178" width="64" height="40" fill="#1D4ED8" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="546" y="238" fill="#93A5B8" font-size="9" text-anchor="middle">accent-fill</text>
+<rect x="584" y="178" width="64" height="40" fill="#FF9C94" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="616" y="238" fill="#93A5B8" font-size="9" text-anchor="middle">danger</text>
+<rect x="654" y="178" width="64" height="40" fill="#F5B04C" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="686" y="238" fill="#93A5B8" font-size="9" text-anchor="middle">warn</text>
+<rect x="724" y="178" width="64" height="40" fill="#6FD598" stroke="#243144" stroke-width="1" rx="6"/>
+<text x="756" y="238" fill="#93A5B8" font-size="9" text-anchor="middle">ok</text>
+<line x1="24" y1="252" x2="776" y2="252" stroke="#243144" stroke-width="1"/>
+<text x="24" y="276" fill="#93A5B8" font-size="10" letter-spacing="1.2">STATUS</text>
+<rect x="24" y="290" width="48" height="22" fill="#6EA8FE22" stroke="#6EA8FE55" stroke-width="1" rx="11"/>
+<circle cx="36" cy="301" r="3" fill="#6EA8FE"/>
+<text x="44" y="305" fill="#6EA8FE" font-size="11">Open</text>
+<rect x="80" y="290" width="69" height="22" fill="#F5B04C22" stroke="#F5B04C55" stroke-width="1" rx="11"/>
+<circle cx="92" cy="301" r="3" fill="#F5B04C"/>
+<text x="100" y="305" fill="#F5B04C" font-size="11">Pending</text>
+<rect x="157" y="290" width="69" height="22" fill="#B7A6FF22" stroke="#B7A6FF55" stroke-width="1" rx="11"/>
+<circle cx="169" cy="301" r="3" fill="#B7A6FF"/>
+<text x="177" y="305" fill="#B7A6FF" font-size="11">Delayed</text>
+<rect x="234" y="290" width="69" height="22" fill="#FF9C9422" stroke="#FF9C9455" stroke-width="1" rx="11"/>
+<circle cx="246" cy="301" r="3" fill="#FF9C94"/>
+<text x="254" y="305" fill="#FF9C94" font-size="11">Blocked</text>
+<rect x="311" y="290" width="76" height="22" fill="#6FD59822" stroke="#6FD59855" stroke-width="1" rx="11"/>
+<circle cx="323" cy="301" r="3" fill="#6FD598"/>
+<text x="331" y="305" fill="#6FD598" font-size="11">Resolved</text>
+<rect x="395" y="290" width="62" height="22" fill="#93A5B822" stroke="#93A5B855" stroke-width="1" rx="11"/>
+<circle cx="407" cy="301" r="3" fill="#93A5B8"/>
+<text x="415" y="305" fill="#93A5B8" font-size="11">Closed</text>
+<text x="24" y="344" fill="#93A5B8" font-size="12">Status hues hold across schemes. A dot pairs with the word,</text>
+<text x="24" y="364" fill="#93A5B8" font-size="12">so colour never carries the meaning alone.</text>
+<text x="24" y="390" fill="#93A5B8" font-size="11">Body 4.5:1 · large text 3:1 · 2 px focus ring</text>
+</svg>
