@@ -134,3 +134,59 @@ def test_an_admin_adds_a_domain(app, admin):
 def test_a_client_cannot_add_a_domain(requester):
   done = requester.post("/admin/config/add", data={"name": "Garden"})
   assert done.status_code == 403
+
+
+def test_an_admin_renames_a_domain_and_the_old_url_redirects(app, admin):
+  admin.post("/admin/config/add", data={"name": "Gym"})
+  db_path = app.config["DATABASE"]
+  assert domains_data.load(db_path)[0].slug == "gym"
+
+  done = admin.post(
+    "/admin/config/rename",
+    data={"slug": "gym", "name": "Fitness", "new_slug": "fitness"},
+  )
+  assert done.status_code == 302
+  assert [domain.name for domain in domains_data.load(db_path)] == ["Fitness"]
+
+  old = admin.get("/gym")
+  assert old.status_code == 302
+  assert old.headers["Location"].endswith("/fitness")
+  assert admin.get("/fitness").status_code == 200
+
+
+def test_a_rename_keeps_the_domain_records(app, admin):
+  from pwedepa.core import Request, RequestStatus, Visibility
+  from pwedepa.data import db as data_db
+  from pwedepa.data import requests as requests_data
+
+  admin.post("/admin/config/add", data={"name": "Gym"})
+  db_path = app.config["DATABASE"]
+  connection = data_db.connect(db_path)
+  try:
+    requests_data.save(
+      connection,
+      Request(
+        id=0,
+        title="A leak",
+        description="Under the sink.",
+        status=RequestStatus.OPEN,
+        visibility=Visibility.PUBLIC,
+        domains=("Gym",),
+        created_at=AT,
+        updated_at=AT,
+      ),
+      commit=True,
+    )
+  finally:
+    connection.close()
+
+  admin.post(
+    "/admin/config/rename", data={"slug": "gym", "name": "Fitness", "new_slug": "gym"}
+  )
+
+  connection = data_db.connect(db_path)
+  try:
+    saved = requests_data.list_requests(connection)
+  finally:
+    connection.close()
+  assert [record.domains for record in saved] == [("Fitness",)]

@@ -6,6 +6,20 @@ Project pwedepa {
   Note: 'One database holds requests, issues, auth, sharing, and notices.'
 }
 
+Table domains {
+  id integer [pk, increment]
+  name text [not null, unique]
+  slug text [not null, unique]
+  description text [not null, default: '']
+  created_at text
+  updated_at text
+}
+
+Table domain_redirects {
+  old_slug text [pk]
+  slug text [not null]
+}
+
 Table requests {
   id integer [pk]
   title text [not null]

@@ -1,3 +1,7 @@
+CREATE TABLE IF NOT EXISTS domain_redirects (
+  old_slug TEXT PRIMARY KEY,
+  slug TEXT NOT NULL -- the Domain that holds the URL now
+);
 CREATE TABLE IF NOT EXISTS domains (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE COLLATE NOCASE,

@@ -143,6 +143,31 @@ def domain_config_remove() -> Response:
   return redirect(url_for("admin.domain_config"))
 
 
+@bp.post("/admin/config/rename")
+def domain_config_rename() -> Response:
+  slug = str(request.form.get("slug", "")).strip()
+  name = str(request.form.get("name", "")).strip()
+  new_slug = str(request.form.get("new_slug", "")).strip()
+  try:
+    found = domain_store.rename(
+      current_app.config["DATABASE"], slug, name=name, new_slug=new_slug
+    )
+  except domains_data.DomainConfigError as error:
+    flash(f"The Domain did not rename: {error}")
+    return redirect(url_for("admin.domain_config"))
+  record_audit(
+    db(),
+    "domain.renamed",
+    at=now(),
+    actor_id=g.admin_user.id,
+    object_type="domain",
+    object_id=None,
+    data={"from": slug, "name": found.name, "slug": found.slug},
+  )
+  flash(f"{found.name} saved.")
+  return redirect(url_for("admin.domain_config"))
+
+
 @bp.post("/admin/config/import")
 def domain_config_import() -> Response:
   db_path = current_app.config["DATABASE"]

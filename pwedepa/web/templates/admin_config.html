@@ -14,7 +14,18 @@
   <ul class="compact-list">
     {% for domain in domains %}
     <li>
-      <strong>{{ domain.name }}</strong> <code>{{ domain.slug }}</code><br>
+      <form class="form" method="post" action="{{ url_for('admin.domain_config_rename') }}">
+        <input type="hidden" name="slug" value="{{ domain.slug }}">
+        <div class="field">
+          <label for="name-{{ domain.slug }}">Name</label>
+          <input id="name-{{ domain.slug }}" name="name" value="{{ domain.name }}" required>
+        </div>
+        <div class="field">
+          <label for="slug-{{ domain.slug }}">URL slug</label>
+          <input id="slug-{{ domain.slug }}" name="new_slug" value="{{ domain.slug }}">
+        </div>
+        <button class="button" type="submit">Save</button>
+      </form>
       <span class="muted">{{ domain.description or "No description." }}</span>
       <form class="form" method="post" action="{{ url_for('admin.domain_config_remove') }}">
         <input type="hidden" name="slug" value="{{ domain.slug }}">

@@ -23,6 +23,18 @@ config:
 ---
 erDiagram
     direction LR
+    domains {
+        integer id PK "AUTOINCREMENT"
+        text name UK "NOT NULL"
+        text slug UK "NOT NULL"
+        text description "NOT NULL, DEFAULT ''"
+        text created_at
+        text updated_at
+    }
+    domain_redirects {
+        text old_slug PK
+        text slug "NOT NULL"
+    }
     requests {
         integer id PK
         text title "NOT NULL"

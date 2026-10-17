@@ -4,7 +4,7 @@ import os
 from datetime import UTC, datetime
 from urllib.parse import urlparse
 
-from flask import Flask, abort, g, request
+from flask import Flask, abort, g, redirect, request
 
 from pwedepa.auth import WebAuthnConfig
 from pwedepa.data import db as data_db
@@ -101,6 +101,21 @@ def create_app(config: dict | None = None) -> Flask:
       if not request.path.startswith("/static/"):
         response.headers["Cache-Control"] = "no-store"
       return response
+
+  @app.before_request
+  def follow_old_slug():
+    """Send a request on a renamed Domain to the slug that holds it now."""
+    from pwedepa.data import domain_store
+
+    first = request.path.strip("/").split("/")[0]
+    if not first:
+      return None
+    target = domain_store.redirect_for(app.config["DATABASE"], first)
+    if target is None:
+      return None
+    rest = request.path[len(first) + 1 :]
+    query = f"?{request.query_string.decode()}" if request.query_string else ""
+    return redirect(f"/{target}{rest}{query}", code=302)
 
   data_db.connect(app.config["DATABASE"]).close()
   app.extensions["webauthn"] = WebAuthnConfig(

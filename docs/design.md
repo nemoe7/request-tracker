@@ -20,7 +20,9 @@ pick.
 ## Domains
 
 - `config.yml` seeds the Domains once. After that the app owns the list, and an
-  admin adds a Domain in Admin, Domain config. The slug comes from the name.
+  admin adds, renames, or removes a Domain in Admin, Domain config. A rename keeps
+  the records, and the old slug answers with a redirect. A remove drops the
+  Domain's records behind a confirm that counts them.
 - An admin imports a picked file in Admin, Domain config. The app reads that copy
   before the config file in force.
 - A request lives at `/<slug>/requests/<id>` and an issue at `/<slug>/issues/<id>`.

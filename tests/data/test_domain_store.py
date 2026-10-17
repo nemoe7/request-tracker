@@ -48,7 +48,9 @@ def test_a_duplicate_slug_stops_the_seed(tmp_path):
     raise AssertionError("a duplicate slug must stop the seed")
 
 
-AT = __import__("datetime").datetime(2026, 10, 17, 12, 0, tzinfo=__import__("datetime").UTC)
+AT = __import__("datetime").datetime(
+  2026, 10, 17, 12, 0, tzinfo=__import__("datetime").UTC
+)
 
 
 def _with_request(path):
