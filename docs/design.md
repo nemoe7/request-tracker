@@ -4,7 +4,7 @@ This file records the settled design calls. When a pick changes, update this fil
 
 ## Product shape
 
-- Staff screens use the dense work-queue shape: top bar, queue filters, record list, inspector, and an issue strip. No sidebar.
+- Staff screens use the dense work-queue shape: top bar, queue filters, item list, inspector, and an issue strip. No sidebar.
 - The client (requester) surface stays separate and simple: My requests, the public board, and one New request action, in a single 720 px column.
 - Settings pages follow the Apple Settings pattern: grouped rows, label on the left, control on the right. A chevron appears only when a row navigates. The pattern stays inside Settings.
 
@@ -12,7 +12,7 @@ This file records the settled design calls. When a pick changes, update this fil
 
 - The Domain list comes from `domains.yaml` at the project root. Each entry holds a name and a description. The URL slug comes from the name: lowercase, with each run of other characters folded to `-`.
 - An admin imports the file in Admin, Domain config. The page reads a mounted file first, then a picked file. The import writes a copy beside the database, and the app reads that copy first.
-- A record lives at `/<slug>/requests/<id>` or `/<slug>/issues/<id>`, under each Domain it belongs to. The old `/requests/<id>` and `/issues/<id>` pages answer 404. The record forms offer the configured Domains as checkboxes.
+- A request lives at `/<slug>/requests/<id>`, and an issue at `/<slug>/issues/<id>`, under each Domain it belongs to. The old `/requests/<id>` and `/issues/<id>` pages answer 404. Both forms offer the configured Domains as checkboxes.
 - The Domain page at `/<slug>` shows the description and the requests and issues that carry the Domain.
 - Staff publish announcements on a Domain page. Each one holds a title, a body, the author, the publish time, and the edit time. The Domain page lists them newest first.
 
@@ -54,7 +54,7 @@ Scheme 2, Slate and blue. Components use tokens from `pwedepa/web/static/tokens.
 - The top bar is 56 px and holds the brand, section tabs, theme control, and one primary action.
 - The top bar stays fixed, outside the scrolled layer, and the body holds its 56 px of room. A sticky bar snaps its text between two device rows on a fractional scroll offset. Fixing the bar keeps it on one row. Owner pick from a recorded clip.
 - The section tabs follow the role. Staff see the Workspace tab alone, because the workspace covers all management. Clients keep the Requests and Issues tabs.
-- A staff member can switch the whole session to the client view from Settings. It shows what a client sees and drops the record write controls. The server refuses record writes that still arrive. Account settings stay writable, and the same row leaves the view again.
+- A staff member can switch the whole session to the client view from Settings. It shows what a client sees and drops the write controls on requests and issues. The server refuses those writes that still arrive. Account settings stay writable, and the same row leaves the view again.
 - At 1200 px and up the staff grid runs filters 240 px, list fluid, inspector 360 px. Spacing follows an 8 px scale. Record rows are 40 px on desktop, panels get 10 px radius, and panels never carry shadows.
 - Breakpoints sit at 1200, 900, and 640 px. Below 900 px the tabs move to a bottom nav and carry the same stops as the top bar. The inspector turns into a full-screen sheet, and filters fold into one disclosure row.
 - Touch targets run at least 44 px. Tables never squeeze on a phone. They stack into cards, one fact per line. Text never drops below 12 px.
