@@ -76,7 +76,7 @@ rule adds.
   slug keeps the URL too.
 - A person follows a Domain from a toggle on its page. A new announcement notifies
   each follower except the author, and the activity switch silences it.
-- Staff remove an announcement from a page that asks first.
+- Staff remove an announcement from a dialog that asks first.
 
 ![A Domain page wireframe: a title, a description, a following switch, announcements, then requests and issues](images/domains.png)
 

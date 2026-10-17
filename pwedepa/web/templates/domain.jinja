@@ -1,5 +1,5 @@
 {% extends "base.jinja" %}
-{% from "_parts.jinja" import pill %}
+{% from "_parts.jinja" import pill, reason_modal %}
 {% block title %}PwedePa | {{ domain.name }}{% endblock %}
 {% block content %}
 <div class="narrow">
@@ -27,7 +27,8 @@
         {% if is_staff and not demo_mode %}
         <span class="card-actions">
           <a class="icon-btn" href="{{ url_for('announcements.edit', slug=domain.slug, announcement_id=announcement.id) }}" aria-label="Edit announcement" title="Edit announcement"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#pencil"/></svg></a>
-          <a class="icon-btn" href="{{ url_for('announcements.confirm_delete', slug=domain.slug, announcement_id=announcement.id) }}" aria-label="Remove announcement" title="Remove announcement"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#trash"/></svg></a>
+          <button class="icon-btn" type="button" data-modal-open="remove-announcement-{{ announcement.id }}" aria-label="Remove announcement" title="Remove announcement"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#trash"/></svg></button>
+          {{ reason_modal("remove-announcement-" ~ announcement.id, url_for('announcements.remove', slug=domain.slug, announcement_id=announcement.id), {}, None, title="Remove this announcement?", submit="Remove", hint="Why this announcement goes") }}
         </span>
         {% endif %}
       </div>
