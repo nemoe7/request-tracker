@@ -119,4 +119,4 @@ Scheme 2, Slate and blue. Components use tokens from
   copy. An inline head script sets the theme before the first paint.
 - One easing curve, `cubic-bezier(0.22, 1, 0.36, 1)`, runs 160 to 220 ms. Reduced
   motion turns animation off.
-- The landing tagline asks "pwede pa" with rotating marks, then answers "pwede na!".
+- The sign-in page holds one card and no header. The card offers a passkey button and an enroll link.

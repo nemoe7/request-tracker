@@ -74,7 +74,8 @@ If Tailscale runs on the host instead, change the Proxy value in
 The `pages.yml` workflow freezes a demo to GitHub Pages on each push to `main`
 that touches the web app, and on demand from the Actions tab. Pages serves files
 only, so forms and passkey buttons stay inert there. The repository needs one
-setting: Settings, Pages, source: GitHub Actions.
+setting: Settings, Pages, source: GitHub Actions. The build writes the site to
+`PWEDEPA_PAGES_OUT` when that variable is set, and to `_site` otherwise.
 
 ## Notes
 
@@ -88,3 +89,11 @@ setting: Settings, Pages, source: GitHub Actions.
 - The passkey library stays on 3.x. Read its changelog before a major bump.
 - Demo mode stays off in deployment. Code asks for it, and no environment
   variable sets it.
+- The app reads `PWEDEPA_SECRET_KEY`, `PWEDEPA_DB`, `PWEDEPA_ORIGIN`,
+  `PWEDEPA_RP_ID`, `PWEDEPA_RP_NAME`, `PWEDEPA_COOKIE_SECURE`, `PWEDEPA_HOST`,
+  and `PWEDEPA_PORT`. Compose sets the secret, the origin, and the passkey
+  names. The image sets the database path, the address, and the port.
+  `PWEDEPA_COOKIE_SECURE` defaults to `1`. Set it to `0` only for a plain-HTTP
+  trial.
+- The sidecar reads `TS_AUTHKEY`, `TS_HOSTNAME`, `TS_STATE_DIR`,
+  `TS_SERVE_CONFIG`, and `TS_ENABLE_HEALTH_CHECK`. Compose sets all five.
