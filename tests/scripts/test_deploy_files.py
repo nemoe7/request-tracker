@@ -75,6 +75,9 @@ def test_compose_runs_the_tailscale_sidecar_for_the_funnel():
   assert sidecar["environment"]["TS_HOSTNAME"] == "pwedepa"
   assert sidecar["environment"]["TS_SERVE_CONFIG"] == "/config/serve.json"
   assert sidecar["environment"]["TS_STATE_DIR"] == "/var/lib/tailscale"
+  assert sidecar["environment"]["TS_ENABLE_HEALTH_CHECK"] == "true", (
+    "the image serves /healthz only when the flag is on"
+  )
   assert "TS_CERT_DOMAIN" not in sidecar["environment"], (
     "the sidecar fills the cert domain placeholder itself"
   )
