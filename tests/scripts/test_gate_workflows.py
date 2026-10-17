@@ -126,3 +126,17 @@ def test_secret_in_a_run_step_fails():
 def test_main_exit_codes(capsys):
   assert gate_workflows.main([]) == 0
   assert "Workflow set passed" in capsys.readouterr().out
+
+
+def test_ci_watches_first_party_code_and_docs_only():
+  """A skills-only commit checks nothing, so it must not start CI."""
+  document = yaml.safe_load(
+    (gate_workflows.WORKFLOW_DIR / "ci.yml").read_text(encoding="utf-8")
+  )
+  triggers = gate_workflows.triggers_of(document)
+  for event in ("push", "pull_request"):
+    paths = triggers[event]["paths"]
+    assert "**/*.md" not in paths, f"the {event} list admits the skills tree"
+    for doc in ("README.md", "CHANGELOG.md", "docs/**/*.md"):
+      assert doc in paths, f"the {event} list misses {doc}"
+    assert ".github/workflows/**" in paths, "a workflow edit must run its tests"

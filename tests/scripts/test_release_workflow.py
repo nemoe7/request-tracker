@@ -111,3 +111,31 @@ def test_the_dev_commit_tag_comes_from_the_metadata_action():
   text = _docker_text()
   assert text.count("type=sha,prefix=dev-") == 2, "both dev jobs tag the commit"
   assert "type=raw,value=${{ steps.dev.outputs.version }}" not in text
+
+
+def test_the_dev_build_skips_commits_that_change_no_image_input():
+  """A docs-only commit needs no new image, so the dev job must not start."""
+  jobs = _docker()["jobs"]
+  assert "changes" in jobs, "nothing decides whether the commit touches the image"
+  assert jobs["dev"]["needs"] == "changes"
+  assert "needs.changes.outputs.build == 'yes'" in jobs["dev"]["if"]
+  assert jobs["changes"]["outputs"]["build"] == "${{ steps.paths.outputs.build }}"
+
+
+def test_the_changes_job_reads_the_tested_commit_file_list():
+  text = _docker_text()
+  assert "commits/$SHA" in text
+  assert ".files[].filename" in text
+  for path in (
+    "pwedepa/*",
+    "Dockerfile",
+    "config.yml",
+    "compose.yml",
+    ".dockerignore",
+    "pyproject.toml",
+    "uv.lock",
+  ):
+    assert path in text, f"an image input is missing from the change check: {path}"
+  assert 'if [[ "$EVENT_NAME" == "workflow_dispatch" ]]' in text, (
+    "a manual run always builds"
+  )
