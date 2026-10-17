@@ -52,6 +52,7 @@ from ._helpers import (
   db,
   domain_matches,
   record_path,
+  safe_next,
 )
 
 bp = Blueprint("records", __name__)
@@ -337,21 +338,15 @@ def workspace() -> str | Response:
   selected = None
   selected_id = request.args.get("selected", type=int)
   if row_kind == "request" and selected_id:
-    selected = next((r for r in rows if r.id == selected_id), None)
+    # A move can filter the row out. The open request keeps its pane either way.
+    selected = next((r for r in all_requests if r.id == selected_id), None)
   if selected is not None:
     workspace_reads.mark(db(), user.id, "request", selected.id, at=now())
   read_ids = workspace_reads.read_ids(db(), user.id, row_kind)
-  unread_rows = [row for row in rows if row.id not in read_ids]
-  opened_rows = [row for row in rows if row.id in read_ids]
-  board = {
-    status: [i for i in all_issues if i.status is status and in_domain(i)]
-    for status in (
-      IssueStatus.OPEN,
-      IssueStatus.BLOCKED,
-      IssueStatus.RESOLVED,
-      IssueStatus.CLOSED,
-    )
-  }
+  # Gmail keeps one list. Unread work still leads, and the row itself reads bold.
+  rows = [row for row in rows if row.id not in read_ids] + [
+    row for row in rows if row.id in read_ids
+  ]
   domains = sorted({d for r in all_requests + all_issues for d in r.domains})
   return render_template(
     "workspace.jinja",
@@ -364,15 +359,23 @@ def workspace() -> str | Response:
     domains=domains,
     counts=counts,
     rows=rows,
-    unread_rows=unread_rows,
-    opened_rows=opened_rows,
     row_kind=row_kind,
-    board=board,
+    read_ids=read_ids,
     selected=selected,
     selected_actions=_request_actions(actor, selected) if selected else [],
     selected_events=(
-      events_data.list_for(db(), "request", selected.id, limit=2) if selected else []
+      events_data.list_for(db(), "request", selected.id) if selected else []
     ),
+    selected_can_edit=selected is not None and _can(actor, "request.edit", selected),
+    selected_can_comment=(
+      selected is not None and _can(actor, "request.comment", selected)
+    ),
+    selected_share_links=(
+      sharing_data.list_for_object(db(), "request", selected.id) if selected else []
+    ),
+    selected_can_share=selected is not None and can_share(user, selected),
+    selected_token=_issued_token("request", selected.id) if selected else None,
+    return_to=request.full_path if request.query_string else request.path,
     names=_names(),
   )
 
@@ -514,7 +517,6 @@ def request_detail(slug: str, request_id: int) -> str | Response:
     can_edit=_can(actor, "request.edit", record) and not read_only,
     can_comment=_can(actor, "request.comment", record) and not read_only,
     events=events,
-    comments=[e for e in events if e.event_type == "request.comment"],
     share_links=sharing_data.list_for_object(db(), "request", record.id),
     can_share=can_share(user, record) and not read_only,
     object_type="request",
@@ -556,7 +558,7 @@ def request_transition(request_id: int) -> Response:
     _append_all("request", record, change)
   except CoreError as error:
     flash(str(error))
-  return redirect(record_path(record))
+  return redirect(safe_next() or record_path(record))
 
 
 @bp.post("/requests/<int:request_id>/comment")
@@ -573,7 +575,7 @@ def request_comment(request_id: int) -> Response:
     _notify_event("request", record, event)
   elif text:
     flash("You cannot comment on this request.")
-  return redirect(record_path(record))
+  return redirect(safe_next() or record_path(record))
 
 
 @bp.get("/requests/<int:request_id>/edit")

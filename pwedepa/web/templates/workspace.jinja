@@ -28,6 +28,7 @@
   <section class="panel records" aria-label="Records">
     <div class="list-toolbar">
       <h1>Workspace</h1>
+      <div class="list-actions">
       <form class="filter-form" method="get" action="{{ url_for('records.workspace') }}" data-auto-submit>
         <input type="hidden" name="queue" value="{{ queue }}">
         <input type="hidden" name="domain" value="{{ domain }}">
@@ -41,75 +42,55 @@
         </select>
         <noscript><button class="btn" type="submit">Apply status</button></noscript>
       </form>
+      <a class="btn" href="{{ url_for('records.issue_board') }}">Issues</a>
       <a class="btn" href="{{ url_for('records.request_new') }}">New request</a>
+      </div>
     </div>
 
-    {% for group, group_rows, group_id in [("Unread", unread_rows, "group-unread"), ("Opened", opened_rows, "group-opened")] %}
-    <h2 class="group-title" id="{{ group_id }}">{{ group }}<span class="count">{{ group_rows | length }}</span></h2>
-    {% if group_rows %}
-    <table class="record-table{% if group == "Unread" %} is-unread{% endif %}">
+    {% if rows %}
+    <table class="record-table mail-table">
       <thead>
-        <tr><th>Title</th><th>Status</th></tr>
+        <tr><th>{{ "Requester" if row_kind == "request" else "Person" }}</th><th>{{ "Request" if row_kind == "request" else "Issue" }}</th><th>Status</th><th>Time</th></tr>
       </thead>
       <tbody>
-        {% for row in group_rows %}
-        <tr{% if selected and row.id == selected.id %} class="is-selected"{% endif %}>
-          <td>
+        {% for row in rows %}
+        <tr class="mail-row{% if row.id not in read_ids %} is-unread{% endif %}{% if selected and row.id == selected.id and row_kind == "request" %} is-selected{% endif %}">
+          <td class="mail-from">{{ names.get(row.requester_id, "—") }}</td>
+          <td class="mail-title">
             {% if row_kind == "request" %}
-            <a href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter, selected=row.id) }}"{% if selected and row.id == selected.id %} aria-current="true"{% endif %}>{{ row.title }}</a>
-            <span class="row-sub"><a href="{{ record_path(row) }}">Open #{{ row.id }}</a> · {{ names.get(row.requester_id, "—") }} · {{ row.domains | join(", ") or "—" }}</span>
+            <a class="mail-link" href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter, selected=row.id) }}"{% if selected and row.id == selected.id %} aria-current="true"{% endif %}>{{ row.title }}</a>
+            <span class="mail-snippet">{{ (row.description or "")[:140] }}</span>
             {% else %}
-            <a href="{{ record_path(row, 'issue') }}">{{ row.title }}</a>
-            <span class="row-sub">Issue #{{ row.id }} · {{ names.get(row.requester_id, "—") }} · {{ row.domains | join(", ") or "—" }}</span>
+            <a class="mail-link" href="{{ record_path(row, 'issue') }}">{{ row.title }}</a>
+            <span class="mail-snippet">Issue #{{ row.id }} · {{ row.domains | join(", ") or "—" }}</span>
             {% endif %}
           </td>
-          <td>{{ pill(row.status) }}</td>
+          <td class="mail-status">{{ pill(row.status) }}</td>
+          <td class="mail-time">{{ (row.updated_at | stamp(clock)) if row.updated_at else "—" }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
     {% else %}
-    <p class="muted">{{ "Nothing unread." if group == "Unread" else "Nothing opened yet." }}</p>
+    <p class="muted">Nothing here yet.</p>
     {% endif %}
-    {% endfor %}
-
-    <h2 class="strip-title">Issue strip</h2>
-    <div class="strip">
-      {% for status, issues in board.items() %}
-      <div class="strip-col">
-        <h3>{{ pill(status) }}<span class="count">{{ issues | length }}</span></h3>
-        {% for issue in issues %}
-        <a class="mini" href="{{ record_path(issue, 'issue') }}">{{ issue.title }}<span>#{{ issue.id }} · {{ issue.priority.value | capitalize }}</span></a>
-        {% endfor %}
-      </div>
-      {% endfor %}
-    </div>
   </section>
 
   <aside class="panel inspector{% if selected %} is-main{% endif %}" aria-label="Inspector">
     {% if selected %}
     <a class="back-to-list" href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter) }}">Back to the list</a>
-    <p class="eyebrow">Request #{{ selected.id }} · opened by {{ names.get(selected.requester_id, "—") }}</p>
-    <h2>{{ selected.title }}</h2>
-    <p>{{ pill(selected.status) }}<span class="vis">{{ selected.visibility.value | capitalize }}</span></p>
-    <p class="desc">{{ selected.description or "No description." }}</p>
-    <dl class="facts">
-      <div><dt>Domains</dt><dd>{{ selected.domains | join(", ") or "—" }}</dd></div>
-      <div><dt>Priority ask</dt><dd>{{ selected.priority_suggestion.value | capitalize if selected.priority_suggestion else "—" }}</dd></div>
-    </dl>
-    {% if selected_actions %}
-    <form class="actions" method="post" action="{{ url_for('records.request_transition', request_id=selected.id) }}">
-      {% for target, label in selected_actions %}
-      <button class="btn{% if target == 'REVOKED' %} danger{% endif %}" type="submit" name="target" value="{{ target }}">{{ label }}</button>
-      {% endfor %}
-      <input class="reason" type="text" name="reason" placeholder="Reason (needed to revoke)">
-    </form>
-    {% endif %}
-    <h3>Recent activity</h3>
-    <ul class="events">
-      {% for event in selected_events %}{{ event_line(event, names) }}{% endfor %}
-    </ul>
-    <a class="btn" href="{{ record_path(selected) }}">Open request</a>
+    {% set record = selected %}
+    {% set actions = selected_actions %}
+    {% set can_edit = selected_can_edit %}
+    {% set can_comment = selected_can_comment %}
+    {% set events = selected_events %}
+    {% set share_links = selected_share_links %}
+    {% set can_share = selected_can_share %}
+    {% set object_type = "request" %}
+    {% set issued_token = selected_token %}
+    {% set pane = true %}
+    {% set next_href = return_to %}
+    {% include "_request_view.jinja" %}
     {% else %}
     <div class="empty">
       <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="48" height="48">

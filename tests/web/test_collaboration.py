@@ -177,7 +177,7 @@ def test_demo_mode_opens_seeded_workspace_without_credentials(tmp_path):
   client = _demo_app(tmp_path).test_client()
   workspace = client.get("/")
   assert workspace.status_code == 200
-  assert re.search(rb'href="/[^"]*/requests/\d+"', workspace.data)
+  assert re.search(rb'href="/\?[^"]*selected=\d+"', workspace.data)
 
 
 def test_the_demo_entry_is_not_a_url(cast, tmp_path):

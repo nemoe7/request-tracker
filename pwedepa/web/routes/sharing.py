@@ -23,7 +23,14 @@ from pwedepa.data import requests as requests_data
 from pwedepa.data import sharing as sharing_data
 
 from .. import now
-from ._helpers import can_share, current_user, db, expiry_days, record_path
+from ._helpers import (
+  can_share,
+  current_user,
+  db,
+  expiry_days,
+  record_path,
+  safe_next,
+)
 
 bp = Blueprint("sharing", __name__)
 
@@ -98,7 +105,7 @@ def create(object_type: str, object_id: int) -> Response:
     data={"link_id": issued.link.id, "permissions": list(issued.link.permissions)},
   )
   flash("Share link created. Copy it now. The app shows the plain link once.")
-  return redirect(_detail_url(record, object_type))
+  return redirect(safe_next() or _detail_url(record, object_type))
 
 
 @bp.post("/share-links/<int:link_id>/revoke")
@@ -135,7 +142,7 @@ def revoke(link_id: int) -> Response:
     data={"link_id": link_id},
   )
   flash("Share link revoked.")
-  return redirect(_detail_url(record, link.object_type))
+  return redirect(safe_next() or _detail_url(record, link.object_type))
 
 
 @bp.get("/share/<token>")

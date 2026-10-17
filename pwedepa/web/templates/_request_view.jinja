@@ -1,0 +1,78 @@
+{% from "_parts.jinja" import pill, event_line %}
+<article class="issue-page{% if pane %} is-pane{% endif %}">
+  <header class="issue-head">
+    <p class="eyebrow">opened by {{ names.get(record.requester_id, "—") }} · {{ (record.created_at | stamp(clock)) if record.created_at else "—" }}</p>
+    <h1><span class="issue-number">#{{ record.id }}</span> {{ record.title }}</h1>
+    <div class="issue-bar">
+      <p class="issue-state">{{ pill(record.status) }}<span class="vis">{{ record.visibility.value | capitalize }}</span></p>
+      {% if actions or can_edit %}
+      <div class="issue-actions">
+        {% if actions %}
+        <form class="actions" method="post" action="{{ url_for('records.request_transition', request_id=record.id) }}">
+          {% if next_href %}<input type="hidden" name="next" value="{{ next_href }}">{% endif %}
+          {% for target, label in actions %}
+          <button class="btn{% if target == 'REVOKED' %} danger{% endif %}" type="submit" name="target" value="{{ target }}">{{ label }}</button>
+          {% endfor %}
+          <input class="reason" type="text" name="reason" placeholder="Reason (needed to revoke)">
+        </form>
+        {% endif %}
+        {% if can_edit %}<a class="btn" href="{{ url_for('records.request_edit', request_id=record.id) }}">Edit</a>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </header>
+
+  <div class="issue-layout">
+    <div class="issue-main">
+      <ol class="timeline">
+        <li class="timeline-comment is-body">
+          <p>{{ record.description or "No description." }}</p>
+          <p class="event-meta">{{ names.get(record.requester_id, "Someone") }} · {{ (record.created_at | stamp(clock)) if record.created_at else "—" }}</p>
+        </li>
+        {% for event in events %}
+        {% if event.event_type == "request.comment" %}
+        <li class="timeline-comment">
+          <p>{{ event.data.get("text", "") }}</p>
+          <p class="event-meta">{{ names.get(event.actor_id, "Someone") }} · {{ event.at | stamp(clock) }}</p>
+        </li>
+        {% elif not event.event_type.endswith("created") %}
+        {{ event_line(event, names) }}
+        {% endif %}
+        {% endfor %}
+      </ol>
+
+      {% if can_comment %}
+      <form class="comment-form" method="post" action="{{ url_for('records.request_comment', request_id=record.id) }}">
+        <label for="comment-text">Add a comment</label>
+        <textarea id="comment-text" name="text" rows="3" required></textarea>
+        {% if next_href %}<input type="hidden" name="next" value="{{ next_href }}">{% endif %}
+        <button class="btn primary" type="submit">Post comment</button>
+      </form>
+      {% endif %}
+
+      {% include "_sharing.jinja" %}
+    </div>
+
+    <aside class="issue-side" aria-label="Request facts">
+      <section class="side-block">
+        <h2>Requester</h2>
+        <p>{{ names.get(record.requester_id, "—") }}</p>
+      </section>
+      <section class="side-block">
+        <h2>Labels</h2>
+        <p class="labels">{% for name in record.domains %}{% if not loop.first %} {% endif %}{% if domain_path(name) %}<a href="{{ domain_path(name) }}">{{ name }}</a>{% else %}<span>{{ name }}</span>{% endif %}{% else %}<span class="muted">None</span>{% endfor %}</p>
+      </section>
+      <section class="side-block">
+        <h2>Priority</h2>
+        <p>{% if record.priority_suggestion %}{{ record.priority_suggestion.value | capitalize }}{% elif record.priority_unsure %}Not sure{% else %}—{% endif %}</p>
+      </section>
+      <section class="side-block">
+        <h2>Details</h2>
+        <dl class="facts">
+          <div><dt>Visibility</dt><dd>{{ record.visibility.value | capitalize }}</dd></div>
+          <div><dt>Updated</dt><dd>{{ (record.updated_at | stamp(clock)) if record.updated_at else "—" }}</dd></div>
+        </dl>
+      </section>
+    </aside>
+  </div>
+</article>

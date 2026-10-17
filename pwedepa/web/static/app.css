@@ -99,11 +99,12 @@ body.is-guest .auth-card { margin: 0 auto; }
 /* Slice 5: workspace, records, board, forms */
 .flash { background: var(--st-pending-bg); color: var(--st-pending); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 14px; }
 .flash p { margin: 2px 0; }
-.workspace-grid { display: grid; grid-template-columns: 240px minmax(0, 1fr) 0; gap: 16px; align-items: start; transition: grid-template-columns 200ms var(--ease); }
-.workspace-grid.is-open { grid-template-columns: 240px minmax(0, 1.4fr) minmax(320px, 1fr); }
-.workspace-grid.is-main { grid-template-columns: 240px minmax(0, 1.6fr) minmax(320px, 1fr); }
+.workspace-grid { display: grid; grid-template-columns: 240px minmax(0, 1fr) 0; gap: 16px; align-items: start; max-width: 1320px; margin: 0 auto; transition: grid-template-columns 200ms var(--ease); }
+.workspace-grid.is-open { grid-template-columns: 240px minmax(300px, 0.85fr) minmax(430px, 1.15fr); }
+.workspace-grid.is-main { grid-template-columns: 240px minmax(300px, 0.85fr) minmax(430px, 1.15fr); }
 .list-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
 .list-toolbar h1 { font-size: 22px; margin-right: auto; }
+.list-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-left: auto; }
 .list-toolbar .filter-form { display: flex; align-items: center; gap: 8px; }
 .list-toolbar .filter-form select { width: auto; min-height: 36px; padding: 6px 32px 6px 10px; }
 .list-toolbar .btn { min-height: 36px; }
@@ -133,10 +134,24 @@ body.is-guest .auth-card { margin: 0 auto; }
 .record-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .record-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); padding: 4px 8px; border-bottom: 1px solid var(--line); }
 .record-table td { padding: 5px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-.record-table tr.is-selected td { background: var(--st-open-bg); box-shadow: inset 3px 0 0 var(--accent); }
+.record-table tr.is-selected td { background: var(--st-open-bg); }
+.record-table tr.is-selected td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .record-table tr.is-selected td:first-child > a { color: var(--accent); }
 .record-table a { color: var(--text); font-weight: 500; text-decoration: none; }
-.record-table.is-unread td:first-child > a { font-weight: 700; }
+.mail-table { table-layout: fixed; }
+.mail-table tr { position: relative; }
+.mail-table th:nth-child(1) { width: 150px; }
+.mail-table th:nth-child(3) { width: 96px; }
+.mail-table th:nth-child(4) { width: 84px; text-align: right; }
+.mail-table td { padding: 9px 8px; }
+.mail-table .mail-from { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mail-table .mail-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mail-table .mail-link { font-weight: 500; }
+.mail-table .mail-link::after { content: ""; position: absolute; inset: 0; }
+.mail-table .mail-snippet { color: var(--muted); margin-left: 6px; }
+.mail-table .mail-status { white-space: nowrap; }
+.mail-table .mail-time { text-align: right; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.mail-table tr.is-unread .mail-from, .mail-table tr.is-unread .mail-title a { font-weight: 700; }
 .row-sub { display: block; font-size: 11.5px; }
 .row-sub a { color: var(--accent); font-weight: 500; }
 .strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 8px; }
@@ -176,9 +191,16 @@ body.is-guest .auth-card { margin: 0 auto; }
 body.is-guest.is-share { display: block; }
 body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .issue-page { max-width: 1100px; margin: 0 auto; }
+.issue-page.is-pane { max-width: none; }
+.workspace-grid .inspector .is-pane h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 6px; }
+.is-pane .share-panel { margin-top: 18px; }
+.workspace-grid .inspector .is-pane .share-panel h2 { margin: 8px 0 6px; }
+.is-pane .share-form { grid-template-columns: 1fr; }
+.is-pane .issue-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.is-pane .issue-head h1 { font-size: 24px; }
 .issue-head { margin-bottom: 18px; }
 .issue-head h1 { font-size: 30px; line-height: 1.2; margin-top: 4px; }
-.issue-number { color: var(--muted); font-weight: 500; }
+.issue-number { color: var(--muted); font-weight: 500; margin-right: 8px; }
 .issue-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
 .issue-state { margin: 0; display: flex; align-items: center; }
 .issue-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -255,7 +277,7 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .comment-form label { font-size: 13px; font-weight: 600; }
 .detail h2 { font-size: 18px; margin: 24px 0 8px; }
 @media (min-width: 1200px) {
-  .workspace-grid.is-open, .workspace-grid.is-open.is-main { grid-template-columns: 240px minmax(0, 1fr) 360px; }
+  .workspace-grid.is-open, .workspace-grid.is-open.is-main { grid-template-columns: 240px minmax(0, 1fr) minmax(430px, 520px); }
 }
 @media (max-width: 1199px) {
   .workspace-grid.is-open { grid-template-columns: 240px minmax(0, 1.4fr) minmax(280px, 340px); }
@@ -265,6 +287,10 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
   .record-table thead { display: none; }
   .record-table td { display: block; border-bottom: 0; padding: 3px 8px; }
   .record-table tr { display: block; border-bottom: 1px solid var(--line); padding: 6px 0; }
+  .mail-table { table-layout: auto; }
+  .mail-table .mail-from { font-size: 12px; }
+  .mail-table .mail-title { white-space: normal; }
+  .mail-table .mail-time { text-align: left; }
 }
 .page-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .filter-form { display: grid; gap: 8px; }

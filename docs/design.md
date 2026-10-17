@@ -13,12 +13,13 @@ pick.
   Domain row opens in place for its controls.
 - The notifications inbox reads as one flat list, newest first. Each row holds its
   message, who did it, the time, and one dismiss button.
-- The staff workspace is the one staff page. Unread items come first, then the
-  opened ones. Each staff member keeps their own read list, and new activity returns
-  an item to the unread group. One toolbar over the list holds the title, the status
-  filter, and the new-request action. Rows stay dense, unread titles are bold, and
-  the open row carries an accent edge. The opened item reads on the right. On a
-  phone the item fills the page, with a Back to the list link.
+- The staff workspace is the one staff page. It follows Gmail: one flat table of
+  requests, no group headings. Unread rows sit first and read bold, and each staff
+  member keeps their own read list. One toolbar over the table holds the title, the
+  status filter, the Issues link, and the new-request action. The open row carries
+  an accent edge on its first cell. The opened request reads on the right in the
+  same view as its page, with state controls, the comment box, and sharing. On a
+  phone that view fills the page, with a Back to the list link.
 - Request and issue pages follow the GitHub issue shape. The title carries the
   number and the state. One comment timeline holds the description and the
   comments. A right sidebar holds the people, labels, priority, and details.
