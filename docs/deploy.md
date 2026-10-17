@@ -43,7 +43,7 @@ docker compose -f compose.dev.yml up -d --build
 
 The dev compose file supplies a sample secret and a localhost origin, so it needs
 no `.env`. The app reads `config.dev.yml` whole whenever that file sits beside
-`config.yml`, and it seeds a demo request and a demo issue on a first start.
+`config.yml`, and it seeds a demo set of requests and issues on a first start.
 
 ## Tailscale Funnel
 

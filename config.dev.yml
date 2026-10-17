@@ -29,8 +29,59 @@ seed:
     title: The kitchen tap drips all night
     description: It started on Monday, and the washer looks worn.
     domain: Handyman/DIY
+  - kind: request
+    title: Paint the hallway
+    description: The plaster is dry, and the paint waits in the shed.
+    domain: Handyman/DIY
+    status: PENDING
+  - kind: request
+    title: Print a bracket for the shelf
+    description: The left bracket cracked when the shelf took a full load.
+    domain: 3D Print/Model
+  - kind: request
+    title: Model a case for the spare drive
+    description: The drive sits bare in a drawer, so it needs a shell.
+    domain: 3D Print/Model
+    status: FULFILLED
+  - kind: request
+    title: Label the shared projector
+    description: It moves between rooms, and nobody logs where it goes.
+    domain: Asset Tracker
+  - kind: request
+    title: Find the missing torque wrench
+    description: The drawer holds the case, and the case holds no wrench.
+    domain: Asset Tracker
+    status: DELAYED
+  - kind: request
+    title: Plan the October block
+    description: Four weeks of climbing, with the wall booked twice a week.
+    domain: Gym
+    status: PENDING
+  - kind: request
+    title: Add a weekly digest
+    description: One message each Friday would carry the open work.
+    domain: Request Tracker
+  - kind: request
+    title: The photo archive fills the disk
+    description: The volume runs out every month, and the archive keeps growing.
+    domain: daedalus
   - kind: issue
     title: Fit the new washer
     description: The spare sits in the drawer under the sink.
     domain: Handyman/DIY
+    status: OPEN
+  - kind: issue
+    title: Bracket clips clash on the shelf
+    description: The two clips meet at the same point on the rail.
+    domain: 3D Print/Model
+    status: BLOCKED
+  - kind: issue
+    title: Book the climbing wall
+    description: The club holds the hall on Tuesdays and Thursdays.
+    domain: Gym
+    status: RESOLVED
+  - kind: issue
+    title: Move the photo archive to the new disk
+    description: The old volume keeps its read-only copy for a month.
+    domain: daedalus
     status: OPEN
