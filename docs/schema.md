@@ -1,17 +1,198 @@
-# Schema
+# The database schema
 
-One SQLite database holds records, auth, sharing, and notifications. SQLAlchemy opens it, and `pwedepa/data/schema.sql` carries the initial schema.
+`scripts/render_schema.py` generates this page from `docs/schema.dbml`. Do not edit this
+page by hand. Edit the DBML and run the script.
 
-![PwedePa schema diagram](schema.svg)
+The executable schema is `pwedepa/data/schema.sql`. `pwedepa/data/db.py` reads it once at
+import, and `initialize()` runs each statement with `exec_driver_sql` the first time a
+database path appears in the process.
 
-## Sources
+Two repair blocks then update an older file. The first
+adds `user_preferences.theme` when that column is missing. The second rebuilds
+`enrollment_tokens` when the table still holds `user_id`, because a token now names a role
+and not a person.
 
-- `pwedepa/data/schema.sql` is the truth. The app creates these tables on open.
-- `docs/schema.dbml` renders the same shape at [dbdiagram.io](https://dbdiagram.io). Paste the file content into the editor.
-- `docs/schema.svg` is the rendered diagram. Regenerate it after a schema change, and update the DBML in the same change.
+There is no migration tool and no ORM model. Alembic is not a dependency, so a schema change
+reaches an old file only through a repair block. A later change numbers the schema in
+`PRAGMA user_version`, one step for each change, so the blocks retire.
 
-## Change rules
+```mermaid
+---
+config:
+  layout: elk
+---
+erDiagram
+    requests {
+        integer id PK
+        text title "NOT NULL"
+        text description "NOT NULL"
+        text status "NOT NULL"
+        integer requester_id
+        text priority_suggestion
+        integer priority_unsure "NOT NULL, DEFAULT 0"
+        text visibility "NOT NULL"
+        text domains "NOT NULL, DEFAULT '[]'"
+        text created_at
+        text updated_at
+        text deleted_at
+    }
+    issues {
+        integer id PK
+        text title "NOT NULL"
+        text description "NOT NULL"
+        text status "NOT NULL"
+        integer source_request_id
+        integer requester_id
+        integer assignee_id
+        text priority "NOT NULL"
+        text visibility "NOT NULL"
+        text domains "NOT NULL, DEFAULT '[]'"
+        text created_at
+        text updated_at
+        text deleted_at
+    }
+    events {
+        integer id PK "AUTOINCREMENT"
+        text object_type "NOT NULL"
+        integer object_id "NOT NULL"
+        text event_type "NOT NULL"
+        integer actor_id
+        text at
+        text data "NOT NULL, DEFAULT '{}'"
+    }
+    users {
+        integer id PK "AUTOINCREMENT"
+        text username "NOT NULL, UNIQUE"
+        text display_name "NOT NULL"
+        text status "NOT NULL"
+        text created_at "NOT NULL"
+        text updated_at "NOT NULL"
+        text archived_at
+    }
+    user_roles {
+        integer user_id "NOT NULL"
+        text role "NOT NULL"
+        text created_at "NOT NULL"
+    }
+    permission_grants {
+        integer id PK "AUTOINCREMENT"
+        integer user_id "NOT NULL"
+        text permission "NOT NULL"
+        text effect "NOT NULL"
+        text created_at "NOT NULL"
+        text revoked_at
+    }
+    passkeys {
+        integer id PK "AUTOINCREMENT"
+        integer user_id "NOT NULL"
+        blob credential_id "NOT NULL, UNIQUE"
+        blob public_key "NOT NULL"
+        integer sign_count "NOT NULL"
+        text created_at "NOT NULL"
+        text last_used_at
+        text revoked_at
+    }
+    webauthn_challenges {
+        text id PK
+        integer user_id
+        text ceremony "NOT NULL"
+        blob challenge "NOT NULL"
+        text created_at "NOT NULL"
+        text expires_at "NOT NULL"
+        text used_at
+    }
+    enrollment_tokens {
+        integer id PK "AUTOINCREMENT"
+        text role "NOT NULL"
+        text token_hash "NOT NULL, UNIQUE"
+        text created_at "NOT NULL"
+        text expires_at "NOT NULL"
+        text used_at
+    }
+    sessions {
+        integer id PK "AUTOINCREMENT"
+        integer user_id "NOT NULL"
+        text token_hash "NOT NULL, UNIQUE"
+        text created_at "NOT NULL"
+        text expires_at "NOT NULL"
+        text last_used_at
+        text revoked_at
+        integer replaced_by_id
+    }
+    audit_events {
+        integer id PK "AUTOINCREMENT"
+        integer actor_id
+        text event_type "NOT NULL"
+        text object_type
+        integer object_id
+        text data "NOT NULL, DEFAULT '{}'"
+        text created_at "NOT NULL"
+    }
+    share_links {
+        integer id PK "AUTOINCREMENT"
+        text object_type "NOT NULL"
+        integer object_id "NOT NULL"
+        text token_hash "NOT NULL, UNIQUE"
+        text permissions "NOT NULL, DEFAULT '[]'"
+        integer created_by_id "NOT NULL"
+        text created_at "NOT NULL"
+        text expires_at
+        text revoked_at
+        text view_consumed_at
+    }
+    notifications {
+        integer id PK "AUTOINCREMENT"
+        integer user_id "NOT NULL"
+        text category "NOT NULL"
+        text object_type
+        integer object_id
+        text message "NOT NULL"
+        integer actor_id
+        text created_at "NOT NULL"
+    }
+    notification_preferences {
+        integer user_id "NOT NULL"
+        text category "NOT NULL"
+        integer enabled "NOT NULL, DEFAULT 1"
+        integer inbox_enabled "NOT NULL, DEFAULT 1"
+        integer pip_enabled "NOT NULL, DEFAULT 1"
+    }
+    user_preferences {
+        integer user_id PK
+        text clock "NOT NULL, DEFAULT '12'"
+        text theme "NOT NULL, DEFAULT 'system'"
+    }
+    site_messages {
+        integer id PK "AUTOINCREMENT"
+        text message "NOT NULL"
+        integer enabled "NOT NULL, DEFAULT 1"
+        text created_at "NOT NULL"
+        text updated_at "NOT NULL"
+        text expires_at
+        integer created_by_id
+    }
 
-- During hard development, edit `schema.sql` and recreate dev databases. No migration versions exist yet.
-- Alembic ships as a dependency with zero migrations. The first migration lands when a schema change must keep live data.
-- The `events` and `audit_events` tables keep polymorphic object references as plain columns. Every declared foreign key names its target table.
+    users ||--o{ requests : "requester_id"
+    requests ||--o{ issues : "source_request_id"
+    users ||--o{ issues : "requester_id"
+    users ||--o{ issues : "assignee_id"
+    users ||--o{ user_roles : "user_id"
+    users ||--o{ permission_grants : "user_id"
+    users ||--o{ passkeys : "user_id"
+    users ||--o{ webauthn_challenges : "user_id"
+    users ||--o{ sessions : "user_id"
+    sessions ||--o{ sessions : "replaced_by_id"
+    users ||--o{ share_links : "created_by_id"
+    users ||--o{ notifications : "user_id"
+    users ||--o{ notification_preferences : "user_id"
+    users ||--o{ user_preferences : "user_id"
+    users ||--o{ site_messages : "created_by_id"
+```
+
+## How to change a table
+
+1. Edit `pwedepa/data/schema.sql` for a fresh database.
+2. Add a repair block to `initialize()` for an existing one. Guard it on a `PRAGMA
+   table_info` check so a second run changes nothing.
+3. Edit `docs/schema.dbml`, then run `python scripts/render_schema.py`.
+4. Add a test that opens a database with the old shape, connects, and reads the new shape.

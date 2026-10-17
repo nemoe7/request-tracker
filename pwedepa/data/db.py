@@ -8,9 +8,9 @@ from pathlib import Path
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Connection, Engine
 
-# Hard-dev schema: recreate the database instead of migrating it.
-# The project installs Alembic and keeps it ready. The first real
-# migration lands only when a schema change must survive existing data.
+# Hard-dev schema: recreate the database instead of migrating it. A change
+# that must survive existing data gets a repair block in initialize(), and
+# docs/schema.md tells the story.
 SCHEMA = files(__package__).joinpath("schema.sql").read_text(encoding="utf-8")
 
 
