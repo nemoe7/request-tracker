@@ -129,6 +129,25 @@ if (workspaceGrid) {
     ...workspaceGrid.querySelectorAll(".record-table tbody a[href*='/record/']"),
   ];
   const cardHrefs = new Set(rowLinks.map((link) => link.href));
+  let closeToken = 0;
+
+  const revealCard = () => {
+    inspector.classList.remove("is-leaving");
+    if (calm.matches) return;
+    inspector.classList.add("is-entering");
+    inspector.addEventListener(
+      "animationend",
+      () => inspector.classList.remove("is-entering"),
+      { once: true }
+    );
+  };
+
+  const hideCard = () => {
+    inspector.innerHTML = baseCard;
+    inspector.classList.remove("is-main");
+    workspaceGrid.classList.remove("is-open", "is-main");
+    workspaceGrid.querySelector("tr.is-selected")?.classList.remove("is-selected");
+  };
 
   const openCard = async (href, row, remember) => {
     try {
@@ -137,11 +156,13 @@ if (workspaceGrid) {
       const page = new DOMParser().parseFromString(await response.text(), "text/html");
       const card = page.querySelector(".workspace-grid .inspector");
       if (!card || !inspector) throw new Error("no card");
+      closeToken += 1;
       inspector.innerHTML = card.innerHTML;
       inspector.classList.add("is-main");
       workspaceGrid.classList.add("is-open", "is-main");
       workspaceGrid.querySelector("tr.is-selected")?.classList.remove("is-selected");
       row?.classList.add("is-selected");
+      revealCard();
       if (remember) history.pushState(null, "", href);
       if (window.innerWidth < 900) {
         inspector.scrollIntoView({ behavior: calm.matches ? "auto" : "smooth", block: "start" });
@@ -152,10 +173,18 @@ if (workspaceGrid) {
   };
 
   const closeCard = () => {
-    inspector.innerHTML = baseCard;
-    inspector.classList.remove("is-main");
-    workspaceGrid.classList.remove("is-open", "is-main");
-    workspaceGrid.querySelector("tr.is-selected")?.classList.remove("is-selected");
+    const token = ++closeToken;
+    const finish = () => {
+      if (token !== closeToken) return;
+      inspector.classList.remove("is-leaving");
+      hideCard();
+    };
+    if (calm.matches || !workspaceGrid.classList.contains("is-open")) {
+      finish();
+      return;
+    }
+    inspector.classList.add("is-leaving");
+    inspector.addEventListener("animationend", finish, { once: true });
   };
 
   rowLinks.forEach((link) => {

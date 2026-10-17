@@ -288,6 +288,10 @@ body.is-guest .auth-card { margin: 0 auto; }
 #tagline { transition: opacity 160ms var(--ease); }
 #tagline.swap { opacity: 0; }
 #tagline-marks { display: inline-block; min-width: 1.5em; }
+@keyframes card-in { from { opacity: 0; transform: translateX(10px); } }
+@keyframes card-out { to { opacity: 0; transform: translateX(10px); } }
+.workspace-grid .inspector.is-entering { animation: card-in 200ms var(--ease); }
+.workspace-grid .inspector.is-leaving { animation: card-out 160ms var(--ease) forwards; }
 @media (hover: hover) {
   .card:hover, .mini:hover { border-color: var(--accent); }
 }

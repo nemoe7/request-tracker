@@ -515,6 +515,23 @@ def test_workspace_opens_two_cards_then_swaps_the_centre_one(app, db):
   )
 
 
+def test_the_record_card_fades_and_slides(app):
+  """The card moves with one short reveal, and the close reverses it."""
+  client = app.test_client()
+  css = client.get("/static/app.css").data.decode()
+  entering = re.search(r"@keyframes card-in \{(.*?)\n\}", css, re.DOTALL)
+  assert entering and "opacity: 0" in entering.group(1), "the card fades in"
+  assert entering and "translateX" in entering.group(1), "the card slides in"
+  leaving = re.search(r"@keyframes card-out \{(.*?)\n\}", css, re.DOTALL)
+  assert leaving and "opacity: 0" in leaving.group(1), "the card fades out"
+  assert leaving and "translateX" in leaving.group(1), "the card slides out"
+  assert ".inspector.is-entering { animation: card-in" in css
+  assert ".inspector.is-leaving { animation: card-out" in css
+  script = client.get("/static/app.js").data.decode()
+  assert 'classList.add("is-entering")' in script, "a row adds the reveal class"
+  assert 'classList.add("is-leaving")' in script, "a close plays the leave class"
+
+
 def test_fact_rows_share_one_baseline(app):
   css = app.test_client().get("/static/app.css").data.decode()
   rules = {sel.strip(): body for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)}
