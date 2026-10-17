@@ -46,7 +46,7 @@ Scheme 2, Slate and blue. Components use tokens from `pwedepa/web/static/tokens.
 - The top bar is 56 px and holds the brand, section tabs, theme control, and one primary action.
 - The top bar stays fixed, outside the scrolled layer, and the body holds its 56 px of room. A sticky bar snaps its text between two device rows on a fractional scroll offset. Fixing the bar keeps it on one row. Owner pick from a recorded clip.
 - The section tabs follow the role. Staff see the Workspace tab alone, because the workspace covers all management. Clients keep the Requests and Issues tabs.
-- A staff member can switch the whole session to the client view from the account menu. It shows what a client sees, drops every write control, and the server refuses any write that still arrives. The menu item leaves the view again.
+- A staff member can switch the whole session to the client view from Settings. It shows what a client sees and drops the record write controls. The server refuses record writes that still arrive. Account settings stay writable, and the same row leaves the view again.
 - At 1200 px and up the staff grid runs filters 240 px, list fluid, inspector 360 px. Spacing follows an 8 px scale. Record rows are 40 px on desktop, panels get 10 px radius, and panels never carry shadows.
 - Breakpoints sit at 1200, 900, and 640 px. Below 900 px the tabs move to a bottom nav and carry the same stops as the top bar. The inspector turns into a full-screen sheet, and filters fold into one disclosure row.
 - Touch targets run at least 44 px. Tables never squeeze on a phone. They stack into cards, one fact per line. Text never drops below 12 px.

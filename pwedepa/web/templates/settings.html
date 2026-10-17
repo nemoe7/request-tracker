@@ -11,8 +11,9 @@
       </div>
     </div>
     <nav class="settings-nav">
-      {% for anchor, label, icon, tint in [("#profile", "Profile", "settings", "chip-blue"), ("#appearance", "Appearance", "contrast", "chip-indigo"), ("#notifications", "Notifications", "bell", "chip-red"), ("#passkeys", "Passkeys", "key-round", "chip-gray"), ("#admin", "Admin", "clipboard-list", "chip-amber")] %}
-      {% if anchor != "#admin" or is_admin %}
+      {% set show_client_view = can_view_as_client and not demo_switch %}
+      {% for anchor, label, icon, tint in [("#profile", "Profile", "settings", "chip-blue"), ("#appearance", "Appearance", "contrast", "chip-indigo"), ("#notifications", "Notifications", "bell", "chip-red"), ("#passkeys", "Passkeys", "key-round", "chip-gray"), ("#client-view", "Client view", "contrast", "chip-green"), ("#admin", "Admin", "clipboard-list", "chip-amber")] %}
+      {% if (anchor != "#admin" or is_admin) and (anchor != "#client-view" or show_client_view) %}
       <a href="{{ anchor }}">
         <span class="ios-chip {{ tint }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#{{ icon }}"/></svg></span>
         {{ label }}
@@ -125,6 +126,20 @@
       </div>
       <p class="ios-note" id="status" role="status"></p>
     </section>
+
+    {% if show_client_view %}
+    <section class="ios-group" id="client-view" aria-label="Client view">
+      <h2>Client view</h2>
+      <div class="ios-list">
+        <a class="ios-row link-row" href="{{ url_for('pages.view_as', mode='staff' if view_as_client else 'client') }}">
+          <span class="ios-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg></span>
+          <span class="ios-label">{% if view_as_client %}Exit client view{% else %}View as client{% endif %}</span>
+          <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
+        </a>
+      </div>
+      <p class="ios-note">Records stay read only. Settings save to your account.</p>
+    </section>
+    {% endif %}
 
     {% if is_admin %}
     <section class="ios-group" id="admin" aria-label="Admin">

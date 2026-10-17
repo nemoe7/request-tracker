@@ -497,8 +497,8 @@ def test_a_share_expiry_is_clamped(cast, db):
 
 
 def test_a_staff_member_can_check_the_client_view(cast, db):
-  """The toggle drops the staff controls and refuses every write."""
-  admin, _ = cast["admin"]
+  """The toggle drops the staff controls and refuses every record write."""
+  admin, admin_user = cast["admin"]
   _request(db, cast["Mara"][1].id)
 
   entered = admin.get("/view-as/client")
@@ -509,8 +509,9 @@ def test_a_staff_member_can_check_the_client_view(cast, db):
   assert detail.status_code == 200
   assert b">Edit<" not in detail.data
   assert b"share-form" not in detail.data
-  assert b"Exit client view" in detail.data
+  assert b"View as client" not in detail.data
   assert b"Client view" in detail.data
+  assert b"Exit client view" in admin.get("/settings").data
 
   queue = admin.get("/workspace")
   assert queue.status_code == 302
@@ -518,6 +519,11 @@ def test_a_staff_member_can_check_the_client_view(cast, db):
 
   refused = admin.post("/requests/1/transition", data={"target": "OPEN"})
   assert refused.status_code == 403
+
+  saved = admin.post("/settings/theme", data={"theme": "dark"})
+  assert saved.status_code == 204
+  assert preferences_data.get_theme(db, admin_user.id) == "dark"
+  assert admin.post("/auth/passkeys/999/revoke").status_code == 404
 
 
 def test_the_staff_view_keeps_its_controls(cast, db):
@@ -532,7 +538,7 @@ def test_the_staff_view_keeps_its_controls(cast, db):
 
   detail = admin.get("/requests/1")
   assert b">Edit<" in detail.data
-  assert b"View as client" in detail.data
+  assert b"View as client" in admin.get("/settings").data
   assert b"read only" not in detail.data
   assert admin.get("/workspace").status_code == 200
 

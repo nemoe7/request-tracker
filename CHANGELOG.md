@@ -18,7 +18,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Starter Domains from `domains.json`, editable without a code change.
 - A frozen demo build that the Pages workflow publishes. Every rail filter, the status filter included, opens from a link and a page of its own. A card swap keeps every link on a real page. The demo ships no worker file, and the build refuses a script that still names one.
 - The app serves through uvicorn, a production server, with one adapter in front of Flask.
-- A staff member can switch to a read-only client view from the account menu. It shows the page a client sees, and the server refuses every write.
+- A staff member can switch to the client view from Settings. Record pages go read only, the server refuses record writes, and account settings stay writable.
 - The theme choice lives on the account, and a signed-out page or the frozen demo keeps the browser copy.
 - A Tailscale sidecar in `compose.yml`, with named containers: `pwedepa-app` and `pwedepa-tailscale`.
 - `.env.example`, and a session secret that compose demands before it starts.

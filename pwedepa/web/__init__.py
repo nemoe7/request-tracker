@@ -102,13 +102,20 @@ def create_app(config: dict | None = None) -> Flask:
 
   @app.before_request
   def refuse_writes_in_client_view() -> None:
-    """The client view takes reads only, so the server refuses any write that arrives."""
+    """Records take no writes in the client view. Account settings stay open."""
     from .routes._helpers import client_view
 
     if not client_view() or request.method in ("GET", "HEAD", "OPTIONS"):
       return
-    # Signing out is not a write to the data, and it must never be refused.
-    if request.endpoint == "auth.logout":
+    # Sign-out and the settings page are not record writes.
+    endpoint = request.endpoint or ""
+    if endpoint == "auth.logout" or endpoint.startswith("settings."):
+      return
+    if endpoint in {
+      "auth.register_options",
+      "auth.register_finish",
+      "auth.passkey_revoke",
+    }:
       return
     from .routes._helpers import current_user
     from .routes.records import is_staff
