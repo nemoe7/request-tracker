@@ -11,7 +11,7 @@
   {% if selected %}
   <section class="client-dash is-open is-main">
     <div class="panel inspector is-main">
-      <a class="back-to-list" href="{{ url_for('records.requests') }}">Back to the list</a>
+      <a class="back-to-list" href="{{ url_for('records.requests') }}" aria-label="Back to the list" title="Back to the list"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#arrow-left"/></svg></a>
       <p class="eyebrow">Request #{{ selected.id }} · by {{ names.get(selected.requester_id, "—") }}</p>
       <h2>{{ selected.title }}</h2>
       <p>{{ pill(selected.status) }}<span class="vis">{{ selected.visibility.value | capitalize }}</span></p>
