@@ -10,11 +10,10 @@ from . import requests as requests_data
 
 
 class SeedError(ValueError):
-  """The seed block cannot become records."""
+  pass
 
 
-def _status(kind: str, raw: str):
-  """Return the status enum for one kind, or raise a message the log can show."""
+def _status_enum(kind: str, raw: str):
   if kind == "request":
     try:
       return RequestStatus(raw)
@@ -27,7 +26,6 @@ def _status(kind: str, raw: str):
 
 
 def _known_domains(settings: dict) -> set[str]:
-  """Return the Domain names the config lists, so a typo can stop the seed."""
   listed = settings.get("domains") or []
   if not isinstance(listed, list):
     raise SeedError("the domains block needs a list")
@@ -39,7 +37,6 @@ def _known_domains(settings: dict) -> set[str]:
 
 
 def _check_domains(entries: list, settings: dict) -> None:
-  """Raise when a seed row names a Domain the config does not hold."""
   names = _known_domains(settings)
   if not names:
     return
@@ -51,8 +48,7 @@ def _check_domains(entries: list, settings: dict) -> None:
       raise SeedError(f"a seed row names no Domain {domain}")
 
 
-def _count_line(entries: list) -> str:
-  """Return the kinds the seed wrote, as a phrase the log can print."""
+def _count_phrase(entries: list) -> str:
   requests = sum(
     1 for entry in entries if str(entry.get("kind", "request")).lower() == "request"
   )
@@ -76,7 +72,7 @@ def _add(db, entry: dict, at: datetime) -> None:
     raise SeedError(f"a seed row has no kind {kind}")
   if not title or not description or not domain:
     raise SeedError("each seed row needs a kind, a title, a description, and a domain")
-  status = _status(kind, str(entry.get("status", "OPEN")).upper())
+  status = _status_enum(kind, str(entry.get("status", "OPEN")).upper())
   if kind == "request":
     requests_data.save(
       db,
@@ -126,7 +122,6 @@ def seed(db, entries: list, *, at: datetime) -> int:
 
 
 def seed_from_config(db_path, settings: dict, *, at: datetime) -> int:
-  """Read the seed block and fill an empty database, printing one line."""
   entries = settings.get("seed")
   if not entries:
     return 0
@@ -141,7 +136,7 @@ def seed_from_config(db_path, settings: dict, *, at: datetime) -> int:
   finally:
     connection.close()
   if added:
-    print(f"Seed: {_count_line(entries)} added.", file=sys.stderr, flush=True)
+    print(f"Seed: {_count_phrase(entries)} added.", file=sys.stderr, flush=True)
   return added
 
 

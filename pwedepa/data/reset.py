@@ -23,7 +23,6 @@ CLEAR = (
 
 
 def reset(db: Connection) -> dict[str, int]:
-  """Delete every record, notice, and session. Keep the accounts."""
   counts: dict[str, int] = {}
   with transaction(db):
     # A session names the one that replaced it, so drop those links first.

@@ -1,9 +1,6 @@
-"""Clear the records in one database and keep the accounts.
+"""Clear the work in one database and keep the accounts.
 
-    python scripts/reset_records.py /data/pwedepa.db
-
-The path is the database file. The script prints one count for each table it
-clears, so an operator sees what left the file.
+python scripts/reset_records.py /data/pwedepa.db
 """
 
 import sys
