@@ -2,7 +2,16 @@
 
 import json
 
-from flask import Blueprint, current_app, jsonify, request, session
+from flask import (
+  Blueprint,
+  current_app,
+  flash,
+  jsonify,
+  redirect,
+  request,
+  session,
+  url_for,
+)
 from werkzeug.wrappers import Response
 
 from pwedepa.auth import (
@@ -125,7 +134,16 @@ def passkey_revoke(passkey_id: int) -> Response:
   owned = {passkey.id for passkey in list_passkeys(db(), user.id)}
   if passkey_id not in owned:
     return jsonify(error="passkey not found"), 404
-  revoke_passkey(db(), passkey_id, at=now())
+  revoke_passkey(
+    db(),
+    passkey_id,
+    at=now(),
+    actor_id=user.id,
+    reason=request.form.get("reason") or None,
+  )
+  if request.form:
+    flash("Passkey revoked.")
+    return redirect(url_for("settings.settings"))
   return jsonify(ok=True)
 
 

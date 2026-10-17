@@ -44,6 +44,8 @@ rule adds.
 - A reject asks for a reason, in one dialog. Cancel, Escape, and the
   scrim close it, and focus returns to the trigger. The reason box reuses the
   shared field rule, so it matches every other form.
+- Archive, Remove announcement, and Revoke passkey ask for a reason in that same
+  dialog. Clear all asks once and carries no reason.
 - The public share page keeps that shape. It holds one timeline and a facts
   sidebar, and no write control.
 - The Issues page groups issues by state. A row shows the number, title, priority, and
@@ -216,6 +218,7 @@ Scheme 2, Slate and blue. Components use tokens from
 ## Change log
 
 - 2026-10-17. The request action reads Reject, and a reason comes in a dialog.
+- 2026-10-17. Archive, Remove announcement, and Revoke passkey ask for a reason.
 - 2026-10-17. The workspace reads as one mail table with a reading pane.
 - 2026-10-16. Dark theme ships first, and every shot uses it.
 

@@ -218,7 +218,7 @@ def test_signed_in_user_can_add_a_passkey(client, db, user, monkeypatch):
   assert credentials.list_passkeys(db, user.id)
 
   page = client.get("/settings")
-  assert b'data-revoke-passkey="' in page.data
+  assert b'data-modal-open="revoke-passkey-' in page.data
 
 
 def test_settings_survives_concurrent_requests(app, db, user):

@@ -348,17 +348,6 @@ document.querySelector("#add-passkey")?.addEventListener("click", async () => {
   }
 });
 
-document.querySelectorAll("[data-revoke-passkey]").forEach((button) => {
-  button.addEventListener("click", async () => {
-    try {
-      await postJson(`/auth/passkeys/${button.dataset.revokePasskey}/revoke`, {});
-      window.location.reload();
-    } catch (error) {
-      setStatus(error.message);
-    }
-  });
-});
-
 document.querySelector("#logout-button")?.addEventListener("click", async () => {
   const done = await postJson("/logout", {}).catch(() => ({ redirect: "/" }));
   window.location.assign(done.redirect || "/");
