@@ -479,3 +479,48 @@ def test_a_share_expiry_is_clamped(cast, db):
   assert past.status_code == 302
   newest = sharing_data.list_for_object(db, "request", 1)[-1]
   assert newest.expires_at > AT
+
+
+def test_a_staff_member_can_check_the_client_view(cast, db):
+  """The toggle drops the staff controls and refuses every write."""
+  admin, _ = cast["admin"]
+  _request(db, cast["Mara"][1].id)
+
+  entered = admin.get("/view-as/client")
+  assert entered.status_code == 302
+  assert entered.headers["Location"].endswith("/requests")
+
+  detail = admin.get("/requests/1")
+  assert detail.status_code == 200
+  assert b">Edit<" not in detail.data
+  assert b"share-form" not in detail.data
+  assert b"Exit client view" in detail.data
+
+  queue = admin.get("/workspace")
+  assert queue.status_code == 302
+  assert "/requests" in queue.headers["Location"]
+
+  refused = admin.post("/requests/1/transition", data={"target": "OPEN"})
+  assert refused.status_code == 403
+
+
+def test_the_staff_view_keeps_its_controls(cast, db):
+  """Leaving the client view hands the staff controls back."""
+  admin, _ = cast["admin"]
+  _request(db, cast["Mara"][1].id)
+
+  admin.get("/view-as/client")
+  left = admin.get("/view-as/staff")
+  assert left.status_code == 302
+  assert left.headers["Location"].endswith("/workspace")
+
+  detail = admin.get("/requests/1")
+  assert b">Edit<" in detail.data
+  assert b"View as client" in detail.data
+  assert admin.get("/workspace").status_code == 200
+
+
+def test_a_client_cannot_turn_on_the_client_view(cast):
+  """The toggle belongs to the staff seat, so a client has no such page."""
+  Mara, _ = cast["Mara"]
+  assert Mara.get("/view-as/client").status_code == 404

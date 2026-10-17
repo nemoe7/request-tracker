@@ -2,10 +2,12 @@
 
 from flask import (
   Blueprint,
+  abort,
   current_app,
   redirect,
   render_template,
   send_from_directory,
+  session,
   url_for,
 )
 from werkzeug.wrappers import Response
@@ -76,6 +78,23 @@ def home() -> str | Response:
     return redirect(url_for("pages.login"))
   passkeys = list_passkeys(db(), user.id)
   return render_template("home.html", user=user, passkeys=passkeys)
+
+
+@bp.get("/view-as/<mode>")
+def view_as(mode: str) -> Response:
+  """Switch a staff user between the staff view and the read-only client view."""
+  user = current_user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  from .records import is_staff
+
+  if not is_staff(user) or mode not in {"client", "staff"}:
+    abort(404)
+  if mode == "client":
+    session["view_as"] = "client"
+    return redirect(url_for("records.requests"))
+  session.pop("view_as", None)
+  return redirect(url_for("records.workspace"))
 
 
 @bp.get("/sw.js")

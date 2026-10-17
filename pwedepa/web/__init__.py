@@ -4,7 +4,7 @@ import os
 from datetime import UTC, datetime
 from urllib.parse import urlparse
 
-from flask import Flask, g, request
+from flask import Flask, abort, g, request
 
 from pwedepa.auth import WebAuthnConfig
 from pwedepa.data import db as data_db
@@ -74,7 +74,7 @@ def create_app(config: dict | None = None) -> Flask:
     from pwedepa.data import notifications as notifications_data
     from pwedepa.data import preferences as preferences_data
 
-    from .routes._helpers import current_user, db
+    from .routes._helpers import client_view, current_user, db
     from .routes.records import is_staff
 
     user = current_user()
@@ -84,14 +84,32 @@ def create_app(config: dict | None = None) -> Flask:
       clock = preferences_data.get_clock(db(), user.id)
       if notifications_data.pip_visible(db(), user.id):
         count = notifications_data.count_for_user(db(), user.id)
+    staff = user is not None and is_staff(user)
+    viewing = staff and client_view()
     return {
       "user": user,
-      "is_staff": user is not None and is_staff(user),
+      "is_staff": staff and not viewing,
+      "view_as_client": viewing,
+      "can_view_as_client": staff,
       "notification_count": count,
       "clock": clock,
       "demo_mode": bool(app.config.get("DEMO_MODE")),
       "demo_switch": bool(app.config.get("DEMO_SWITCH")),
     }
+
+  @app.before_request
+  def refuse_writes_in_client_view() -> None:
+    """The client view takes reads only, so the server refuses any write that arrives."""
+    from .routes._helpers import client_view
+
+    if not client_view() or request.method in ("GET", "HEAD", "OPTIONS"):
+      return
+    from .routes._helpers import current_user
+    from .routes.records import is_staff
+
+    user = current_user()
+    if user is not None and is_staff(user):
+      abort(403)
 
   @app.errorhandler(403)
   @app.errorhandler(404)

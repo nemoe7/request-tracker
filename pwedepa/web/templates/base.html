@@ -46,6 +46,9 @@
             <a href="{{ url_for('pages.home') }}"{% if not is_staff %} class="on"{% endif %}>Client</a>
           </nav>
           {% endif %}
+          {% if can_view_as_client and not demo_switch %}
+          <a class="user-menu-item" href="{{ url_for('pages.view_as', mode='staff' if view_as_client else 'client') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg>{% if view_as_client %}Exit client view{% else %}View as client{% endif %}</a>
+          {% endif %}
           <a class="user-menu-item" href="{{ url_for('settings.settings') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg>Settings</a>
           <button class="user-menu-item" id="logout-button" type="button"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#log-out"/></svg>Sign out</button>
         </div>

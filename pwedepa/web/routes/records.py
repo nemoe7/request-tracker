@@ -40,7 +40,7 @@ from pwedepa.data import sharing as sharing_data
 from pwedepa.data.db import transaction
 
 from .. import now
-from ._helpers import can_share, choice, current_user, db
+from ._helpers import can_share, choice, client_view, current_user, db
 
 bp = Blueprint("records", __name__)
 
@@ -263,7 +263,7 @@ def workspace() -> str | Response:
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
-  if not is_staff(user):
+  if not is_staff(user) or client_view():
     return redirect(url_for("records.requests"))
   actor = _actor(user)
   queue = request.args.get("queue", "triage")
@@ -439,16 +439,17 @@ def request_detail(request_id: int) -> str | Response:
   actor = _actor(user)
   record, actor = _load_request(actor, request_id)
   events = events_data.list_for(db(), "request", request_id)
+  read_only = client_view()
   return render_template(
     "request_detail.html",
     record=record,
-    actions=_request_actions(actor, record),
-    can_edit=_can(actor, "request.edit", record),
-    can_comment=_can(actor, "request.comment", record),
+    actions=[] if read_only else _request_actions(actor, record),
+    can_edit=_can(actor, "request.edit", record) and not read_only,
+    can_comment=_can(actor, "request.comment", record) and not read_only,
     events=events,
     comments=[e for e in events if e.event_type == "request.comment"],
     share_links=sharing_data.list_for_object(db(), "request", record.id),
-    can_share=can_share(user, record),
+    can_share=can_share(user, record) and not read_only,
     object_type="request",
     issued_token=_issued_token("request", record.id),
     names=_names(),
@@ -592,23 +593,25 @@ def issue_detail(issue_id: int) -> str | Response:
   actor = _actor(user)
   record, actor = _load_issue(actor, issue_id)
   events = events_data.list_for(db(), "issue", issue_id)
+  read_only = client_view()
   return render_template(
     "issue_detail.html",
     record=record,
-    actions=_issue_actions(actor, record),
-    can_edit=actor.is_admin or _can(actor, "issue.edit", record),
-    can_change_priority=(
+    actions=[] if read_only else _issue_actions(actor, record),
+    can_edit=(actor.is_admin or _can(actor, "issue.edit", record)) and not read_only,
+    can_change_priority=not read_only
+    and (
       actor.is_admin
       or actor.id == record.assignee_id
       or actor.id == record.requester_id
       or _can(actor, "issue.edit", record)
     ),
     priorities=[priority.value for priority in Priority],
-    can_comment=_can_comment_issue(actor, record),
+    can_comment=_can_comment_issue(actor, record) and not read_only,
     events=events,
     comments=[e for e in events if e.event_type == "issue.comment"],
     share_links=sharing_data.list_for_object(db(), "issue", record.id),
-    can_share=can_share(user, record),
+    can_share=can_share(user, record) and not read_only,
     object_type="issue",
     issued_token=_issued_token("issue", record.id),
     names=_names(),

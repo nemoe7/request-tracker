@@ -2,7 +2,7 @@
 
 import math
 
-from flask import current_app, g, request
+from flask import current_app, g, request, session
 from sqlalchemy.engine import Connection
 
 from pwedepa.auth import WebAuthnConfig, actor_for_user, get_user, resolve_session
@@ -70,3 +70,8 @@ def can_share(user, record) -> bool:
   if user is None or record is None:
     return False
   return actor_for_user(db(), user.id).is_admin or user.id == record.requester_id
+
+
+def client_view() -> bool:
+  """True while a staff user checks the app the way a client sees it."""
+  return session.get("view_as") == "client"
