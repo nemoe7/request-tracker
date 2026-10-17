@@ -31,7 +31,7 @@ def test_every_domain_carries_a_slug_and_a_description():
 
 
 def test_the_config_sits_at_the_project_root():
-  assert CONFIG.name == "domains.yaml"
+  assert CONFIG.name == "config.yml"
   assert CONFIG.parent == ROOT, "the operator edits the config at the root"
   assert CONFIG.is_file(), "the deploy files carry the config to the image"
 
@@ -58,11 +58,22 @@ def test_no_caller_indexes_the_config_by_position():
 
 def test_a_missing_config_names_the_file_and_both_paths(monkeypatch, tmp_path):
   db_path = tmp_path / "app.db"
-  monkeypatch.setattr(domains_data, "CONFIG", tmp_path / "domains.yaml")
+  monkeypatch.setattr(domains_data, "CONFIG", tmp_path / "config.yml")
+  monkeypatch.delenv("PWEDEPA_CONFIG", raising=False)
   monkeypatch.delenv("PWEDEPA_DOMAINS_CONFIG", raising=False)
   with pytest.raises(FileNotFoundError) as error:
     domains_data.load(db_path)
-  assert str(tmp_path / "domains.yaml") in str(error.value)
+  assert str(tmp_path / "config.yml") in str(error.value)
+
+
+def test_the_old_mount_name_still_names_the_config(monkeypatch, tmp_path):
+  db_path = tmp_path / "app.db"
+  mounted = tmp_path / "mounted.yml"
+  mounted.write_text("domains:\n  - name: Gym\n", encoding="utf-8")
+  monkeypatch.delenv("PWEDEPA_CONFIG", raising=False)
+  monkeypatch.setenv("PWEDEPA_DOMAINS_CONFIG", str(mounted))
+
+  assert domains_data.active_path(db_path) == mounted
 
 
 def test_a_duplicate_slug_stops_the_import():

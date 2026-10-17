@@ -1,4 +1,4 @@
-"""The Domains config: YAML names, URL slugs, and descriptions."""
+"""The config file: YAML Domains with names, URL slugs, and descriptions."""
 
 import os
 import re
@@ -8,8 +8,10 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
-CONFIG = ROOT / "domains.yaml"
-MOUNTED_ENV = "PWEDEPA_DOMAINS_CONFIG"
+CONFIG = ROOT / "config.yml"
+MOUNTED_ENV = "PWEDEPA_CONFIG"
+# The name before the rename, still read for one release.
+LEGACY_MOUNTED_ENV = "PWEDEPA_DOMAINS_CONFIG"
 IMPORTED_NAME = "domains.imported.yaml"
 
 
@@ -44,7 +46,7 @@ def imported_path(db_path: str | Path | None = None) -> Path:
 
 def mounted_path() -> Path | None:
   """Return the config the operator mounts, when the operator sets one."""
-  raw = os.environ.get(MOUNTED_ENV)
+  raw = os.environ.get(MOUNTED_ENV) or os.environ.get(LEGACY_MOUNTED_ENV)
   return Path(raw) if raw else None
 
 
@@ -104,7 +106,7 @@ def load(db_path: str | Path | None = None) -> tuple[Domain, ...]:
   path = active_path(db_path)
   if not path.is_file():
     raise FileNotFoundError(
-      f"domains.yaml is missing: looked at {CONFIG} and {imported_path(db_path)}"
+      f"config.yml is missing: looked at {CONFIG} and {imported_path(db_path)}"
     )
   return parse(path.read_text(encoding="utf-8"))
 

@@ -18,7 +18,7 @@ COPY --from=build /app/.venv /app/.venv
 # The venv holds an editable install that points at this folder, so the app
 # must sit beside it or every start fails to find the package.
 COPY pwedepa ./pwedepa
-COPY domains.yaml ./
+COPY config.yml ./
 RUN rm -rf /usr/local/lib/python3.13/site-packages/pip \
       /usr/local/lib/python3.13/site-packages/pip-*.dist-info \
       /usr/local/lib/python3.13/site-packages/setuptools \

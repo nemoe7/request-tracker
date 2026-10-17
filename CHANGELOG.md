@@ -15,7 +15,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Share links with expiry, permissions, and revoke. The page and the endpoint read one rule.
 - One guard in front of every admin route.
 - Retained notifications, with per-category settings.
-- Starter Domains from `domains.yaml`, each with a URL slug and a description. An admin imports the file from a read-only mount or a picked file.
+- Starter Domains from `config.yml`, each with a URL slug and a description. An admin imports the file from a read-only mount or a picked file.
 - Domain-first record URLs and a page for each Domain, with its description and its records. The record forms offer the configured Domains, and the old record URLs answer 404.
 - Domain announcements. Staff publish and edit them from the Domain page, and each shows its author, publish time, and edit time. The demo seeds two.
 - A Domain subscription toggle. A follower hears about each new announcement in the inbox, and the inbox links to the Domain page. The activity switch silences it.

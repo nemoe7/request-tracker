@@ -18,7 +18,7 @@ def test_dockerfile_runs_the_web_app_as_one_service():
   assert "pwedepa.web" in text
   assert "PWEDEPA_HOST" in text
   assert "USER" in text
-  assert "COPY domains.yaml ./" in text, "the image carries the domains config"
+  assert "COPY config.yml ./" in text, "the image carries the domains config"
 
 
 def test_the_image_carries_the_package_it_starts():
@@ -33,8 +33,8 @@ def test_the_image_carries_the_package_it_starts():
   )
 
 
-def test_the_domains_config_sits_at_the_repo_root():
-  assert (ROOT / "domains.yaml").is_file()
+def test_the_config_sits_at_the_repo_root():
+  assert (ROOT / "config.yml").is_file()
 
 
 def test_compose_names_every_container():
@@ -44,11 +44,11 @@ def test_compose_names_every_container():
   assert services["tailscale"]["container_name"] == "pwedepa-tailscale"
 
 
-def test_compose_mounts_the_domains_config_read_only():
+def test_compose_mounts_the_config_read_only():
   service = _compose()["services"]["pwedepa"]
   mounts = [str(volume) for volume in service["volumes"]]
-  assert "./domains.yaml:/config/domains.yaml:ro" in mounts
-  assert service["environment"]["PWEDEPA_DOMAINS_CONFIG"] == "/config/domains.yaml"
+  assert "./config.yml:/config/config.yml:ro" in mounts
+  assert service["environment"]["PWEDEPA_CONFIG"] == "/config/config.yml"
 
 
 def test_deploy_compose_pulls_the_published_image():

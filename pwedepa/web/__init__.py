@@ -53,10 +53,16 @@ def create_app(config: dict | None = None) -> Flask:
   app.secret_key = os.environ.get("PWEDEPA_SECRET_KEY", DEVELOPMENT_SECRET)
   # The public origin names the passkey, so the ID follows it unless the deploy
   # asks for a different one.
-  origin = os.environ.get("PWEDEPA_ORIGIN", "http://localhost:5000")
-  rp_id = os.environ.get("PWEDEPA_RP_ID") or urlparse(origin).hostname or "localhost"
+  from pwedepa.data import config as config_data
+
+  settings = config_data.read()
+  origin = str(
+    config_data.value(settings, "origin", "PWEDEPA_ORIGIN", "http://localhost:5000")
+  )
+  rp_id = config_data.value(settings, "rp_id", "PWEDEPA_RP_ID", None)
+  rp_id = str(rp_id or urlparse(origin).hostname or "localhost")
   app.config.update(
-    DATABASE=os.environ.get("PWEDEPA_DB", "pwedepa.db"),
+    DATABASE=str(config_data.value(settings, "database", "PWEDEPA_DB", "pwedepa.db")),
     WEBAUTHN_RP_ID=rp_id,
     WEBAUTHN_RP_NAME=os.environ.get("PWEDEPA_RP_NAME", "PwedePa"),
     WEBAUTHN_ORIGIN=origin,

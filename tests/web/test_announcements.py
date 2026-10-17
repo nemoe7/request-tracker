@@ -211,7 +211,7 @@ def test_a_rename_keeps_the_announcement_and_the_subscription(
   saved = announcements_data.list_for_slug(db, "gym")[0]
   assert subscriptions.subscribed(db, reader_user.id, "gym")
 
-  renamed = tmp_path / "domains.yaml"
+  renamed = tmp_path / "config.yml"
   renamed.write_text(
     "domains:\n"
     "  - name: Gym and Climbing\n"

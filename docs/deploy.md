@@ -79,6 +79,6 @@ To run the preview demo on your own machine, ask for demo mode in code:
 - The app image builds as `pwedepa`. The sidecar uses the upstream `tailscale/tailscale` image.
 - Back up the `pwedepa-data` volume. It holds the only database copy.
 - The `tailscale-state` volume holds the node identity, so a rebuild keeps the device. Restart the sidecar after you edit `tailscale/serve.json`, because it reads the file at startup.
-- The starter Domains come from `domains.yaml`. Keep it at the project root. The image copies it to `/app/domains.yaml`, and compose mounts it read-only at `/config/domains.yaml`. A missing file fails the demo seed with a clear error.
+- The starter Domains come from `config.yml`. Keep it at the project root. The image copies it to `/app/config.yml`, and compose mounts it read-only at `/config/config.yml`. A missing file fails the demo seed with a clear error. A key in that file wins over the same environment variable. The old `PWEDEPA_DOMAINS_CONFIG` variable still names the mount for one release.
 - Demo mode stays off in deployment. Code asks for it, and no environment variable sets it.
 - The container workflow scans each image build for high and critical findings.

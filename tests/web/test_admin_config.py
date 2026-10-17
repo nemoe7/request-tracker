@@ -70,7 +70,7 @@ def test_a_client_cannot_open_the_domain_config_page(requester):
 def test_an_admin_imports_the_mounted_file(app, admin, monkeypatch, tmp_path):
   mounted = tmp_path / "mounted.yaml"
   mounted.write_bytes(NEW_CONFIG)
-  monkeypatch.setenv("PWEDEPA_DOMAINS_CONFIG", str(mounted))
+  monkeypatch.setenv("PWEDEPA_CONFIG", str(mounted))
 
   done = admin.post("/admin/config/import")
   assert done.status_code == 302
@@ -85,7 +85,7 @@ def test_an_admin_imports_the_mounted_file(app, admin, monkeypatch, tmp_path):
 def test_an_admin_imports_a_chosen_file(app, admin):
   done = admin.post(
     "/admin/config/import",
-    data={"config": (io.BytesIO(NEW_CONFIG), "domains.yaml")},
+    data={"config": (io.BytesIO(NEW_CONFIG), "config.yml")},
     content_type="multipart/form-data",
   )
   assert done.status_code == 302
@@ -101,7 +101,7 @@ def test_a_bad_file_leaves_the_config_alone(app, admin):
   before = [domain.name for domain in domains_data.load(db_path)]
   admin.post(
     "/admin/config/import",
-    data={"config": (io.BytesIO(b"domains: []\n"), "domains.yaml")},
+    data={"config": (io.BytesIO(b"domains: []\n"), "config.yml")},
     content_type="multipart/form-data",
     follow_redirects=True,
   )
@@ -110,6 +110,7 @@ def test_a_bad_file_leaves_the_config_alone(app, admin):
 
 
 def test_a_missing_choice_asks_for_a_file(admin, monkeypatch):
+  monkeypatch.delenv("PWEDEPA_CONFIG", raising=False)
   monkeypatch.delenv("PWEDEPA_DOMAINS_CONFIG", raising=False)
   done = admin.post("/admin/config/import", follow_redirects=True)
   assert done.status_code == 200

@@ -13,3 +13,12 @@ domains:
     description: This app and its own requests.
   - name: daedalus
     description: The home server and its services.
+
+# The SQLite file. Default: pwedepa.db in the working directory.
+# database: /data/pwedepa.db
+
+# The public address, which names the passkey origin.
+# origin: https://example.com
+
+# The passkey relying party ID. Default: the origin host.
+# rp_id: example.com
