@@ -59,6 +59,8 @@ rule adds.
   A wide screen works like the Mac pane: the rail picks one group and only that
   group shows. A phone stacks every group, as iOS does. A switch saves the moment
   it flips, so a group of switches carries no Save button.
+- Text size sets the page type from 85 to 130 percent, with a slider and a
+  number for the exact value.
 
 ## Domains
 
