@@ -34,6 +34,17 @@ pick.
   each follower except the author, and the activity switch silences it.
 - Staff remove an announcement from a page that asks first.
 
+## Settings file
+
+- `config.yml` holds the Domains, plus four short keys: `database`, `origin`, `rp_id`,
+  and `seed`. A key in the file wins over its environment variable.
+- `PWEDEPA_CONFIG` names a mounted file. The older `PWEDEPA_DOMAINS_CONFIG` still
+  names it for one release.
+- `PWEDEPA_ENV=dev` reads `config.dev.yml` when that file exists. The released image
+  never sets it.
+- A `seed:` list fills the requests and issues tables once, on a dev start, and only
+  while both are empty.
+
 ## Color
 
 Scheme 2, Slate and blue. Components use tokens from
