@@ -279,11 +279,13 @@ def test_passkey_challenges_are_single_use_and_revocation_blocks_login(
       db, user, start.flow_id, {"id": "Y3JlZC0x"}, CONFIG, at=AT
     )
 
-  credentials.revoke_passkey(db, passkey.id, at=LATER)
+  credentials.revoke_passkey(db, passkey.id, at=LATER, reason="Lost the key")
   assert credentials.list_passkeys(db, user.id) == []
   assert (
     credentials.list_passkeys(db, user.id, include_revoked=True)[0].revoked_at == LATER
   )
+  stored = list_audit_events(db, object_type="passkey", object_id=passkey.id)
+  assert stored[-1].data["reason"] == "Lost the key"
   with pytest.raises(AuthenticationFailed):
     credentials.start_authentication(db, CONFIG, at=LATER, user=user)
 

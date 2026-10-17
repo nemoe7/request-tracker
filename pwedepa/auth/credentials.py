@@ -276,6 +276,7 @@ def revoke_passkey(
   *,
   at: datetime,
   actor_id: int | None = None,
+  reason: str | None = None,
 ) -> Passkey:
   """Keep the row for audit history."""
   row = db.exec_driver_sql(
@@ -294,7 +295,10 @@ def revoke_passkey(
       actor_id=actor_id,
       object_type="passkey",
       object_id=passkey_id,
-      data={"user_id": row._mapping["user_id"]},
+      data={
+        "user_id": row._mapping["user_id"],
+        **({"reason": reason} if reason else {}),
+      },
       commit=False,
     )
     db.commit()

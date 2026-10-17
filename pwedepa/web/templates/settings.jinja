@@ -1,4 +1,5 @@
 {% extends "base.jinja" %}
+{% from "_parts.jinja" import reason_modal %}
 {% block title %}PwedePa | Settings{% endblock %}
 {% block content %}
 <div class="settings-shell">
@@ -130,7 +131,8 @@
         <div class="ios-row">
           <span class="ios-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#key-round"/></svg></span>
           <span class="ios-label">Passkey<span class="ios-sub">Added {{ key.created_at.strftime("%b %d, %Y") if key.created_at else "" }}</span></span>
-          <button class="btn danger-quiet icon-only" type="button" data-revoke-passkey="{{ key.id }}" aria-label="Revoke passkey" title="Revoke passkey"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#trash"/></svg></button>
+          <button class="btn danger-quiet icon-only" type="button" data-modal-open="revoke-passkey-{{ key.id }}" aria-label="Revoke passkey" title="Revoke passkey"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#trash"/></svg></button>
+          {{ reason_modal("revoke-passkey-" ~ key.id, url_for('auth.passkey_revoke', passkey_id=key.id), {}, None, title="Revoke this passkey?", submit="Revoke", hint="Why this passkey is revoked") }}
         </div>
         {% endfor %}
         <div class="ios-row ios-action"><button class="btn" id="add-passkey" type="button"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Add a passkey</button></div>
