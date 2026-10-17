@@ -75,7 +75,7 @@ The `pages.yml` workflow freezes a demo to GitHub Pages on each push to `main`
 that touches the web app, and on demand from the Actions tab. Pages serves files
 only, so forms and passkey buttons stay inert there. The repository needs one
 setting: Settings, Pages, source: GitHub Actions. The build writes the site to
-`PWEDEPA_PAGES_OUT` when that variable is set, and to `_site` otherwise.
+`PWEDEPA_PAGES_OUT` when that variable has a value, and to `_site` otherwise.
 
 ## Notes
 
