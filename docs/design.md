@@ -18,6 +18,7 @@ This file records the settled design calls. When a pick changes, update this fil
 - The Domain page at `/<slug>` shows the description and the requests and issues that carry the Domain.
 - Staff publish announcements on a Domain page. Each one holds a title, a body, the author, the publish time, and the edit time. The Domain page lists them newest first. The Domain slug is the stored key, so a rename keeps every announcement and every follower, and a pinned slug keeps the URL too.
 - A person follows a Domain from a toggle on its page. A new announcement then lands in the follower's inbox as an activity notice, and the existing activity switch silences it. The author gets no notice for their own announcement. The frozen demo hides the toggle.
+- Staff remove an announcement from a page that asks first, and the second click removes it.
 
 ## Color
 

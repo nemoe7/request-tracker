@@ -151,6 +151,35 @@ def edit_save(slug: str, announcement_id: int) -> str | Response:
   return redirect(url_for("records.domain_page", slug=domain.slug))
 
 
+@bp.get("/<slug>/announcements/<int:announcement_id>/delete")
+def confirm_delete(slug: str, announcement_id: int) -> str | Response:
+  """Ask before one announcement goes for good."""
+  domain = _domain(slug)
+  user = _staff_user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  found = _find(domain, announcement_id)
+  return render_template(
+    "announcement_confirm.html",
+    domain=domain,
+    announcement=found,
+    action=url_for("announcements.remove", slug=domain.slug, announcement_id=found.id),
+  )
+
+
+@bp.post("/<slug>/announcements/<int:announcement_id>/delete")
+def remove(slug: str, announcement_id: int) -> str | Response:
+  """Delete one announcement after the second click."""
+  domain = _domain(slug)
+  user = _staff_user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  found = _find(domain, announcement_id)
+  announcements_data.delete(db(), found.id)
+  flash("Announcement removed.")
+  return redirect(url_for("records.domain_page", slug=domain.slug))
+
+
 @bp.post("/<slug>/subscribe")
 def subscribe(slug: str) -> str | Response:
   """Follow or unfollow the Domain's announcements."""

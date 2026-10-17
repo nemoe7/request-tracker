@@ -201,6 +201,32 @@ def test_a_muted_activity_switch_keeps_the_announcement_out(db, staff, requester
   assert saved.title not in person_client.get("/notifications").get_data(as_text=True)
 
 
+def test_staff_remove_an_announcement_after_a_confirm(db, staff):
+  author, _ = staff
+  _post(author, "/gym/announcements")
+  saved = announcements_data.list_for_slug(db, "gym")[0]
+
+  ask = author.get(f"/gym/announcements/{saved.id}/delete")
+  assert ask.status_code == 200
+  assert f'action="/gym/announcements/{saved.id}/delete"'.encode() in ask.data
+
+  done = author.post(f"/gym/announcements/{saved.id}/delete")
+  assert done.status_code == 302
+  assert announcements_data.list_for_slug(db, "gym") == []
+  assert saved.title not in author.get("/gym").get_data(as_text=True)
+
+
+def test_a_client_cannot_remove_an_announcement(db, staff, requester):
+  author, _ = staff
+  reader, _ = requester
+  _post(author, "/gym/announcements")
+  saved = announcements_data.list_for_slug(db, "gym")[0]
+
+  assert reader.get(f"/gym/announcements/{saved.id}/delete").status_code == 403
+  assert reader.post(f"/gym/announcements/{saved.id}/delete").status_code == 403
+  assert announcements_data.list_for_slug(db, "gym")[0].id == saved.id
+
+
 def test_a_rename_keeps_the_announcement_and_the_subscription(
   app, db, staff, requester, tmp_path, monkeypatch
 ):

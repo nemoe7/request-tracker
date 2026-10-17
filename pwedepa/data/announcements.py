@@ -72,6 +72,13 @@ def update(
     db.commit()
 
 
+def delete(db: Connection, announcement_id: int, *, commit: bool = True) -> None:
+  """Remove one announcement for good."""
+  db.exec_driver_sql("DELETE FROM announcements WHERE id = ?", (announcement_id,))
+  if commit:
+    db.commit()
+
+
 def get(db: Connection, announcement_id: int) -> Announcement | None:
   row = db.exec_driver_sql(
     "SELECT * FROM announcements WHERE id = ?", (announcement_id,)

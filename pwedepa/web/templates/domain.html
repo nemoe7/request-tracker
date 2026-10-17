@@ -28,6 +28,7 @@
         <h2>{{ announcement.title }}</h2>
         {% if is_staff and not demo_mode %}
         <a class="mini" href="{{ url_for('announcements.edit', slug=domain.slug, announcement_id=announcement.id) }}">Edit</a>
+        <a class="mini" href="{{ url_for('announcements.confirm_delete', slug=domain.slug, announcement_id=announcement.id) }}">Remove</a>
         {% endif %}
       </div>
       <p class="announcement-body">{{ announcement.body }}</p>

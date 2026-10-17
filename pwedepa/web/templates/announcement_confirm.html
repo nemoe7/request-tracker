@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Remove announcement — PwedePa{% endblock %}
+{% block content %}
+<div class="narrow">
+  <p class="eyebrow">{{ domain.name }}</p>
+  <h1>Remove this announcement?</h1>
+  <div class="card">
+    <h2>{{ announcement.title }}</h2>
+    <p class="announcement-body">{{ announcement.body }}</p>
+  </div>
+  <form class="form panel" method="post" action="{{ action }}">
+    <p>The post comes off the {{ domain.name }} page for everyone. This cannot be undone.</p>
+    <div class="form-actions">
+      <button id="remove-announcement" class="btn primary" type="submit">Remove announcement</button>
+      <a class="btn" href="{{ url_for('records.domain_page', slug=domain.slug) }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
