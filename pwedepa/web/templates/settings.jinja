@@ -82,7 +82,7 @@
           </span>
         </div>
       </form>
-      <p class="ios-note">Times under 72 hours old show as relative, like “3h ago”.</p>
+      <p class="ios-note">A time under 72 hours old reads short, like 3h ago.</p>
     </section>
 
     <section class="ios-group" id="notifications" aria-label="Notifications">
@@ -143,7 +143,7 @@
       <header class="pane-head">
         <span class="pane-icon ios-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg></span>
         <h2>Client view</h2>
-        <p>Records read only, as a client sees them.</p>
+        <p>Show records read only, the way a client sees it.</p>
       </header>
       <div class="ios-list">
         <a class="ios-row link-row" href="{{ url_for('pages.view_as', mode='staff' if view_as_client else 'client') }}">

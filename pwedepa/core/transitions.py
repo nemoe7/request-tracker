@@ -100,12 +100,15 @@ def transition_request(
 ) -> Change:
   if target not in REQUEST_TRANSITIONS[request.status]:
     raise InvalidTransition(
-      f"request cannot move from {request.status.value} to {target.value}"
+      f"A request cannot go from {request.status.value.capitalize()} to "
+      f"{target.value.capitalize()}."
     )
   if target is RequestStatus.REVOKED and not reason:
-    raise CoreError("revocation needs a reason")
+    raise CoreError("Give a reason to revoke.")
   if not _can_move_request(actor, request, target):
-    raise PermissionDenied(f"actor cannot move a request to {target.value}")
+    raise PermissionDenied(
+      f"You cannot move this request to {target.value.capitalize()}."
+    )
   moved = replace(request, status=target, updated_at=at)
   data = {"from": request.status.value, "to": target.value}
   if reason:
@@ -123,10 +126,13 @@ def transition_issue(
 ) -> Change:
   if target not in ISSUE_TRANSITIONS[issue.status]:
     raise InvalidTransition(
-      f"issue cannot move from {issue.status.value} to {target.value}"
+      f"An issue cannot go from {issue.status.value.capitalize()} to "
+      f"{target.value.capitalize()}."
     )
   if not _can_move_issue(actor, issue, target):
-    raise PermissionDenied(f"actor cannot move an issue to {target.value}")
+    raise PermissionDenied(
+      f"You cannot move this issue to {target.value.capitalize()}."
+    )
   moved = replace(issue, status=target, updated_at=at)
   event = Event(
     "issue.state_changed",

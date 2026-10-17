@@ -2,7 +2,7 @@
 {% block title %}PwedePa | Confirm edit{% endblock %}
 {% block content %}
 <div class="narrow">
-  <h1>Heads up</h1>
+  <h1>This edit reopens the request</h1>
   <div class="panel">
     <p>Editing a pending request sends Request #{{ record.id }} back to Open. Staff then review it again from the start.</p>
     <form method="post" action="{{ url_for('records.request_edit_save', request_id=record.id) }}">

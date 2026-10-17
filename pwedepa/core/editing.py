@@ -44,9 +44,9 @@ def edit_request(
     raise CoreError("an edit needs at least one field")
   _check_fields(fields, REQUEST_FIELDS)
   if request.deleted_at is not None:
-    raise CoreError("a deleted request cannot be edited")
+    raise CoreError("This request is deleted, so it cannot change.")
   if not REQUEST_TRANSITIONS_OPEN(request):
-    raise CoreError("a request in a terminal state cannot be edited")
+    raise CoreError("This request is closed, so it cannot change.")
   if not authorize(
     actor,
     "request.edit",
@@ -54,7 +54,7 @@ def edit_request(
     owner_id=request.requester_id,
     visibility=request.visibility,
   ):
-    raise PermissionDenied("actor cannot edit this request")
+    raise PermissionDenied("You cannot edit this request.")
   by_requester = actor.id is not None and actor.id == request.requester_id
   if request.status is RequestStatus.PENDING and by_requester and not confirmed:
     raise ConfirmationRequired("editing a pending request returns it to OPEN")
@@ -87,9 +87,9 @@ def edit_issue(
     raise CoreError("an edit needs at least one field")
   _check_fields(fields, ISSUE_FIELDS)
   if issue.deleted_at is not None:
-    raise CoreError("a deleted issue cannot be edited")
+    raise CoreError("This issue is deleted, so it cannot change.")
   if issue.status is IssueStatus.CLOSED:
-    raise CoreError("a closed issue cannot be edited")
+    raise CoreError("This issue is closed, so it cannot change.")
   if (
     "assignee_id" in fields
     and not actor.is_admin
@@ -97,21 +97,21 @@ def edit_issue(
       actor, "issue.edit", object_id=issue.id, owner_id=issue.requester_id
     )
   ):
-    raise PermissionDenied("actor cannot reassign an issue")
+    raise PermissionDenied("You cannot change the assignee.")
   is_assignee = actor.id is not None and actor.id == issue.assignee_id
   others = {name: value for name, value in fields.items() if name != "priority"}
   if others and not (
     actor.is_admin
     or authorize(actor, "issue.edit", object_id=issue.id, owner_id=issue.requester_id)
   ):
-    raise PermissionDenied("actor cannot edit this issue")
+    raise PermissionDenied("You cannot edit this issue.")
   if "priority" in fields and not (
     actor.is_admin
     or is_assignee
     or (actor.id is not None and actor.id == issue.requester_id)
     or authorize(actor, "issue.edit", object_id=issue.id, owner_id=issue.requester_id)
   ):
-    raise PermissionDenied("actor cannot change this issue priority")
+    raise PermissionDenied("You cannot change this priority.")
   edited = replace(issue, **fields, updated_at=at)
   events = []
   if "priority" in fields and fields["priority"] is not issue.priority:
