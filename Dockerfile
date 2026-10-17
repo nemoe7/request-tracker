@@ -18,6 +18,9 @@ COPY --from=build /app/.venv /app/.venv
 # The venv holds an editable install that points at this folder, so the app
 # must sit beside it or every start fails to find the package.
 COPY pwedepa ./pwedepa
+# The header names the build: the release tag, or `dev-<short hash>` from CI.
+ARG VERSION=dev
+RUN printf '%s\n' "$VERSION" > pwedepa/_version.txt
 COPY config.yml ./
 RUN rm -rf /usr/local/lib/python3.13/site-packages/pip \
       /usr/local/lib/python3.13/site-packages/pip-*.dist-info \

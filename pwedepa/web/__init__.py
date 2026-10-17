@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 from flask import Flask, abort, g, redirect, request, url_for
 
+from pwedepa import build_label
 from pwedepa.auth import WebAuthnConfig
 from pwedepa.data import db as data_db
 
@@ -94,6 +95,7 @@ def create_app(config: dict | None = None) -> Flask:
 
   app.jinja_env.globals["record_path"] = record_path
   app.jinja_env.globals["domain_path"] = domain_path
+  app.jinja_env.globals["build_label"] = build_label
 
   if app.config.get("DEMO_MODE"):
 

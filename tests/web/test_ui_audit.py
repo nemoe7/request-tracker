@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 import pytest
 from _paths import record_url
 
+from pwedepa import build_label
 from pwedepa.auth import Role, assign_role, list_roles, sessions, users
 from pwedepa.core import Request
 from pwedepa.data import db as data_db
@@ -210,6 +211,25 @@ def test_the_header_defers_the_animated_icon(app, db):
   assert b'class="icon-animated" data-src="/static/icons/icon-animated.webp"' in body
   assert b'class="icon-animated" src=' not in body
   assert b"dataset.src" in client.get("/static/app.js").data
+
+
+def test_the_header_names_the_build(app, db):
+  client = _client(app, db, "Ada", "Ada Lovelace", roles=(Role.REQUESTER,))
+  page = client.get("/requests").data.decode()
+  assert f'<span class="brand-version">{build_label()}</span>' in page
+
+
+def test_an_image_stamp_names_its_build(monkeypatch, tmp_path):
+  import pwedepa
+
+  stamp = tmp_path / "_version.txt"
+  stamp.write_text("dev-a1b2c3d\n", encoding="utf-8")
+  monkeypatch.setattr(pwedepa, "STAMP", stamp)
+  pwedepa.build_label.cache_clear()
+  try:
+    assert pwedepa.build_label() == "a1b2c3d"
+  finally:
+    pwedepa.build_label.cache_clear()
 
 
 def test_the_header_leaves_the_scrolled_layer(app):
