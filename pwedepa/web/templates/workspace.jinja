@@ -76,7 +76,7 @@
     {% endif %}
   </section>
 
-  <aside class="panel inspector{% if selected %} is-main{% endif %}" aria-label="Inspector">
+  <aside class="panel inspector{% if selected %} is-main{% endif %}" aria-label="Request">
     {% if selected %}
     <a class="back-to-list" href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter) }}">Back to the list</a>
     {% set record = selected %}

@@ -119,6 +119,10 @@ body.is-guest .auth-card { margin: 0 auto; }
 .back-to-list { display: none; }
 .workspace-grid:not(.is-open) .inspector { height: 0; min-width: 0; padding: 0; border-width: 0; overflow: hidden; visibility: hidden; }
 .workspace-grid .inspector { scroll-margin-top: 72px; }
+.workspace-grid.is-open { grid-template-columns: minmax(0, 1fr); max-width: 1100px; }
+.workspace-grid.is-open .filters, .workspace-grid.is-open .records { display: none; }
+.workspace-grid.is-open.is-main .inspector { grid-column: 1; padding: 0; border: 0; background: none; }
+.workspace-grid.is-open .back-to-list { display: inline-block; margin-bottom: 14px; font-size: 14px; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
 .panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 16px 0 8px; }
 .panel h2:first-child { margin-top: 0; }
@@ -276,13 +280,6 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .comment-form { display: grid; gap: 8px; margin-top: 14px; }
 .comment-form label { font-size: 13px; font-weight: 600; }
 .detail h2 { font-size: 18px; margin: 24px 0 8px; }
-@media (min-width: 1360px) {
-  .workspace-grid.is-open, .workspace-grid.is-open.is-main { grid-template-columns: 240px minmax(0, 1fr) minmax(430px, 520px); }
-}
-@media (max-width: 1359px) {
-  .workspace-grid.is-open { grid-template-columns: 240px minmax(0, 1fr); }
-  .workspace-grid.is-open .inspector { grid-column: 2; }
-}
 @media (max-width: 639px) {
   .strip { grid-template-columns: 1fr; }
   .record-table thead { display: none; }

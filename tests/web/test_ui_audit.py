@@ -735,7 +735,7 @@ def test_the_record_pages_read_like_a_github_issue(app, db):
       assert f"<h2>{label}</h2>" in side, f"{path} misses {label} in its sidebar"
 
 
-def test_workspace_opens_the_reading_pane_beside_the_list(app, db):
+def test_the_workspace_centers_the_open_request(app, db):
   client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   record = Request(
     id=1,
@@ -753,8 +753,8 @@ def test_workspace_opens_the_reading_pane_beside_the_list(app, db):
   assert f"selected={record.id}" in closed, "a row keeps a real link to its card"
 
   opened = client.get(f"/?selected={record.id}").data.decode()
-  # The page keeps the open mark while the reading pane fills the right track.
   assert 'class="workspace-grid is-open is-main"' in opened
+  assert "Back to the list" in opened, "a way back to the table"
 
   css = app.test_client().get("/static/app.css").data.decode()
   grid = css[css.index(".workspace-grid {") :].split("}", 1)[0]
@@ -763,10 +763,19 @@ def test_workspace_opens_the_reading_pane_beside_the_list(app, db):
   assert ".workspace-grid:not(.is-open) .inspector {" in css, (
     "the closed card leaves the row"
   )
-  wide = css[css.index("@media (min-width: 1360px)") :]
   assert re.search(
-    r"\.workspace-grid\.is-open[^{]*\{[^}]*minmax\(430px, 520px\)", wide
-  ), "the reading pane holds room for the request view"
+    r"\.workspace-grid\.is-open \{[^}]*grid-template-columns: minmax\(0, 1fr\)"
+    r"[^}]*max-width: 1100px",
+    css,
+  ), "the open request holds one centered column"
+  assert re.search(
+    r"\.workspace-grid\.is-open \.filters, \.workspace-grid\.is-open \.records "
+    r"\{ display: none;",
+    css,
+  ), "the table steps aside"
+  assert ".workspace-grid.is-open.is-main .inspector {" in css, (
+    "the open request drops the card frame"
+  )
 
   assert ".workspace-grid .inspector { scroll-margin-top" in css, (
     "on a phone the card must land below the top bar"
