@@ -186,6 +186,10 @@ Scheme 2, Slate and blue. Components use tokens from
 
 *Figure 9. One primary button, a ghost danger button, a labelled field, and an empty state with one action.*
 
+![The Settings pane at 1920 px: the rail on the left, then a group led by its plain name and one line over its rows](images/settings-head.png)
+
+*Figure 10. A settings group leads with its plain name and one line over its rows, with no icon tile and no banner.*
+
 ## Theme and motion
 
 - The theme control cycles System, Light, and Dark, and System reads the device. The
@@ -197,7 +201,7 @@ Scheme 2, Slate and blue. Components use tokens from
 
 ![Three theme cards with the dark card selected, beside one easing curve](images/theme.png)
 
-*Figure 10. The theme control cycles three choices, and one curve runs every move.*
+*Figure 11. The theme control cycles three choices, and one curve runs every move.*
 
 ## States
 
@@ -208,7 +212,7 @@ Scheme 2, Slate and blue. Components use tokens from
 
 ![A hovered table row, a focused field with an accent ring, a switch, and an empty state](images/states.png)
 
-*Figure 11. A row lifts on hover, a control shows a 2 px ring, and an empty state offers one action.*
+*Figure 12. A row lifts on hover, a control shows a 2 px ring, and an empty state offers one action.*
 
 ## Phone
 
@@ -218,7 +222,7 @@ Scheme 2, Slate and blue. Components use tokens from
 
 ![Two phones: a card list over a bottom tab bar, and a pushed record with a back control](images/phone.png)
 
-*Figure 12. A phone stacks the list as cards over a bottom tab bar, and the opened record fills the screen.*
+*Figure 13. A phone stacks the list as cards over a bottom tab bar, and the opened record fills the screen.*
 
 ## Change log
 
@@ -230,4 +234,4 @@ Scheme 2, Slate and blue. Components use tokens from
 
 ![A dated list with one line per entry, newest first](images/changelog.png)
 
-*Figure 13. The change log reads newest first, one line per pick.*
+*Figure 14. The change log reads newest first, one line per pick.*
