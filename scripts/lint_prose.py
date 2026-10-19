@@ -43,8 +43,12 @@ def scan_file(path: Path) -> dict:
   }
   try:
     lines, anchors = [], []
-    for part in record["parts"]:
+    for index, part in enumerate(record["parts"]):
       start, kind, text = part["line"], part["kind"], part["text"]
+      # One template string is one paragraph, so two labels never join a sentence.
+      if index and kind != "markdown":
+        lines.append("")
+        anchors.append((start, kind))
       for offset, line in enumerate(text.splitlines()):
         lines.append(line)
         anchors.append((start + offset if kind == "markdown" else start, kind))
@@ -216,7 +220,9 @@ def main() -> int:
         print(f"--- {path}")
         print(output)
   pages = [ROOT / path for path in paths if path.suffix == ".md"]
+  templates = [ROOT / path for path in paths if path.suffix == ".jinja"]
   failures += scan(pages) + long_blocks(pages) + long_sentences(pages)
+  failures += scan(templates)
   if failures:
     print(f"Structural check failures: {failures}.")
     return 1

@@ -140,3 +140,32 @@ def test_default_command_reports_python_linter_failures(tmp_path, monkeypatch, c
     assert "sample.py" in captured
     if error:
       assert error in captured
+
+
+def test_template_extraction_reads_text_and_names_and_skips_scripts(tmp_path):
+  source = tmp_path / "page.jinja"
+  source.write_text(
+    "<h1>Save the file.</h1>\n"
+    '<script>const label = "The file is saved.";</script>\n'
+    '<img alt="A chart" src="x.png">\n'
+    '<input placeholder="Your name">\n'
+    "{{ record.title }}</p>\n",
+    encoding="utf-8",
+  )
+  parts, manual = lint_prose.extract(source)
+  assert [(line, kind, text) for line, kind, text in parts] == [
+    (1, "template", "Save the file."),
+    (3, "attribute", "A chart"),
+    (4, "attribute", "Your name"),
+  ]
+  assert manual == []
+  assert lint_prose.scan([source], as_json=True) == 0
+
+
+def test_template_scan_keeps_findings_and_keeps_labels_apart(tmp_path):
+  source = tmp_path / "page.jinja"
+  source.write_text("<p>Alpha; beta.</p>\n", encoding="utf-8")
+  assert lint_prose.scan([source], as_json=True) == 1
+  source.write_text("<span>Staff</span><span>Client</span>\n", encoding="utf-8")
+  result = lint_prose.scan_file(source)
+  assert result["findings"] == []
