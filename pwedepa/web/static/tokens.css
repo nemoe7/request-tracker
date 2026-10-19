@@ -36,6 +36,8 @@
   --accent-fill: #2563EB;
   --on-accent: #FFFFFF;
   --danger: #DC2626;
+  --pip-bg: #B91C1C;
+  --pip-ink: #FFFFFF;
   --warn: #B45309;
   --ok: #15803D;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -48,8 +50,14 @@
   --st-closed: #475569; --st-closed-bg: #EEF2F6;
   --st-raised: #0E7490; --st-raised-bg: #E6F4F8;
   --st-rejected: #BE123C; --st-rejected-bg: #FDEEF1;
-  --st-fulfilled: #15803D; --st-fulfilled-bg: #E6F6EC;
-  --st-revoked: #64748B; --st-revoked-bg: #EEF2F6;
+  --st-fulfilled: #166534; --st-fulfilled-bg: #E6F6EC;
+  --st-revoked: #475569; --st-revoked-bg: #EEF2F6;
+  --chip-blue: #2563EB;
+  --chip-indigo: #4F46E5;
+  --chip-green: #15803D;
+  --chip-red: #DC2626;
+  --chip-amber: #B45309;
+  --chip-gray: #64748B;
   --scroll-thumb: #AFB8C2;
   color-scheme: light;
 }
@@ -66,6 +74,8 @@
   --accent-fill: #1D4ED8;
   --on-accent: #FFFFFF;
   --danger: #FF9C94;
+  --pip-bg: #B91C1C;
+  --pip-ink: #FFFFFF;
   --warn: #F5B04C;
   --ok: #6FD598;
   --st-open: #6EA8FE; --st-open-bg: rgba(37, 99, 235, 0.18);
@@ -78,6 +88,12 @@
   --st-rejected: #FDA4AF; --st-rejected-bg: rgba(190, 18, 60, 0.2);
   --st-fulfilled: #6FD598; --st-fulfilled-bg: rgba(21, 128, 61, 0.2);
   --st-revoked: #93A5B8; --st-revoked-bg: rgba(100, 116, 139, 0.2);
+  --chip-blue: #3B82F6;
+  --chip-indigo: #818CF8;
+  --chip-green: #16A34A;
+  --chip-red: #DC2626;
+  --chip-amber: #D97706;
+  --chip-gray: #64748B;
   --scroll-thumb: #495460;
   color-scheme: dark;
 }
@@ -95,6 +111,8 @@
     --accent-fill: #1D4ED8;
     --on-accent: #FFFFFF;
     --danger: #FF9C94;
+    --pip-bg: #B91C1C;
+    --pip-ink: #FFFFFF;
     --warn: #F5B04C;
     --ok: #6FD598;
     --st-open: #6EA8FE; --st-open-bg: rgba(37, 99, 235, 0.18);
@@ -107,6 +125,12 @@
     --st-rejected: #FDA4AF; --st-rejected-bg: rgba(190, 18, 60, 0.2);
     --st-fulfilled: #6FD598; --st-fulfilled-bg: rgba(21, 128, 61, 0.2);
     --st-revoked: #93A5B8; --st-revoked-bg: rgba(100, 116, 139, 0.2);
+    --chip-blue: #3B82F6;
+    --chip-indigo: #818CF8;
+    --chip-green: #16A34A;
+    --chip-red: #DC2626;
+    --chip-amber: #D97706;
+    --chip-gray: #64748B;
     --scroll-thumb: #495460;
     color-scheme: dark;
   }

@@ -31,7 +31,7 @@
       <summary class="admin-user-row">
         <span class="admin-user-who">
           <span class="admin-user-name">{{ person.display_name }}</span>
-          <span class="meta">@{{ person.username }} · #{{ person.id }} · {{ person.status.value | capitalize }}</span>
+          <span class="meta">@{{ person.username }} · <span class="id">#{{ person.id }}</span> · {{ person.status.value | capitalize }}</span>
         </span>
         <span class="admin-user-roles">
           {% for role in details[person.id].roles %}<span class="pill st-open"><span class="dot"></span>{{ role.value | capitalize }}</span>{% else %}<span class="muted">No roles</span>{% endfor %}

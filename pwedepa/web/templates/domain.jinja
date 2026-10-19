@@ -51,7 +51,7 @@
     <li class="record-row">
       <div class="record-row-main">
         <h2><a href="{{ request_open_path(record, domain.slug) }}">{{ record.title }}</a></h2>
-        <p class="meta">#{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
+        <p class="meta"><span class="id">#{{ record.id }}</span> · by {{ names.get(record.requester_id, "—") }}</p>
       </div>
       <div class="record-row-side">{{ pill(record.status) }}</div>
     </li>
@@ -71,7 +71,7 @@
     <li class="record-row">
       <div class="record-row-main">
         <h2><a href="{{ record_path(record, "issue", slug=domain.slug) }}">{{ record.title }}</a></h2>
-        <p class="meta">#{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
+        <p class="meta"><span class="id">#{{ record.id }}</span> · by {{ names.get(record.requester_id, "—") }}</p>
       </div>
       <div class="record-row-side">{{ pill(record.status) }}</div>
     </li>

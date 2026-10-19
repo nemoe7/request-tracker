@@ -58,10 +58,20 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   commit over code no longer skips the build.
 - The dev build starts at the newest shipped dev image, not at the last CI run.
   A docs run can no longer hide code below it.
-- Light status pills read at 4.5:1 or better.
+- Status pills read at 4.5:1 or better in the light theme.
 - Phone taps stay at 44 px on the top bar and the buttons, and the Admin config
   file field takes the form style.
 - A clipped workspace row shows its full title and line on hover.
+- A count badge and the picked demo seat take their own colour pair, so both read
+  in dark. The active tab draws a border, not a shadow.
+- The meta line reads in the page face, and only an ID keeps the mono face.
+  Summary and button controls take the focus ring.
+- A phone settings list keeps its page title, and a phone icon button takes a
+  44 px tap target. The filters row is reachable from the keyboard.
+- A closed reading pane leaves no empty card. A record that fails to load names
+  its own page, and a filter change says how many rows show.
+- Form controls take the page face, so a checkbox and a slider match the field.
+- A workspace header names its column for a screen reader.
 
 ### Changed
 

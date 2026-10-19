@@ -27,7 +27,7 @@
     <li class="record-row">
       <div class="record-row-main">
         <h2><a class="row-open" href="{{ request_open_path(record) }}">{{ record.title }}</a></h2>
-        <p class="meta">{{ pill(record.status) }} #{{ record.id }} · {{ record.visibility.value | capitalize }}{% if record.domains %} · {{ record.domains | join(", ") }}{% endif %}</p>
+        <p class="meta">{{ pill(record.status) }} <span class="id">#{{ record.id }}</span> · {{ record.visibility.value | capitalize }}{% if record.domains %} · {{ record.domains | join(", ") }}{% endif %}</p>
       </div>
     </li>
     {% endfor %}
@@ -48,7 +48,7 @@
     <li class="record-row">
       <div class="record-row-main">
         <h2><a class="row-open" href="{{ request_open_path(record) }}">{{ record.title }}</a></h2>
-        <p class="meta">{{ pill(record.status) }} #{{ record.id }} · by {{ names.get(record.requester_id, "—") }}</p>
+        <p class="meta">{{ pill(record.status) }} <span class="id">#{{ record.id }}</span> · by {{ names.get(record.requester_id, "—") }}</p>
       </div>
     </li>
     {% endfor %}

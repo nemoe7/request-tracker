@@ -3,6 +3,7 @@
 {% block title %}PwedePa | Workspace{% endblock %}
 {% block content %}
 <div class="workspace-grid{% if selected %} is-open is-main{% endif %}">
+  <p class="sr-only" role="status" data-filter-status></p>
   <aside class="panel filters" aria-label="Queue filters">
     <input class="filters-toggle" type="checkbox" id="filters-toggle">
     <label class="filters-row" for="filters-toggle">Filters<svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg></label>
@@ -50,7 +51,7 @@
     {% if rows %}
     <table class="record-table mail-table">
       <thead>
-        <tr><th>{{ "Requester" if row_kind == "request" else "Person" }}</th><th>{{ "Request" if row_kind == "request" else "Issue" }}</th><th>Status</th><th>Time</th></tr>
+        <tr><th scope="col">{{ "Requester" if row_kind == "request" else "Person" }}</th><th scope="col">{{ "Request" if row_kind == "request" else "Issue" }}</th><th scope="col">Status</th><th scope="col">Time</th></tr>
       </thead>
       <tbody>
         {% for row in rows %}

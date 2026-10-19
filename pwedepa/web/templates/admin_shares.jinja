@@ -12,7 +12,7 @@
   <li class="record-row">
     <div class="record-row-main">
       <h2>{{ link.object_type | capitalize }} #{{ link.object_id }}</h2>
-      <p class="meta">Link #{{ link.id }} · {{ link.permissions | join(", ") }} · created by {{ names.get(link.created_by_id, "—") }}</p>
+      <p class="meta">Link <span class="id">#{{ link.id }}</span> · {{ link.permissions | join(", ") }} · created by {{ names.get(link.created_by_id, "—") }}</p>
     </div>
     <div class="record-row-side">
       <span class="status-word">{% if link.revoked_at %}Revoked{% elif link.view_consumed_at %}View used{% else %}Active{% endif %}</span>

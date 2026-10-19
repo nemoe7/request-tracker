@@ -12,7 +12,7 @@
   <li class="record-row">
     <div class="record-row-main">
       <h2>{{ words(event.event_type) }}</h2>
-      <p class="meta">{{ names.get(event.actor_id, "System") }} · {{ event.object_type or "—" }}{% if event.object_id %} #{{ event.object_id }}{% endif %}</p>
+      <p class="meta">{{ names.get(event.actor_id, "System") }} · {{ event.object_type or "—" }}{% if event.object_id %} <span class="id">#{{ event.object_id }}</span>{% endif %}</p>
     </div>
     <div class="record-row-side">
       <span class="status-word">{{ event.created_at | stamp(clock) }}</span>

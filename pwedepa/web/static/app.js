@@ -163,6 +163,12 @@ if (workspaceGrid) {
   };
 
   const openCard = async (href, row, remember) => {
+    const busy = (on) => {
+      if (on) inspector.setAttribute("aria-busy", "true");
+      else inspector.removeAttribute("aria-busy");
+      inspector.classList.toggle("is-loading", on);
+    };
+    busy(true);
     try {
       const response = await fetch(href);
       if (!response.ok) throw new Error(`card ${response.status}`);
@@ -181,7 +187,19 @@ if (workspaceGrid) {
         inspector.scrollIntoView({ behavior: calm.matches ? "auto" : "smooth", block: "start" });
       }
     } catch {
-      window.location.assign(href);
+      // A failed fetch keeps the reader on the page and offers the record as its own page.
+      inspector.innerHTML = "";
+      const failed = document.createElement("p");
+      failed.className = "muted";
+      const link = document.createElement("a");
+      link.href = href;
+      link.textContent = "Open it as a page";
+      failed.append("This record did not load. ", link, ".");
+      inspector.append(failed);
+      inspector.classList.add("is-main");
+      workspaceGrid.classList.add("is-open", "is-main");
+    } finally {
+      busy(false);
     }
   };
 
@@ -663,6 +681,11 @@ document.addEventListener("change", (event) => {
       panel.classList.remove("is-swapping");
       void panel.offsetWidth;
       panel.classList.add("is-swapping");
+    }
+    const status = grid.querySelector("[data-filter-status]");
+    if (status) {
+      const shown = records.querySelectorAll("tbody tr").length;
+      status.textContent = shown ? `${shown} rows shown.` : "No rows match these filters.";
     }
     return true;
   };

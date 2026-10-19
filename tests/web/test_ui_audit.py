@@ -142,6 +142,13 @@ def test_the_phone_workspace_folds_its_filters(app, db):
   )
   phone = css[phone_at:]
   assert ".filters-toggle:not(:checked) ~ .filters-body { display: none; }" in phone
+  assert (
+    ".filters-toggle { display: block; position: absolute; width: 1px; height: 1px;"
+    in phone
+  ), "a phone keeps the toggle in the tab order"
+  assert ".filters-toggle:focus-visible ~ .filters-row" in phone, (
+    "the fold shows the ring when the box takes focus"
+  )
   orders = dict(re.findall(r"\.workspace-grid \.([\w-]+) \{\s*order: (\d)", phone))
   list_orders = re.findall(
     r"\.workspace-grid \.records > \.([\w-]+) \{\s*order: (\d)", phone
@@ -154,38 +161,101 @@ def test_the_phone_workspace_folds_its_filters(app, db):
   )
 
 
+THEMES = (":root,", ':root[data-theme="dark"]')
+STATUS_NAMES = (
+  "open",
+  "pending",
+  "delayed",
+  "blocked",
+  "resolved",
+  "closed",
+  "raised",
+  "rejected",
+  "fulfilled",
+  "revoked",
+)
+
+
+def _theme_block(css: str, selector: str) -> str:
+  start = css.index(selector)
+  return css[start : css.index("}", start)]
+
+
+def _token(block: str, name: str) -> str:
+  found = re.search(rf"--{name}: (#[0-9A-Fa-f]{{6}}|rgba\([^)]*\))", block)
+  assert found, f"the theme misses --{name}"
+  return found.group(1)
+
+
+def _rgb(value: str) -> tuple[int, int, int]:
+  if value.startswith("#"):
+    return tuple(int(value[index : index + 2], 16) for index in (1, 3, 5))
+  parts = re.fullmatch(r"rgba\(([^)]*)\)", value).group(1).split(",")
+  return tuple(int(part) for part in parts[:3])
+
+
+def _alpha(value: str) -> float:
+  if value.startswith("#"):
+    return 1.0
+  parts = re.fullmatch(r"rgba\(([^)]*)\)", value).group(1).split(",")
+  return float(parts[3])
+
+
+def _over(top: tuple[int, int, int], alpha: float, bottom: tuple[int, int, int]):
+  return tuple(
+    round(a * alpha + b * (1 - alpha)) for a, b in zip(top, bottom, strict=True)
+  )
+
+
+def _channel(value: float) -> float:
+  value /= 255
+  return value / 12.92 if value <= 0.03928 else ((value + 0.055) / 1.055) ** 2.4
+
+
+def _luminance(rgb: tuple[int, int, int]) -> float:
+  red, green, blue = (_channel(value) for value in rgb)
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue
+
+
+def _contrast(fore: tuple[int, int, int], back: tuple[int, int, int]) -> float:
+  first, second = _luminance(fore), _luminance(back)
+  return (max(first, second) + 0.05) / (min(first, second) + 0.05)
+
+
 def test_every_status_pill_passes_contrast(app):
-  """A 12 px pill needs 4.5:1, and the light theme once fell short."""
+  """A 12 px pill needs 4.5:1, in both themes and for every state."""
   css = app.test_client().get("/static/tokens.css").data.decode()
-  light = css[css.index(":root,") : css.index(':root[data-theme="dark"]')]
+  for selector in THEMES:
+    block = _theme_block(css, selector)
+    surface = _rgb(_token(block, "surface"))
+    for status in STATUS_NAMES:
+      fore = _rgb(_token(block, f"st-{status}"))
+      tint = _token(block, f"st-{status}-bg")
+      back = (
+        _rgb(tint) if _alpha(tint) == 1 else _over(_rgb(tint), _alpha(tint), surface)
+      )
+      ratio = _contrast(fore, back)
+      assert ratio >= 4.5, f"{selector} the {status} pill reads at {ratio:.2f}:1"
 
-  def hex_value(name):
-    found = re.search(rf"--{name}: (#[0-9A-Fa-f]{{6}})", light)
-    assert found, f"the light theme misses --{name}"
-    return found.group(1)
 
-  def channel(value):
-    value /= 255
-    return value / 12.92 if value <= 0.03928 else ((value + 0.055) / 1.055) ** 2.4
-
-  def luminance(code):
-    red, green, blue = (int(code[index : index + 2], 16) for index in (1, 3, 5))
-    return 0.2126 * channel(red) + 0.7152 * channel(green) + 0.0722 * channel(blue)
-
-  for status in (
-    "open",
-    "pending",
-    "delayed",
-    "blocked",
-    "resolved",
-    "closed",
-    "raised",
-    "rejected",
-  ):
-    fore = luminance(hex_value(f"st-{status}"))
-    back = luminance(hex_value(f"st-{status}-bg"))
-    ratio = (max(fore, back) + 0.05) / (min(fore, back) + 0.05)
-    assert ratio >= 4.5, f"the {status} pill reads at {ratio:.2f}:1"
+def test_the_badge_and_seat_switch_pass_contrast(app):
+  """A white label on the raw accent reads at 2.4:1 in dark, so both use the deep fill."""
+  css = app.test_client().get("/static/tokens.css").data.decode()
+  for selector in THEMES:
+    block = _theme_block(css, selector)
+    ratio = _contrast(_rgb(_token(block, "pip-ink")), _rgb(_token(block, "pip-bg")))
+    assert ratio >= 4.5, f"{selector} the count badge reads at {ratio:.2f}:1"
+    ratio = _contrast(
+      _rgb(_token(block, "on-accent")), _rgb(_token(block, "accent-fill"))
+    )
+    assert ratio >= 4.5, f"{selector} the seat switch reads at {ratio:.2f}:1"
+  app_css = app.test_client().get("/static/app.css").data.decode()
+  pip = app_css[app_css.index(".pip {") :].split("}", 1)[0]
+  assert "background: var(--pip-bg)" in pip, "the badge takes its own pair"
+  assert "color: var(--pip-ink)" in pip
+  seat = app_css[app_css.index(".demo-switch a.on {") :].split("}", 1)[0]
+  assert "background: var(--accent-fill)" in seat, "the picked seat takes the deep fill"
+  assert "color: var(--on-accent)" in seat
 
 
 def test_the_phone_keeps_a_44_pixel_tap_target(app):
@@ -1510,3 +1580,108 @@ def test_the_settings_page_sets_a_text_size(app, db):
 
   client.post("/settings/font-size", data={"font_size": "84"})
   assert preferences.get_font_size(db, person.id) == 130
+
+
+def test_the_meta_line_keeps_mono_only_for_an_id(app):
+  """A mono face on the whole meta line set prose in typewriter type."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  block = css[css.index(".meta {") :].split("}", 1)[0]
+  assert "monospace" not in block, "the meta line reads in the page face"
+  ident = css[css.index(".meta .id {") :].split("}", 1)[0]
+  assert "monospace" in ident, "an ID keeps its mono face"
+
+
+def test_a_closed_pane_leaves_no_hole_under_the_list(app):
+  """Two rows left 840 px of empty card, so a closed pane starts at its content."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  grid = css[css.index(".workspace-grid { align-items: start; }") :].split("}", 1)[0]
+  assert grid, "a closed pane aligns to the start"
+  assert ".workspace-grid.is-open { align-items: stretch; }" in css, (
+    "an open pane shares the row height"
+  )
+
+
+def test_every_control_and_its_summary_take_the_focus_ring(app):
+  css = app.test_client().get("/static/app.css").data.decode()
+  rule = css[css.index(".btn:focus-visible") :].split("{", 1)[0]
+  for control in ("button:focus-visible", "summary:focus-visible"):
+    assert control in rule, f"{control} falls back to the browser ring"
+
+
+def test_the_form_controls_take_the_page_face(app):
+  """A checkbox and a range once fell back to Arial, 13.33 px."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  assert "input, select, textarea { font-family: inherit; }" in css
+
+
+def test_the_workspace_headers_name_their_column(app, db):
+  client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title="Broken projector",
+      description="The projector in Room 4 is dead.",
+      requester_id=users.get_user_by_username(db, "Sam").id,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+  body = client.get("/").data.decode()
+  head = body[body.index("<thead>") : body.index("</thead>")]
+  assert head.count('scope="col"') == 4, "each header names its column"
+
+
+def test_the_active_tab_draws_a_border_not_a_shadow(app):
+  """An inset shadow on a 38 px link read as a glowing button."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  active = css[css.index(".tabs a.is-active {") :].split("}", 1)[0]
+  assert "border-color: var(--line)" in active
+  assert "box-shadow" not in active, "the tab carries no shadow"
+
+
+def test_the_filter_swap_announces_the_new_row_count(app, db):
+  """Two panels repaint in place, so a screen reader needs the count in words."""
+  client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  body = client.get("/").data.decode()
+  assert 'role="status" data-filter-status' in body, "the workspace carries a live line"
+  script = client.get("/static/app.js").data.decode()
+  assert 'grid.querySelector("[data-filter-status]")' in script
+  assert "rows shown." in script
+
+
+def test_the_pane_reports_a_load_and_names_a_failed_one(app, db):
+  client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  script = client.get("/static/app.js").data.decode()
+  assert 'inspector.setAttribute("aria-busy", "true")' in script, "a load is not silent"
+  assert "This record did not load." in script, "a failure names itself"
+  assert "Open it as a page" in script, "a failure keeps one door open"
+
+
+def test_a_phone_icon_button_reaches_a_tap_target(app):
+  css = app.test_client().get("/static/app.css").data.decode()
+  phone = css[css.index("@media (max-width: 899px)") :]
+  assert ".mini, .icon-btn { min-height: 44px; }" in phone
+  assert ".icon-btn { min-width: 44px; height: 44px; }" in phone
+
+
+def test_a_phone_settings_list_keeps_its_title(app):
+  """The h1 was hidden below 640 px, so the list opened with no page name."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  phone = css[
+    css.index("@media (max-width: 639px)", css.index("@media (min-width: 640px)")) :
+  ]
+  assert ".settings-main > h1 { font-size: calc(20px * var(--font-scale));" in phone
+  assert ".settings-main > .pane-back { display: none; }" in phone
+  assert (
+    ".settings-shell:has(.set-group:target) .settings-main > h1 { display: none; }"
+    in phone
+  ), "an open pane names itself in its own heading"
+
+
+def test_the_icon_tints_come_from_tokens(app):
+  """A component carried six raw hex values against the token rule."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  for tint in ("blue", "indigo", "green", "red", "amber", "gray"):
+    assert f".chip-{tint} {{ background: var(--chip-{tint}); }}" in css
+  assert "#4F46E5" not in css, "no component keeps a raw chip hex"
