@@ -6,10 +6,11 @@ redirects, and the database on disk.
 """
 
 import http.client
+import re
 import urllib.parse
 import urllib.request
 
-from conftest import fetch
+from conftest import fetch, walk
 
 from pwedepa.data import domains as domains_data
 
@@ -83,3 +84,53 @@ def test_a_kept_alive_connection_can_reload_a_page(served):
       assert answer.status < 400, f"{path} answered {answer.status}"
   finally:
     connection.close()
+
+
+def test_a_share_link_spends_one_view_and_then_reads_gone(served):
+  """A guest reads the record once, and the second visit answers gone."""
+  requester = walk(served["base"], served["requester_cookie"])
+  status, url, body = requester("/records/request/1/share", {"permission": "VIEW"})
+  assert status == 200
+  assert url == "/3d-print-model/requests/1"
+  found = re.search(r'value="(http[^"]+/share/[^"]+)"', body)
+  assert found, "the page shows the link once"
+  link = found.group(1).replace(served["base"], "")
+
+  guest = walk(served["base"])
+  status, _, body = guest(link)
+  assert status == 200
+  assert "shows the record once" in body
+
+  status, url, body = guest(link + "/view", {})
+  assert status == 200
+  assert url == "/shared/1"
+  assert "A lamp that blinks" in body
+
+  status, _, body = guest(link)
+  assert status == 410
+  assert "This link no longer works" in body
+
+
+def test_a_non_admin_cannot_change_a_role_and_an_admin_can(served):
+  """The role guard answers across the wire, and a real write reads back."""
+  mara = walk(served["base"], served["requester_cookie"])
+  status, _, _ = mara("/admin/users/1/roles", {"role": "ADMIN", "user_id": "1"})
+  assert status == 403
+
+  admin = walk(served["base"], served["cookie"])
+  status, url, _ = admin("/admin/users/2/roles", {"role": "ASSIGNEE"})
+  assert status == 200
+  assert url == "/admin/users"
+  status, _, body = admin("/admin/users")
+  assert "Assignee" in body
+
+
+def test_a_settings_write_reads_back_on_the_settings_page(served):
+  """A fetch write answers 204, and the next page read shows the new value."""
+  mara = walk(served["base"], served["requester_cookie"])
+  status, _, _ = mara("/settings/clock", {"clock": "24"})
+  assert status == 200
+  status, _, body = mara("/settings")
+  assert status == 200
+  assert 'value="24"' in body
+  assert "is-active" in body

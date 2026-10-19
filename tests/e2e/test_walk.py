@@ -5,8 +5,10 @@ pages, so a click, a redirect, and a computed style are the check.
 """
 
 import os
+import re
 
 import pytest
+from conftest import walk
 from playwright.sync_api import expect, sync_playwright
 
 PHONE = {"width": 390, "height": 844}
@@ -91,5 +93,72 @@ def test_a_typed_token_url_lands_on_the_users_page(page, served):
     tab.goto(f"{served['base']}/admin/tokens")
     expect(tab).to_have_url(f"{served['base']}/admin/users")
     expect(tab.locator("h1")).to_have_text("Users")
+  finally:
+    context.close()
+
+
+@pytest.fixture
+def passkey_page(browser, served):
+  """A signed-out page on the passkey origin, with a virtual authenticator."""
+  context = browser.new_context()
+  tab = context.new_page()
+  session = context.new_cdp_session(tab)
+  session.send("WebAuthn.enable")
+  session.send(
+    "WebAuthn.addVirtualAuthenticator",
+    {
+      "options": {
+        "protocol": "ctap2",
+        "transport": "internal",
+        "hasResidentKey": True,
+        "hasUserVerification": True,
+        "isUserVerified": True,
+        "automaticPresenceSimulation": True,
+      }
+    },
+  )
+  yield context, tab
+  context.close()
+
+
+def test_a_passkey_enrolls_and_signs_in_through_the_browser(passkey_page, served):
+  """The real WebAuthn path runs: admin token, enroll, sign out, sign in."""
+  base = f"http://localhost:{served['port']}"
+  admin = walk(served["base"], served["cookie"])
+  status, _, body = admin("/admin/tokens", {"role": "REQUESTER"})
+  assert status == 200
+  found = re.search(r'id="issued-token"[^>]*value="([^"]+)"', body)
+  assert found, "the users page shows the sign-up token once"
+  token = found.group(1)
+
+  context, tab = passkey_page
+  tab.goto(f"{base}/enroll?token={token}", wait_until="networkidle")
+  tab.fill("#username", "nina")
+  tab.fill("#display-name", "Nina Enrols")
+  tab.click("button[type=submit]", force=True)
+  tab.wait_for_url("**/requests", timeout=15_000)
+  expect(tab.locator("h1").first).to_have_text("Requests")
+
+  context.clear_cookies()
+  tab.goto(f"{base}/login", wait_until="networkidle")
+  tab.click("#login-button")
+  tab.wait_for_url("**/requests", timeout=15_000)
+  expect(tab.locator("h1").first).to_have_text("Requests")
+
+
+def test_the_service_worker_takes_control_after_a_load(page, served):
+  """The page registers `/sw.js`, and the worker claims its scope."""
+  context, tab = page(served["cookie"], DESKTOP)
+  try:
+    tab.goto(f"{served['base']}/", wait_until="networkidle")
+    worker = tab.evaluate(
+      """async () => {
+        const ready = await navigator.serviceWorker.ready;
+        const script = ready.active || ready.waiting || ready.installing;
+        return { scope: ready.scope, script: script && script.scriptURL };
+      }"""
+    )
+    assert worker["scope"] == f"{served['base']}/"
+    assert worker["script"] == f"{served['base']}/sw.js"
   finally:
     context.close()
