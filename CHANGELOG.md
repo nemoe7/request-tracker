@@ -27,6 +27,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   preview never serves an old page.
 - Settings carry no Save row when the script runs. The name field saves on a
   change, and text size hides its row once the script binds.
+- A settings group leads with its plain name and one line over the rows. The
+  icon tile and the centred banner are gone.
 
 ## [0.1.0] - 2026-10-16
 

@@ -1014,27 +1014,25 @@ def test_the_four_admin_pages_share_one_width(app, db):
 
 
 def test_each_settings_pane_carries_a_head(app, db):
-  """Mac Settings leads each pane with its icon, name, and one line."""
+  """A pane leads with its group name and one line, and no icon tile."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   body = client.get("/settings").data.decode()
   heads = re.findall(r'<header class="pane-head">.*?</header>', body, re.DOTALL)
   sections = re.findall(r'<section class="ios-group" id="([\w-]+)"', body)
   assert len(heads) == len(sections) >= 5, "every pane needs one head"
   for head in heads:
-    assert 'class="pane-icon' in head, "the head carries its icon tile"
+    assert "pane-icon" not in head, "the tile is gone"
     assert "<h2>" in head and "<p>" in head, "the head carries a name and one line"
   css = client.get("/static/app.css").data.decode()
-  assert ".pane-head > .pane-icon, .pane-head > p { display: none; }" in css, (
-    "the phone keeps the small label"
-  )
+  assert ".pane-head > .pane-icon" not in css, "no tile rule is left over"
+  assert ".pane-head > p { display: none; }" not in css, "the phone keeps the one line"
   wide = css[
     css.index("@media (min-width: 900px)") : css.index("@media (max-width: 899px)")
   ]
-  assert ".settings-main > .ios-group > .pane-head" in wide, (
-    "the wide head carries the card"
+  assert ".settings-main > .ios-group > .pane-head" not in wide, (
+    "the wide head is no card"
   )
-  assert "display: flex; flex-direction: column" in wide
-  assert ".ios-group > .pane-head > h2" in wide, "the head carries the title"
+  assert ".ios-group > .pane-head > h2" not in wide, "one label size at every width"
   assert (
     '.settings-shell:not(:has(.ios-group:target)) .settings-nav a[href="#profile"]'
     in wide

@@ -456,7 +456,7 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .ios-group { margin-bottom: 26px; scroll-margin-top: 68px; }
 /* The phone keeps the small label; a wide screen shows the whole head. */
 .pane-head { margin: 0 0 8px 16px; }
-.pane-head > .pane-icon, .pane-head > p { display: none; }
+.pane-head > p { margin: 4px 0 0; color: var(--muted); font-size: calc(13px * var(--font-scale)); }
 .pane-back { display: none; }
 .ios-group > .pane-head > h2, .ios-fieldset > legend { font-size: calc(13px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0; font-weight: 600; }
 .ios-group form, .ios-list { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
@@ -499,15 +499,6 @@ form.is-auto [data-save] { display: none; }
     .settings-main > .ios-group#profile,
     .settings-main > .ios-group:target { display: block; }
     .settings-main:has(> .ios-group:target) > .ios-group#profile:not(:target) { display: none; }
-    .settings-main > .ios-group > .pane-head {
-      display: flex; flex-direction: column; align-items: center; gap: 10px;
-      margin: 0 0 20px; padding: 22px 20px; text-align: center;
-      background: var(--surface-2); border: 1px solid var(--line); border-radius: 16px;
-    }
-    .pane-head > .pane-icon { display: grid; width: 56px; height: 56px; border-radius: 14px; place-items: center; }
-    .pane-head > .pane-icon .icon { width: 30px; height: 30px; }
-    .ios-group > .pane-head > h2 { font-size: calc(24px * var(--font-scale)); text-transform: none; letter-spacing: -0.01em; color: var(--text); }
-    .pane-head > p { display: block; max-width: 430px; margin: 0; color: var(--muted); font-size: calc(14px * var(--font-scale)); }
     .settings-shell:not(:has(.ios-group:target)) .settings-nav a[href="#profile"],
     .settings-shell:has(#profile:target) .settings-nav a[href="#profile"],
     .settings-shell:has(#appearance:target) .settings-nav a[href="#appearance"],
