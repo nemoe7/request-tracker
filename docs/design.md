@@ -178,6 +178,8 @@ Scheme 2, Slate and blue. Components use tokens from
 - Forms put the label above the field, help text in 12 px muted, and errors in danger
   text that names the fix.
 - Empty states use the pleading-face mark, one sentence, and one action.
+- A settings group leads with its plain name and one line over its rows. It has no
+  icon tile and no banner.
 - A new pattern needs a sheet entry and a screenshot before it ships.
 
 ![Components: a primary button, a danger button, a labelled field, and an empty state](images/components.png)
@@ -220,6 +222,7 @@ Scheme 2, Slate and blue. Components use tokens from
 
 ## Change log
 
+- 2026-10-19. A settings group leads with its plain name and one line over its rows.
 - 2026-10-17. The request action reads Reject, and a reason comes in a dialog.
 - 2026-10-17. Archive, Remove announcement, and Revoke passkey ask for a reason.
 - 2026-10-17. The workspace reads as one mail table with a reading pane.
