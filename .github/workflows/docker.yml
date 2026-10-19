@@ -31,9 +31,9 @@ permissions:
 # A successful CI run on main publishes the rolling dev image. A new dev build
 # replaces an older one, so its group cancels.
 jobs:
-  # A commit that changes no image input needs no new image. This job reads the
-  # file list of the commit CI tested and lets the dev job skip a docs-only
-  # commit. A manual run always builds, so the owner can publish on demand.
+  # A commit that changes no image input needs no new image. The range starts
+  # at the head of the newest successful dev build, so the image always moves
+  # forward from what the registry already holds. A manual run always builds.
   changes:
     if: >-
       github.event_name == 'workflow_dispatch'
@@ -43,6 +43,7 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
+      actions: read
     outputs:
       build: ${{ steps.paths.outputs.build }}
     steps:
@@ -52,6 +53,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           EVENT_NAME: ${{ github.event_name }}
           SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          DEV_JOB: "Build the dev image"
         shell: bash
         run: |
           set -euo pipefail
@@ -61,17 +63,32 @@ jobs:
             exit 0
           fi
 
-          # The range starts at the last CI run on main, not at the parent of
-          # the tested commit. A push can hold many commits, and its tip is
-          # often a docs commit, so a parent read misses the code under it.
-          previous="$(gh api \
-            "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?branch=main&status=success&per_page=50" \
-            --jq '[.workflow_runs[] | select(.head_sha != env.SHA)][0].head_sha // ""')"
+          # The range starts at the newest commit a dev build shipped, not at the
+          # last CI run. A docs tip is a CI run too, so that head would hide every
+          # code change below it.
+          previous=""
+          gh api \
+            "repos/$GITHUB_REPOSITORY/actions/workflows/docker.yml/runs?branch=main&status=success&per_page=20" \
+            --jq '.workflow_runs[].id' >"$RUNNER_TEMP/runs.txt"
+          while IFS= read -r run; do
+            head="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" \
+              --jq '.head_sha')"
+            if [[ "$head" == "$SHA" ]]; then
+              continue
+            fi
+            state="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run/jobs?per_page=100" \
+              --jq '[.jobs[] | select(.name == env.DEV_JOB)][0].conclusion // ""')"
+            if [[ "$state" == "success" ]]; then
+              previous="$head"
+              break
+            fi
+          done <"$RUNNER_TEMP/runs.txt"
+
           build=no
           if [[ -z "$previous" ]] \
             || ! files="$(gh api "repos/$GITHUB_REPOSITORY/compare/$previous...$SHA" \
               --jq '.files[].filename')"; then
-            # With no earlier run, or a failed read, build rather than guess.
+            # With no earlier build, or a failed read, build rather than guess.
             build=yes
           else
             while IFS= read -r path; do

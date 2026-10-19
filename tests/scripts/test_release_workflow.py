@@ -122,14 +122,16 @@ def test_the_dev_build_skips_commits_that_change_no_image_input():
   assert jobs["changes"]["outputs"]["build"] == "${{ steps.paths.outputs.build }}"
 
 
-def test_the_changes_job_reads_from_the_last_ci_run():
-  """A push tip is often a docs commit over code, so the parent is not the start."""
+def test_the_changes_job_reads_from_the_last_dev_image_build():
+  """A docs tip is a CI run too, so its head hides every code commit below it."""
   text = _docker_text()
-  assert "actions/workflows/ci.yml/runs?branch=main&status=success" in text, (
-    "the range starts at the last successful CI run on main"
+  assert "actions/workflows/docker.yml/runs?branch=main&status=success" in text, (
+    "the range starts at the last successful run of this workflow"
   )
-  assert "select(.head_sha != env.SHA)" in text, "a rerun of the same head is skipped"
-  assert "compare/$previous...$SHA" in text, "the check reads the range since that run"
+  assert "select(.name == env.DEV_JOB)" in text, "the check reads the dev job state"
+  assert "compare/$previous...$SHA" in text, (
+    "the check reads the range since that build"
+  )
   assert 'if [[ -z "$previous" ]]' in text, "a first run builds instead of guessing"
   assert ".files[].filename" in text
   for path in (
@@ -144,6 +146,15 @@ def test_the_changes_job_reads_from_the_last_ci_run():
     assert path in text, f"an image input is missing from the change check: {path}"
   assert 'if [[ "$EVENT_NAME" == "workflow_dispatch" ]]' in text, (
     "a manual run always builds"
+  )
+
+
+def test_the_change_check_names_the_dev_job_its_workflow_runs():
+  """The check finds the last build by job name, so the two names must agree."""
+  text = _docker_text()
+  dev = _docker()["jobs"]["dev"]
+  assert f'DEV_JOB: "{dev["name"]}"' in text, (
+    "the image input check names a job the workflow does not run"
   )
 
 

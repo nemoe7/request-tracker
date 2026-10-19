@@ -22,6 +22,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   owner instead of a dash.
 - A dev image builds for the whole push range, not just the tip commit. A docs
   commit over code no longer skips the build.
+- The dev build starts at the newest shipped dev image, not at the last CI run.
+  A docs run can no longer hide code below it.
 - Light status pills read at 4.5:1 or better.
 - Phone taps stay at 44 px on the top bar and the buttons, and the Admin config
   file field takes the form style.
