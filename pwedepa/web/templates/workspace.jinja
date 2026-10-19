@@ -17,7 +17,8 @@
       <a class="queue-item{% if domain == name %} is-active{% endif %}" href="{{ url_for('records.workspace', queue=queue, domain=name, visibility=visibility, status=status_filter) }}">{{ name }}</a>
       {% endfor %}
       <h2>Visibility</h2>
-      <div class="seg" role="group" aria-label="Visibility filter">
+      <div class="seg" role="group" aria-label="Visibility filter" data-active="{{ 1 if visibility == 'PUBLIC' else 2 if visibility == 'PRIVATE' else 0 }}">
+        <span class="seg-pill" aria-hidden="true"></span>
         <a{% if not visibility %} class="is-active"{% endif %} href="{{ url_for('records.workspace', queue=queue, domain=domain, status=status_filter) }}">All</a>
         <a{% if visibility == "PUBLIC" %} class="is-active"{% endif %} href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility='PUBLIC', status=status_filter) }}">Public</a>
         <a{% if visibility == "PRIVATE" %} class="is-active"{% endif %} href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility='PRIVATE', status=status_filter) }}">Private</a>

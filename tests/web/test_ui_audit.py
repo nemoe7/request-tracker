@@ -578,7 +578,9 @@ def test_settings_rail_carries_icon_rows_and_a_phone_list(app, db):
   assert rail.count("chevron-right") >= 4
   css = client.get("/static/app.css").data.decode()
   assert ".settings-nav { display: none; }" not in css
-  phone = css[css.index("@media (max-width: 899px)") :]
+  phone = css[
+    css.index("@media (max-width: 639px)", css.index("@media (min-width: 640px)")) :
+  ]
   assert ".settings-nav { background: var(--surface)" in phone
   assert ".settings-nav .chev { display: block; }" in phone
 
@@ -1156,7 +1158,9 @@ def test_each_settings_pane_carries_a_head(app, db):
   assert ".set-group form:not(.modal-form)" in css, "a modal form is not a group card"
   assert ".pane-head > p { display: none; }" not in css, "the phone keeps the one line"
   wide = css[
-    css.index("@media (min-width: 900px)") : css.index("@media (max-width: 899px)")
+    css.index("@media (min-width: 640px)") : css.index(
+      "@media (max-width: 639px)", css.index("@media (min-width: 640px)")
+    )
   ]
   assert ".settings-main > .set-group > .pane-head" not in wide, (
     "the wide head is no card"
@@ -1177,7 +1181,9 @@ def test_the_phone_opens_one_settings_page_at_a_time(app, db):
   body = client.get("/settings").data.decode()
   assert 'class="pane-back"' in body, "a pushed page needs its way back"
   css = client.get("/static/app.css").data.decode()
-  phone = css[css.index("@media (max-width: 899px)") :]
+  phone = css[
+    css.index("@media (max-width: 639px)", css.index("@media (min-width: 640px)")) :
+  ]
   assert ".settings-main > .set-group { display: none; }" in phone
   assert ".settings-main > .set-group:target { display: block; }" in phone
   assert (
@@ -1196,9 +1202,9 @@ def test_wide_screens_show_one_settings_pane(app, db):
     assert f'href="#{pane}"' in rail
     assert f'id="{pane}"' in body
   css = client.get("/static/app.css").data.decode()
-  wide = css.index("@media (min-width: 900px)")
+  wide = css.index("@media (min-width: 640px)")
   hide = css.index(".settings-main > .set-group { display: none; }")
-  phone = css.index("@media (max-width: 899px)")
+  phone = css.index("@media (max-width: 639px)", wide)
   assert wide < hide < phone, "the pane switch belongs to the wide screen only"
   assert ".settings-main > .set-group:target { display: block; }" in css
   assert ".settings-main > .set-group#profile," in css
@@ -1210,13 +1216,47 @@ def test_a_wide_rail_holds_the_page_where_it_was(app):
   assert 'document.querySelector(".settings-nav")' in script, (
     "the script finds the rail"
   )
-  assert 'window.matchMedia("(min-width: 900px)")' in script, (
-    "only the wide screen swaps panes in place"
+  assert 'window.matchMedia("(min-width: 640px)")' in script, (
+    "a narrow desktop keeps the rail and swaps panes in place"
   )
   assert 'a[href^="#"]' in script, "each rail row is a hash link"
-  assert "requestAnimationFrame" in script and "window.scrollTo(0, y)" in script, (
+  assert "location.replace(" in script, "a row replaces the hash it came from"
+  assert "window.scrollTo(0, y)" in script, (
     "the page returns to the reader's place after the swap"
   )
+
+
+def test_the_workspace_filters_swap_without_a_load(app, db):
+  """A filter narrows one list, so both panels swap in place."""
+  script = app.test_client().get("/static/app.js").data.decode()
+  assert "panel.filters" in script and "panel.records" in script, (
+    "the swap covers both panels"
+  )
+  assert 'history.pushState(null, "", url)' in script, "the URL keeps up without a load"
+  assert 'fetch(url, { headers: { Accept: "text/html" } })' in script, (
+    "the filter reads the next page once"
+  )
+  assert "keepSeg(" in script, "the picked row slides instead of jumping"
+  css = app.test_client().get("/static/app.css").data.decode()
+  assert ".seg-pill" in css, "one pill marks the pick"
+  assert "transition: transform 220ms var(--ease)" in css, "the pill slides"
+  assert ".panel.filters.is-swapping" in css, "the swap fades in"
+
+
+def test_a_new_request_opens_in_the_pane(app, db):
+  """The bar action fills the records pane, and no new tab opens."""
+  script = app.test_client().get("/static/app.js").data.decode()
+  assert 'a[href$="/requests/new"]' in script, "the bar action is the opener"
+  assert 'page.querySelector(".narrow")' in script, "a form page feeds the pane"
+
+
+def test_the_text_size_row_keeps_one_value(app):
+  """The saved note waits for a failure, so the row shows the value once."""
+  script = app.test_client().get("/static/app.js").data.decode()
+  saved = script[script.index("const fontForm") :]
+  saved = saved[: saved.index('range.addEventListener("change", settle);')]
+  assert "Text size ${value}%" not in saved, "the row never repeats its value"
+  assert 'note.textContent = ""' in saved, "a saved size clears the note"
 
 
 def test_admin_row_buttons_match_their_fields(app):

@@ -154,7 +154,7 @@ if (workspaceGrid) {
       const response = await fetch(href);
       if (!response.ok) throw new Error(`card ${response.status}`);
       const page = new DOMParser().parseFromString(await response.text(), "text/html");
-      const card = page.querySelector(".workspace-grid .inspector");
+      const card = page.querySelector(".workspace-grid .inspector") ?? page.querySelector(".narrow");
       if (!card || !inspector) throw new Error("no card");
       closeToken += 1;
       inspector.innerHTML = card.innerHTML;
@@ -187,20 +187,34 @@ if (workspaceGrid) {
     inspector.addEventListener("animationend", finish, { once: true });
   };
 
-  rowLinks.forEach((link) => {
-    link.addEventListener("click", (event) => {
-      if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
-      event.preventDefault();
-      openCard(link.href, link.closest("tr"), true);
-    });
+  // The bar offers a new request, and it opens in the pane like a record does.
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest('a[href$="/requests/new"]');
+    if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+    event.preventDefault();
+    openCard(link.href, null, true);
   });
 
+  // The rows are replaced when a filter swaps, so one listener reads each click.
+  workspaceGrid.addEventListener("click", (event) => {
+    const link = event.target.closest(".record-table tbody a[href]");
+    if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+    if (!link.matches("a[href*='selected='], a[href*='/record/']")) return;
+    event.preventDefault();
+    openCard(link.href, link.closest("tr"), true);
+  });
+
+  const basePath = new URL(baseHref).pathname;
   window.addEventListener("popstate", () => {
-    if (window.location.href === baseHref) {
+    const url = window.location.href;
+    if (url === baseHref) {
       closeCard();
-    } else if (cardHrefs.has(window.location.href)) {
-      const row = rowLinks.find((link) => link.href === window.location.href)?.closest("tr");
-      openCard(window.location.href, row, false);
+    } else if (cardHrefs.has(url)) {
+      const row = rowLinks.find((link) => link.href === url)?.closest("tr");
+      openCard(url, row, false);
+    } else if (new URL(url).pathname === basePath) {
+      // The filters own a change on this page, and they repaint the panels.
+      return;
     } else {
       window.location.reload();
     }
@@ -463,7 +477,7 @@ if (fontForm) {
         headers: { "X-Requested-With": "fetch" },
       });
       if (!response.ok) throw new Error("The text size did not save.");
-      if (note) note.textContent = `Text size ${value}%.`;
+      if (note) note.textContent = "";
     } catch (error) {
       if (note) note.textContent = error.message;
     }
@@ -477,9 +491,13 @@ document.querySelector("#logout-button")?.addEventListener("click", async () => 
   window.location.assign(done.redirect || "/");
 });
 
+// A filter swap replaces the form, so one listener reads each change.
 document.querySelectorAll("form[data-auto-submit]").forEach((form) => {
   form.classList.add("is-auto");
-  form.addEventListener("change", () => form.requestSubmit());
+});
+document.addEventListener("change", (event) => {
+  const form = event.target.closest?.("form[data-auto-submit]");
+  if (form) form.requestSubmit();
 });
 
 /* Modal: one manager for every custom dialog. An opener carries
@@ -580,26 +598,96 @@ document.querySelectorAll("form[data-auto-submit]").forEach((form) => {
   }
 })();
 
-// The settings rail swaps panes in place on a wide screen. Each row is a real
-// anchor, so the browser would also scroll the chosen pane to the top; hold the
-// page where the reader left it.
+// The settings rail swaps panes in place on a wide screen. A plain hash link
+// would scroll the page and add a history entry, so the rail replaces the hash.
 (() => {
   const rail = document.querySelector(".settings-nav");
   if (!rail) return;
-  const wide = window.matchMedia("(min-width: 900px)");
-  const hold = (y) => {
-    const restore = () => {
-      if (window.scrollY !== y) window.scrollTo(0, y);
-    };
-    requestAnimationFrame(() => {
-      restore();
-      requestAnimationFrame(restore);
-    });
-  };
+  const wide = window.matchMedia("(min-width: 640px)");
   rail.addEventListener("click", (event) => {
-    if (!wide.matches || event.defaultPrevented) return;
+    if (!wide.matches) return;
     const link = event.target.closest('a[href^="#"]');
     if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    hold(window.scrollY);
+    event.preventDefault();
+    const y = window.scrollY;
+    location.replace(link.getAttribute("href"));
+    window.scrollTo(0, y);
+  });
+})();
+
+// The workspace filters narrow one list. A full load would blink and reset the
+// scroll, so the two panels swap in place and the rail keeps its place.
+(() => {
+  const grid = document.querySelector(".workspace-grid");
+  if (!grid) return;
+  const filters = grid.querySelector(":scope > .panel.filters");
+  const records = grid.querySelector(":scope > .panel.records");
+  if (!filters || !records) return;
+  let run = 0;
+
+  const keepSeg = (oldSeg, freshSeg) => {
+    if (!oldSeg || !freshSeg) return;
+    oldSeg.dataset.active = freshSeg.dataset.active;
+    const links = oldSeg.querySelectorAll("a");
+    freshSeg.querySelectorAll("a").forEach((fresh, index) => {
+      if (links[index]) links[index].className = fresh.className;
+    });
+    freshSeg.replaceWith(oldSeg);
+  };
+
+  const repaint = (page) => {
+    const nextFilters = page.querySelector(".workspace-grid > .panel.filters");
+    const nextRecords = page.querySelector(".workspace-grid > .panel.records");
+    if (!nextFilters || !nextRecords) return false;
+    const seg = filters.querySelector(".seg");
+    const open = filters.querySelector("#filters-toggle")?.checked;
+    filters.innerHTML = nextFilters.innerHTML;
+    records.innerHTML = nextRecords.innerHTML;
+    keepSeg(seg, filters.querySelector(".seg"));
+    const toggle = filters.querySelector("#filters-toggle");
+    if (toggle && open) toggle.checked = true;
+    for (const panel of [filters, records]) {
+      panel.classList.remove("is-swapping");
+      void panel.offsetWidth;
+      panel.classList.add("is-swapping");
+    }
+    return true;
+  };
+
+  const load = async (url, remember) => {
+    const token = ++run;
+    try {
+      const response = await fetch(url, { headers: { Accept: "text/html" } });
+      if (!response.ok) throw new Error(`filters ${response.status}`);
+      const page = new DOMParser().parseFromString(await response.text(), "text/html");
+      if (token !== run || !repaint(page)) return;
+      if (remember) history.pushState(null, "", url);
+    } catch {
+      window.location.assign(url);
+    }
+  };
+
+  filters.addEventListener("click", (event) => {
+    const link = event.target.closest("a[href]");
+    if (!link || event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const url = new URL(link.href, window.location.href);
+    if (url.pathname !== window.location.pathname || url.hash) return;
+    event.preventDefault();
+    load(url, true);
+  });
+
+  // The status picker sends a GET, and it narrows the same list.
+  grid.addEventListener("submit", (event) => {
+    const form = event.target.closest("form[data-auto-submit]");
+    if (!form || (form.method || "get").toLowerCase() !== "get") return;
+    event.preventDefault();
+    load(new URL(form.action + "?" + new URLSearchParams(new FormData(form))), true);
+  });
+
+  const path = window.location.pathname;
+  window.addEventListener("popstate", () => {
+    if (window.location.pathname !== path) return;
+    load(window.location.href, false);
   });
 })();
