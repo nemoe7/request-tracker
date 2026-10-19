@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 import pytest
 
+from pwedepa.auth import Role, list_roles, users
 from pwedepa.data import db, issues, requests
 from pwedepa.data.seed import SeedError, seed, seed_from_config
 
@@ -83,3 +84,33 @@ def test_a_seed_domain_must_be_in_the_config(tmp_path):
   assert "Gimm" in str(error.value)
   connection = db.connect(tmp_path / "seed.db")
   assert requests.list_requests(connection) == []
+
+
+def test_a_seeded_request_names_a_dummy_requester(tmp_path):
+  connection = db.connect(tmp_path / "seed.db")
+
+  seed(connection, ROWS, at=AT)
+
+  row = requests.list_requests(connection)[0]
+  assert row.requester_id is not None, "a seeded row with no owner reads as a dash"
+  owner = users.get_user(connection, row.requester_id)
+  assert owner.username.startswith("seed-")
+  assert Role.REQUESTER in list_roles(connection, owner.id)
+
+
+def test_a_seeded_issue_keeps_no_requester(tmp_path):
+  connection = db.connect(tmp_path / "seed.db")
+
+  seed(connection, ROWS, at=AT)
+
+  assert issues.list_issues(connection)[0].requester_id is None
+
+
+def test_a_second_seed_adds_no_more_people(tmp_path):
+  connection = db.connect(tmp_path / "seed.db")
+  seed(connection, ROWS, at=AT)
+  people = users.count_users(connection)
+
+  seed(connection, ROWS, at=AT)
+
+  assert users.count_users(connection) == people

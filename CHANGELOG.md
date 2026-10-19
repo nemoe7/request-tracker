@@ -16,6 +16,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - Notification switches now bind at page load. They save on flip, and the
   fallback Save row hides without a theme click.
+- A seeded request carries a dummy requester, so the Requests page names an
+  owner instead of a dash.
 
 ### Changed
 

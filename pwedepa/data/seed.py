@@ -2,6 +2,7 @@
 
 import sys
 from datetime import datetime
+from itertools import cycle
 
 from pwedepa.core import Issue, IssueStatus, Request, RequestStatus, Visibility
 
@@ -11,6 +12,29 @@ from . import requests as requests_data
 
 class SeedError(ValueError):
   pass
+
+
+# Seed rows need an owner, and accounts come from the auth layer. The import
+# waits inside the function so the data package loads on its own.
+PEOPLE = (
+  ("seed-ari", "Ari Cruz"),
+  ("seed-bea", "Bea Lim"),
+  ("seed-carlo", "Carlo Reyes"),
+)
+
+
+def _requesters(db, *, at: datetime) -> list[int]:
+  """Create the demo requesters once, and return their ids."""
+  from pwedepa.auth import Role, assign_role, users
+
+  ids = []
+  for username, display_name in PEOPLE:
+    person = users.get_user_by_username(db, username)
+    if person is None:
+      person = users.create_user(db, username, display_name, at=at)
+    assign_role(db, person.id, Role.REQUESTER, at=at)
+    ids.append(person.id)
+  return ids
 
 
 def _status_enum(kind: str, raw: str):
@@ -61,7 +85,7 @@ def _count_phrase(entries: list) -> str:
   return " and ".join(parts)
 
 
-def _add(db, entry: dict, at: datetime) -> None:
+def _add(db, entry: dict, at: datetime, *, requester_id: int | None = None) -> None:
   if not isinstance(entry, dict):
     raise SeedError("each seed row needs a kind, a title, a description, and a domain")
   kind = str(entry.get("kind", "request")).lower()
@@ -80,6 +104,7 @@ def _add(db, entry: dict, at: datetime) -> None:
         id=0,
         title=title,
         description=description,
+        requester_id=requester_id,
         status=status,
         visibility=Visibility.PUBLIC,
         domains=(domain,),
@@ -111,9 +136,13 @@ def seed(db, entries: list, *, at: datetime) -> int:
     return 0
   if db.exec_driver_sql("SELECT count(*) FROM issues").scalar_one():
     return 0
+  owners = cycle(_requesters(db, at=at))
   try:
     for entry in entries:
-      _add(db, entry, at)
+      owner = None
+      if str(entry.get("kind", "request")).lower() == "request":
+        owner = next(owners)
+      _add(db, entry, at, requester_id=owner)
   except BaseException:
     db.rollback()
     raise
