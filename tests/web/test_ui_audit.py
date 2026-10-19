@@ -1902,3 +1902,25 @@ def test_the_phone_settings_controls_take_the_floor(app):
   assert ".seg-control button { min-width: 44px; min-height: 44px; }" in phone
   assert ".set-row .font-size-control .slider { height: 44px; }" in phone
   assert ".font-size-control .number { min-height: 44px; }" in phone
+
+
+def test_the_chooser_can_fill_the_records_pane(app, db):
+  """The bar action opens the chooser in the pane, so it never comes up empty."""
+  client = _client(app, db, "Mara", "Mara Reyes", roles=(Role.REQUESTER,))
+  page = client.get("/requests/new").get_data(as_text=True)
+  assert 'class="list-page narrow"' in page, "the pane reads the chooser"
+
+
+def test_a_picked_row_carries_no_cell_tint_below_the_pane(app, db):
+  staff = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  css = staff.get("/static/app.css").data.decode()
+  phone = css[css.rindex("@media (max-width: 1199px)") :]
+  rule = phone[phone.index("tr.is-selected td") :].split("}", 1)[0]
+  assert "background: transparent" in rule, "no row reads as picked without the pane"
+
+
+def test_a_typed_token_url_lands_on_the_users_page(app, db):
+  admin = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  answer = admin.get("/admin/tokens")
+  assert answer.status_code == 302
+  assert answer.headers["Location"].endswith("/admin/users")

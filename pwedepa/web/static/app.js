@@ -218,7 +218,7 @@ if (workspaceGrid) {
     inspector.addEventListener("animationend", finish, { once: true });
   };
 
-  // The bar offers a new request, and it opens in the pane like a record does.
+  // The bar offers a new request, and the chooser fills the pane like a record does.
   document.addEventListener("click", (event) => {
     const link = event.target.closest('a[href$="/requests/new"]');
     if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
