@@ -161,6 +161,7 @@ Scheme 2, Slate and blue. Components use tokens from
   Request and issue pages lose the write controls, and the server refuses a
   request or issue write that still arrives. Account settings stay writable.
 - At 1200 px and up the staff grid runs filters 240 px, list fluid, inspector 360 px.
+  The page keeps a 1280 px column, centred, with a 32 px gutter on each side.
   Spacing follows an 8 px scale, rows are 40 px, panels get 10 px radius, and panels
   carry no shadow.
 - Breakpoints sit at 1200, 900, and 640 px. Below 900 px the tabs move to a bottom
