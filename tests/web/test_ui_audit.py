@@ -737,6 +737,15 @@ def test_the_admin_saves_read_as_words(app, db):
     assert label in page and "icon-only" not in button.group(0), path
 
 
+def test_the_admin_config_file_field_looks_like_the_other_fields(app):
+  """The native picker keeps its button, styled to the form."""
+  css = app.test_client().get("/static/app.css").data.decode()
+
+  rule = re.search(r'\.field input\[type="file"\] \{[^}]*\}', css)
+  assert rule and "border-radius: 8px" in rule.group(0)
+  assert "::file-selector-button" in css
+
+
 def test_the_workspace_pane_carries_the_request_view(app, db):
   """The reading pane is the request page, controls and all."""
   client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
