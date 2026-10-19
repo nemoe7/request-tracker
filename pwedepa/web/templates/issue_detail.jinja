@@ -4,10 +4,18 @@
 {% block content %}
 <article class="issue-page">
   <header class="issue-head">
-    <p class="eyebrow">opened by {{ names.get(record.requester_id, "—") }} · {{ (record.created_at | stamp(clock)) if record.created_at else "—" }}</p>
-    <h1><span class="issue-number">#{{ record.id }}</span> {{ record.title }}</h1>
+    <div class="issue-title-line">
+      <h1><span class="issue-number">#{{ record.id }}</span> {{ record.title }}</h1>
+      {{ pill(record.status) }}
+    </div>
+    <p class="byline">
+      <span>{{ names.get(record.requester_id, "—") }}</span>
+      <span class="sep">·</span>
+      <span>{{ (record.created_at | stamp(clock)) if record.created_at else "—" }}</span>
+      <span class="sep">·</span>
+      <span>{{ record.visibility.value | capitalize }} · {{ record.priority.value | capitalize }} priority</span>
+    </p>
     <div class="issue-bar">
-      <p class="issue-state">{{ pill(record.status) }}<span class="vis">{{ record.visibility.value | capitalize }} · {{ record.priority.value | capitalize }} priority</span></p>
       {% if actions or can_edit %}
       <div class="issue-actions">
         {% if actions %}

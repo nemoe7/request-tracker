@@ -277,8 +277,8 @@ def test_the_phone_keeps_a_44_pixel_tap_target(app):
 
 def test_the_stylesheet_holds_one_phone_block(app):
   css = app.test_client().get("/static/app.css").data.decode()
-  assert ".workspace-grid.is-open.is-main .inspector" in css, (
-    "the wide card needs its own rule"
+  assert ".workspace-grid.is-picked .inspector" in css, (
+    "the picked card needs its own rule"
   )
   assert len(re.findall(r"@media \(max-width: 899px\)", css)) == 1, (
     "phones read in one place"
@@ -829,9 +829,9 @@ def test_the_workspace_reads_as_one_mail_table(app, db):
   wrap = re.search(r"\.wrap \{([^}]*)\}", css)
   assert wrap and "margin: 0 auto" in wrap.group(1), "the shell stays a centered column"
   assert "0.85fr" not in css and "1.15fr" not in css, "one grid rule, no dead override"
-  card = re.search(r"\.workspace-grid\.is-open\.is-main \.inspector \{([^}]*)\}", css)
+  card = re.search(r"\.workspace-grid\.is-picked \.inspector \{([^}]*)\}", css)
   assert card and "grid-column: 2 / -1" in card.group(1), (
-    "the open card takes the free width"
+    "the picked card takes the free width"
   )
 
 
@@ -1078,8 +1078,8 @@ def test_reject_asks_for_a_reason_in_a_modal(app, db):
   css = client.get("/static/app.css").data.decode()
   assert ".modal .modal-card h2" in css, "the dialog title keeps its own top margin"
 
-  closed = client.get("/").get_data(as_text=True)
-  assert "reject-request-1" not in closed
+  loaded = client.get("/").get_data(as_text=True)
+  assert "reject-request-1" in loaded, "a load fills the pane, so its modal rides along"
 
 
 def test_prose_in_the_workspace_renders_safe_html(app, db):
@@ -1114,13 +1114,15 @@ def test_the_workspace_keeps_the_rail_when_a_request_opens(app, db):
   )
   requests_data.save(db, record)
 
-  closed = client.get("/").data.decode()
-  assert 'class="workspace-grid"' in closed, "the list opens alone, with no card"
-  assert 'class="workspace-grid is-open"' not in closed
-  assert f"selected={record.id}" in closed, "a row keeps a real link to its card"
+  loaded = client.get("/").data.decode()
+  assert 'class="workspace-grid is-open"' in loaded, "a load fills the pane"
+  assert 'class="workspace-grid is-open is-picked"' not in loaded, (
+    "a default read is not a pick"
+  )
+  assert f"selected={record.id}" in loaded, "a row keeps a real link to its card"
 
   opened = client.get(f"/?selected={record.id}").data.decode()
-  assert 'class="workspace-grid is-open is-main"' in opened
+  assert 'class="workspace-grid is-open is-picked"' in opened
   assert "Back to the list" in opened, "a way back to the table"
 
   css = app.test_client().get("/static/app.css").data.decode()
@@ -1131,18 +1133,21 @@ def test_the_workspace_keeps_the_rail_when_a_request_opens(app, db):
     "the closed card leaves the row"
   )
   assert re.search(
-    r"\.workspace-grid\.is-open \{[^}]*grid-template-columns: 240px minmax\(0, 1fr\)",
+    r"\.workspace-grid\.is-open \{[^}]*grid-template-columns: 240px minmax\(0, 1fr\) 360px",
     css,
-  ), "the rail stays beside the open request"
-  assert re.search(
-    r"\.workspace-grid\.is-open \.records \{ display: none;",
-    css,
-  ), "the list steps aside for the request"
-  assert ".workspace-grid.is-open .filters { display: none; }" in css, (
-    "a phone hides the folded rail"
+  ), "a wide screen keeps the list beside the open request"
+  assert ".workspace-grid.is-open .records { display: none; }" not in css, (
+    "a wide screen never drops the list"
   )
-  assert ".workspace-grid.is-open.is-main .inspector {" in css, (
-    "the open request drops the card frame"
+  assert re.search(
+    r"@media \(max-width: 1199px\) \{[^@]*\.workspace-grid\.is-picked \.records \{ display: none;",
+    css,
+  ), "below 1200 px the picked request takes the column"
+  assert (
+    ".workspace-grid.is-picked .records, .workspace-grid.is-picked .filters" in css
+  ), "a phone hides the list and the folded rail"
+  assert ".workspace-grid.is-picked .inspector {" in css, (
+    "the picked request drops the card frame"
   )
 
   assert ".workspace-grid .inspector { scroll-margin-top" in css, (
@@ -1453,9 +1458,9 @@ def test_admin_rows_draw_the_rule_above(app):
 def test_the_script_opens_the_card_as_wide_as_a_reload(app):
   """A click must land on the same classes the server writes."""
   script = app.test_client().get("/static/app.js").data.decode()
-  assert 'workspaceGrid.classList.add("is-open", "is-main")' in script
+  assert 'workspaceGrid.classList.add("is-open", "is-main", "is-picked")' in script
   assert 'inspector.classList.add("is-main")' in script
-  assert 'workspaceGrid.classList.remove("is-open", "is-main")' in script
+  assert 'workspaceGrid.classList.remove("is-open", "is-main", "is-picked")' in script
 
 
 def test_titles_lead_with_the_product(app, db):
@@ -1685,3 +1690,120 @@ def test_the_icon_tints_come_from_tokens(app):
   for tint in ("blue", "indigo", "green", "red", "amber", "gray"):
     assert f".chip-{tint} {{ background: var(--chip-{tint}); }}" in css
   assert "#4F46E5" not in css, "no component keeps a raw chip hex"
+
+
+def test_the_type_scale_keeps_six_steps(app):
+  """A screen that carries ten sizes reads as ten voices."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  steps = {float(size) for size in re.findall(r"font-size: calc\(([\d.]+)px", css)}
+  assert steps == {11.0, 12.0, 13.0, 14.0, 15.0, 20.0, 28.0}, sorted(steps)
+
+
+def test_one_caps_treatment_remains(app):
+  """Only the page eyebrow sets caps, so no label needs a second voice."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  assert css.count("text-transform: uppercase") == 1
+  eyebrow = css[css.index(".eyebrow {") :].split("}", 1)[0]
+  assert "uppercase" in eyebrow
+  assert "letter-spacing: 0.08em" in eyebrow
+
+
+def test_the_page_title_runs_at_six_hundred(app):
+  css = app.test_client().get("/static/app.css").data.decode()
+  rule = css[css.index("h1 {") :].split("}", 1)[0]
+  assert "28px" in rule and "font-weight: 600" in rule
+
+
+def test_the_record_title_line_holds_the_state(app, db):
+  """GitHub puts the state beside the title, and the author under it."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  person = users.get_user_by_username(db, "Ada")
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title="Broken projector",
+      description="The projector in Room 4 is dead.",
+      requester_id=person.id,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+
+  page = client.get("/?selected=1").data.decode()
+  line = page[
+    page.index('class="issue-title-line"') : page.index(
+      "</div>", page.index('class="issue-title-line"')
+    )
+  ]
+  assert "<h1>" in line, "the title leads the line"
+  assert 'class="pill st-' in line, "the state sits beside the title"
+
+  byline = page[page.index('class="byline"') :].split("</p>", 1)[0]
+  assert "Ada Admin" in byline, "the author sits under the title"
+  assert "2d ago" in byline, "the age sits with the author"
+  assert "opened by" not in page, "the old kicker is gone"
+
+
+def test_a_comment_carries_a_rule_not_a_card(app):
+  """One joined timeline reads down the page, so no comment draws a box."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  rule = css[css.index(".timeline-comment {") :].split("}", 1)[0]
+  assert "border-bottom: 1px solid var(--line)" in rule
+  assert "border-radius" not in rule
+  assert "background: none" in rule
+
+
+def test_profile_leads_with_the_account_facts(app, db):
+  from pwedepa.data import preferences
+
+  person = users.create_user(db, "Ada", "Ada Admin", at=AT)
+  assign_role(db, person.id, Role.ADMIN, at=AT)
+  token = sessions.create_session(db, person.id, at=AT).token
+  client = app.test_client()
+  client.set_cookie(SESSION_COOKIE, token)
+  preferences.set_clock(db, person.id, "24")
+
+  body = client.get("/settings").data.decode()
+  facts = body[body.index('class="set-list set-facts"') :].split("</dl>", 1)[0]
+  assert "Member since" in facts and "Oct 2026" in facts
+  assert "Admin" in facts
+  assert "Last sign-in" in facts
+  assert body.index("set-facts") < body.index('action="/settings/profile"')
+
+
+def test_the_client_list_carries_a_last_reply_line(app, db):
+  from pwedepa.core import Event
+  from pwedepa.data import events as events_data
+
+  person = users.create_user(db, "Mara", "Mara Reyes", at=AT)
+  token = sessions.create_session(db, person.id, at=AT).token
+  client = app.test_client()
+  client.set_cookie(SESSION_COOKIE, token)
+  for number, title in ((1, "Broken projector"), (2, "Ladder audit")):
+    requests_data.save(
+      db,
+      Request(
+        id=number,
+        title=title,
+        description="A line.",
+        requester_id=person.id,
+        created_at=AT,
+        updated_at=AT,
+      ),
+    )
+  events_data.append(
+    db,
+    "request",
+    1,
+    Event(
+      event_type="request.comment",
+      actor_id=person.id,
+      at=AT,
+      data={"text": "A new bulb is on order."},
+    ),
+  )
+
+  body = client.get("/requests").data.decode()
+  assert "Mara Reyes replied ·" in body, "the row names the last reply"
+  assert "No replies yet" in body, "a quiet row says so"

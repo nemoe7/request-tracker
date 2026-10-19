@@ -158,7 +158,7 @@ if (workspaceGrid) {
   const hideCard = () => {
     inspector.innerHTML = baseCard;
     inspector.classList.remove("is-main");
-    workspaceGrid.classList.remove("is-open", "is-main");
+    workspaceGrid.classList.remove("is-open", "is-main", "is-picked");
     workspaceGrid.querySelector("tr.is-selected")?.classList.remove("is-selected");
   };
 
@@ -178,7 +178,7 @@ if (workspaceGrid) {
       closeToken += 1;
       inspector.innerHTML = card.innerHTML;
       inspector.classList.add("is-main");
-      workspaceGrid.classList.add("is-open", "is-main");
+      workspaceGrid.classList.add("is-open", "is-main", "is-picked");
       workspaceGrid.querySelector("tr.is-selected")?.classList.remove("is-selected");
       row?.classList.add("is-selected");
       revealCard();
@@ -197,7 +197,7 @@ if (workspaceGrid) {
       failed.append("This record did not load. ", link, ".");
       inspector.append(failed);
       inspector.classList.add("is-main");
-      workspaceGrid.classList.add("is-open", "is-main");
+      workspaceGrid.classList.add("is-open", "is-main", "is-picked");
     } finally {
       busy(false);
     }

@@ -2,7 +2,7 @@
 {% from "_parts.jinja" import pill, event_line %}
 {% block title %}PwedePa | Workspace{% endblock %}
 {% block content %}
-<div class="workspace-grid{% if selected %} is-open is-main{% endif %}">
+<div class="workspace-grid{% if selected %} is-open{% endif %}{% if picked %} is-picked{% endif %}">
   <p class="sr-only" role="status" data-filter-status></p>
   <aside class="panel filters" aria-label="Queue filters">
     <input class="filters-toggle" type="checkbox" id="filters-toggle">
@@ -83,7 +83,7 @@
     {% endif %}
   </section>
 
-  <aside class="panel inspector{% if selected %} is-main{% endif %}" aria-label="Request">
+  <aside class="panel inspector" aria-label="Request">
     {% if selected %}
     {% set back_href = url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter) %}
     {% set record = selected %}

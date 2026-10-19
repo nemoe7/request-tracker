@@ -4,12 +4,20 @@
     <div class="issue-title-row">
       {% if back_href %}<a class="back-to-list" href="{{ back_href }}" aria-label="Back to the list" title="Back to the list"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#arrow-left"/></svg></a>{% endif %}
       <div class="issue-title-text">
-        <p class="eyebrow">opened by {{ names.get(record.requester_id, "—") }} · {{ (record.created_at | stamp(clock)) if record.created_at else "—" }}</p>
-        <h1><span class="issue-number">#{{ record.id }}</span> {{ record.title }}</h1>
+        <div class="issue-title-line">
+          <h1><span class="issue-number">#{{ record.id }}</span> {{ record.title }}</h1>
+          {{ pill(record.status) }}
+        </div>
+        <p class="byline">
+          <span>{{ names.get(record.requester_id, "—") }}</span>
+          <span class="sep">·</span>
+          <span>{{ (record.created_at | stamp(clock)) if record.created_at else "—" }}</span>
+          <span class="sep">·</span>
+          <span>{{ record.visibility.value | capitalize }}</span>
+        </p>
       </div>
     </div>
     <div class="issue-bar">
-      <p class="issue-state">{{ pill(record.status) }}<span class="vis">{{ record.visibility.value | capitalize }}</span></p>
       {% if actions or can_edit %}
       <div class="issue-actions">
         {% if actions %}

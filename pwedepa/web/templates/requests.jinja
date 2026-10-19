@@ -12,9 +12,17 @@
   <section class="client-dash is-open is-main">
     <div class="panel inspector is-main">
       <a class="back-to-list" href="{{ url_for('records.requests') }}" aria-label="Back to the list" title="Back to the list"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#arrow-left"/></svg></a>
-      <p class="eyebrow">Request #{{ selected.id }} · by {{ names.get(selected.requester_id, "—") }}</p>
-      <h2>{{ selected.title }}</h2>
-      <p>{{ pill(selected.status) }}<span class="vis">{{ selected.visibility.value | capitalize }}</span></p>
+      <div class="issue-title-line">
+        <h2><span class="issue-number">#{{ selected.id }}</span> {{ selected.title }}</h2>
+        {{ pill(selected.status) }}
+      </div>
+      <p class="byline">
+        <span>{{ names.get(selected.requester_id, "—") }}</span>
+        <span class="sep">·</span>
+        <span>{{ (selected.created_at | stamp(clock)) if selected.created_at else "—" }}</span>
+        <span class="sep">·</span>
+        <span>{{ selected.visibility.value | capitalize }}</span>
+      </p>
       <div class="desc prose">{{ selected.description | prose if selected.description else "No description." }}</div>
       <a class="btn" href="{{ request_open_path(selected) }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#arrow-right"/></svg>Open request</a>
     </div>
@@ -28,6 +36,11 @@
       <div class="record-row-main">
         <h2><a class="row-open" href="{{ request_open_path(record) }}">{{ record.title }}</a></h2>
         <p class="meta">{{ pill(record.status) }} <span class="id">#{{ record.id }}</span> · {{ record.visibility.value | capitalize }}{% if record.domains %} · {{ record.domains | join(", ") }}{% endif %}</p>
+        {% if replies.get(record.id) %}
+        <p class="reply">{{ names.get(replies[record.id].actor_id, "Someone") }} replied · {{ replies[record.id].at | stamp(clock) }}</p>
+        {% else %}
+        <p class="reply muted">No replies yet</p>
+        {% endif %}
       </div>
     </li>
     {% endfor %}
@@ -49,6 +62,11 @@
       <div class="record-row-main">
         <h2><a class="row-open" href="{{ request_open_path(record) }}">{{ record.title }}</a></h2>
         <p class="meta">{{ pill(record.status) }} <span class="id">#{{ record.id }}</span> · by {{ names.get(record.requester_id, "—") }}</p>
+        {% if replies.get(record.id) %}
+        <p class="reply">{{ names.get(replies[record.id].actor_id, "Someone") }} replied · {{ replies[record.id].at | stamp(clock) }}</p>
+        {% else %}
+        <p class="reply muted">No replies yet</p>
+        {% endif %}
       </div>
     </li>
     {% endfor %}

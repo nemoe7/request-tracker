@@ -30,6 +30,29 @@ def append(
     db.commit()
 
 
+def newest_comments(
+  db: Connection, object_type: str, object_ids: list[int]
+) -> dict[int, Event]:
+  """The newest comment per record, keyed by record id."""
+  if not object_ids:
+    return {}
+  marks = ", ".join("?" for _ in object_ids)
+  rows = db.exec_driver_sql(
+    "SELECT * FROM events WHERE object_type = ? AND event_type = ? "
+    f"AND object_id IN ({marks}) ORDER BY id",
+    (object_type, f"{object_type}.comment", *object_ids),
+  )
+  newest: dict[int, Event] = {}
+  for row in rows:
+    newest[row._mapping["object_id"]] = Event(
+      event_type=row._mapping["event_type"],
+      actor_id=row._mapping["actor_id"],
+      at=unpack_time(row._mapping["at"]),
+      data=json.loads(row._mapping["data"]),
+    )
+  return newest
+
+
 def list_for(
   db: Connection, object_type: str, object_id: int, *, limit: int | None = None
 ) -> list[Event]:

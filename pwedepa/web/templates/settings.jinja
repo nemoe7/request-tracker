@@ -35,6 +35,11 @@
         <h2>Profile</h2>
         <p>Your name, username, and account status.</p>
       </header>
+      <dl class="set-list set-facts">
+        <div class="set-row"><dt class="set-label">Member since</dt><dd class="set-value">{{ user.created_at.strftime("%b %Y") if user.created_at else "—" }}</dd></div>
+        <div class="set-row"><dt class="set-label">Role</dt><dd class="set-value">{{ roles }}</dd></div>
+        <div class="set-row"><dt class="set-label">Last sign-in</dt><dd class="set-value">{{ (last_used | stamp(clock)) if last_used else "—" }}</dd></div>
+      </dl>
       <form method="post" action="{{ url_for('settings.profile') }}" data-auto-submit>
         <label class="set-row">
           <span class="set-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg></span>

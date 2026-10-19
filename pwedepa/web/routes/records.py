@@ -342,10 +342,12 @@ def workspace() -> str | Response:
     row_kind = "request"
 
   selected = None
+  picked = False
   selected_id = request.args.get("selected", type=int)
   if row_kind == "request" and selected_id:
     # A move can filter the row out. The open request keeps its pane either way.
     selected = next((r for r in all_requests if r.id == selected_id), None)
+    picked = selected is not None
   if selected is not None:
     workspace_reads.mark(db(), user.id, "request", selected.id, at=now())
   read_ids = workspace_reads.read_ids(db(), user.id, row_kind)
@@ -353,6 +355,16 @@ def workspace() -> str | Response:
   rows = [row for row in rows if row.id not in read_ids] + [
     row for row in rows if row.id in read_ids
   ]
+  if (
+    selected is None
+    and row_kind == "request"
+    and rows
+    and not current_app.config.get("DEMO_MODE")
+  ):
+    # A wide screen keeps the pane open, so a load with no choice fills it.
+    # The default read stays unread until someone picks the row. The frozen
+    # demo opens one record per page instead, so a static file holds no form.
+    selected = rows[0]
   domains = sorted({d for r in all_requests + all_issues for d in r.domains})
   # Each value keeps its own quotes, so a domain with a comma stays one item.
   filters = [
@@ -379,6 +391,7 @@ def workspace() -> str | Response:
     row_kind=row_kind,
     read_ids=read_ids,
     selected=selected,
+    picked=picked,
     selected_actions=_request_actions(actor, selected) if selected else [],
     selected_events=(
       events_data.list_for(db(), "request", selected.id) if selected else []
@@ -451,6 +464,7 @@ def requests() -> str | Response:
     mine=mine,
     public=public,
     visible=visible,
+    replies=events_data.newest_comments(db(), "request", [r.id for r in visible]),
     selected=selected,
     status_words=STATUS_WORDS,
     names=_names(),

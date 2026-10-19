@@ -110,8 +110,8 @@ def test_the_opened_item_takes_the_wide_card(db, staff):
   _request(db, 1, person.id, "Rope climb plan")
 
   body = client.get("/?selected=1").get_data(as_text=True)
-  assert 'class="workspace-grid is-open is-main"' in body
-  assert 'class="panel inspector is-main"' in body
+  assert 'class="workspace-grid is-open is-picked"' in body
+  assert 'class="panel inspector"' in body
 
 
 def test_the_mobile_view_offers_a_way_back(db, staff):

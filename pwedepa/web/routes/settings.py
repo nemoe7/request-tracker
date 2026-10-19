@@ -11,6 +11,7 @@ from pwedepa.auth import (
   update_display_name,
   update_username,
 )
+from pwedepa.auth.sessions import last_used
 from pwedepa.data import notifications as notifications_data
 from pwedepa.data import preferences as preferences_data
 
@@ -22,10 +23,13 @@ bp = Blueprint("settings", __name__)
 
 def _page(user, **extra) -> str:
   """Render the settings page for one user, with an optional modal error."""
+  roles = list_roles(db(), user.id)
   context = {
     "passkeys": list_passkeys(db(), user.id),
     "preferences": notifications_data.preferences(db(), user.id),
-    "is_admin": Role.ADMIN in list_roles(db(), user.id),
+    "is_admin": Role.ADMIN in roles,
+    "roles": ", ".join(role.value.capitalize() for role in roles) or "—",
+    "last_used": last_used(db(), user.id),
     "username_error": None,
     "username_value": None,
   }

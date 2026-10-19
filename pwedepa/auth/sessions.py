@@ -123,6 +123,16 @@ def rotate_session(
   return issued
 
 
+def last_used(db: Connection, user_id: int) -> datetime | None:
+  """The newest session stamp for one person, which reads as the last sign-in."""
+  row = db.exec_driver_sql(
+    "SELECT MAX(COALESCE(last_used_at, created_at)) AS seen FROM sessions WHERE user_id = ?",
+    (user_id,),
+  ).fetchone()
+  value = row._mapping["seen"] if row is not None else None
+  return unpack_time(value) if value else None
+
+
 def revoke_session(db: Connection, token: str, *, at: datetime) -> bool:
   row = _find_token(db, token)
   if row is None:

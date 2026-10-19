@@ -31,14 +31,18 @@ rule adds.
   member keeps their own read list. One toolbar over the table holds the title, the
   status filter, and the Issues link. New request sits in the top bar as an icon,
   because staff triage and clients make requests. The open row carries an accent
-  edge on its first cell. The opened request replaces the list in the main column,
-  and the rail stays, as Gmail reads a message. It carries the same view as its
+  edge on its first cell. At 1200 px and up the reading pane stays open beside
+  the list. The chosen row fills it, and the first row fills it on a load with no
+  choice. Below 1200 px the opened request replaces the list in the main column,
+  and the rail stays. It carries the same view as its
   page, with state controls, the comment box, and sharing. A Back arrow returns
   to the filtered table, and a pencil opens the edit form. A staff link to a request opens the
   workspace instead of the record page. Clients keep the record page.
-- Request and issue pages follow the GitHub issue shape. The title carries the
-  number and the state. One comment timeline holds the description and the
-  comments. A right sidebar holds the people, labels, priority, and details.
+- Request and issue pages follow the GitHub issue shape. The title line holds the
+  number, the title, and the state, with the author and age beside it. The
+  workspace pane reads the same. One comment timeline holds the description, the
+  comments, and the action events, oldest first, with no border per comment. A
+  right sidebar holds the people, labels, priority, and details.
 - Prose blocks read as markdown with inline html, the way a mail client reads a
   message. A sanitizer drops every unsafe tag, attribute, and url scheme.
 - A reject asks for a reason, in one dialog. Cancel, Escape, and the
@@ -53,7 +57,9 @@ rule adds.
 - A client sees a mini dashboard at the top of the Requests page. Their own requests
   and the public board read as dense rows, each with its state and a card link. A
   selected item opens as the wide card, and a phone shows it alone. The client
-  surface stays one 720 px column.
+  surface stays one 720 px column, and each row carries a last-reply line.
+- Profile leads with the account facts: member since, role, and last sign-in.
+  The rows follow.
 - Settings read as grouped rows. A rail picks one group at a time, the label sits
   left, and its control sits right. A chevron shows only when the row navigates.
   The pattern stays inside Settings. A phone stacks every group. A switch saves the
@@ -136,8 +142,12 @@ Scheme 2, Slate and blue. Components use tokens from
 
 - Inter, self-hosted woff2 in 400, 600, and 800, under the SIL Open Font License 1.1.
 - IDs, counts, and ages use the ui-monospace stack with tabular figures.
-- Scale: 11 px uppercase eyebrows, 12 px meta, 15 px body, 20 px panel titles, and
-  28 px page titles.
+- Scale: 12, 13, 14, 15, 20, and 28 px. The eyebrow keeps 11 px, and an ID keeps
+  the 12 px mono face.
+- One caps treatment, for the page eyebrow only: 11 px at 0.08 em. A group heading
+  reads sentence case at 12 px at weight 600, and a pane carries one heading
+  treatment.
+- Page titles read 28 px at 600, and a panel title reads 20 px at 600.
 
 ![A type ramp: a page title, a panel title, body, meta, an eyebrow, and a mono ID](images/type.png)
 

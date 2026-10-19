@@ -88,6 +88,15 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - A settings group leads with its plain name and one line over the rows. The
   icon tile and the centred banner are gone.
 - The workspace fills a wide screen, and the Issues page keeps one narrow column.
+- The type scale runs six steps. A page title reads at 600, and one caps
+  treatment remains, for the page eyebrow.
+- A record leads with its number, title, and state, then the author and the age.
+  The workspace pane reads the same.
+- Comments and events share one timeline. A comment carries a rule, not a card.
+- At 1200 px and up the workspace keeps its reading pane open beside the list.
+  A pick takes the whole column below that width.
+- Profile leads with member since, role, and last sign-in. A client row carries
+  its last reply.
 - The audit log names each event in words, and the Admin save buttons carry their
   words.
 - A local run reads the Markdown linter from `package-lock.json`.
