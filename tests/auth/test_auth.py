@@ -363,7 +363,7 @@ def test_admin_cli_issues_an_admin_token(tmp_path, capsys):
   token = next(
     line.split(": ", 1)[1].strip()
     for line in output.splitlines()
-    if line.startswith("Enrollment token: ")
+    if line.startswith("Sign-up token: ")
   )
 
   connection = data_db.connect(database)

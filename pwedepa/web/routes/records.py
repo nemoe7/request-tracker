@@ -478,7 +478,7 @@ def request_new() -> str | Response:
   if user is None:
     return redirect(url_for("pages.login"))
   if not authorize(_actor(user), "request.create"):
-    flash("Your account cannot create requests.")
+    flash("Ask an admin for the Requester role.")
     return redirect(url_for("records.requests"))
   domains = _configured_domains()
   if len(domains) == 1:
@@ -495,7 +495,7 @@ def request_new_in_domain(slug: str) -> str | Response:
   if user is None:
     return redirect(url_for("pages.login"))
   if not authorize(_actor(user), "request.create"):
-    flash("Your account cannot create requests.")
+    flash("Ask an admin for the Requester role.")
     return redirect(url_for("records.domain_page", slug=slug))
   return render_template(
     "request_form.jinja",
@@ -510,7 +510,7 @@ def _create_request(user, domain_name: str) -> Response | None:
   """Create a request in one Domain, or return the redirect to send back."""
   actor = _actor(user)
   if not authorize(actor, "request.create"):
-    flash("Your account cannot create requests.")
+    flash("Ask an admin for the Requester role.")
     return redirect(url_for("records.requests"))
   title = request.form.get("title", "").strip()
   if not title:
@@ -609,7 +609,7 @@ def request_transition(request_id: int) -> Response:
   record, actor = _load_request(actor, request_id)
   target = choice(RequestStatus, request.form.get("target", ""), None)
   if target is None:
-    flash("This record cannot move to that status.")
+    flash("That status is not on this record. Reload the page and try again.")
     return redirect(record_path(record))
   at = now()
   try:
@@ -649,7 +649,7 @@ def request_comment(request_id: int) -> Response:
     events_data.append(db(), "request", record.id, event)
     _notify_event("request", record, event)
   elif text:
-    flash("You cannot comment on this request.")
+    flash("Ask an admin for comment access.")
   return redirect(safe_next() or record_path(record))
 
 
@@ -779,7 +779,7 @@ def issue_transition(issue_id: int) -> Response:
   record, actor = _load_issue(actor, issue_id)
   target = choice(IssueStatus, request.form.get("target", ""), None)
   if target is None:
-    flash("This record cannot move to that status.")
+    flash("That status is not on this record. Reload the page and try again.")
     return redirect(record_path(record, "issue"))
   try:
     change = transition_issue(record, target, actor, at=now())
@@ -824,7 +824,7 @@ def issue_comment(issue_id: int) -> Response:
     events_data.append(db(), "issue", record.id, event)
     _notify_event("issue", record, event)
   elif text:
-    flash("You cannot comment on this issue.")
+    flash("Ask an admin for comment access.")
   return redirect(record_path(record, "issue"))
 
 
@@ -837,7 +837,7 @@ def issue_new_in_domain(slug: str) -> str | Response:
   if user is None:
     return redirect(url_for("pages.login"))
   if not is_staff(user):
-    flash("Your account cannot create issues.")
+    flash("Ask an admin for the Assignee role.")
     return redirect(url_for("records.domain_page", slug=slug))
   return render_template(
     "issue_form.jinja",
@@ -859,7 +859,7 @@ def issue_create_in_domain(slug: str) -> Response:
     return redirect(url_for("pages.login"))
   actor = _actor(user)
   if not authorize(actor, "issue.create"):
-    flash("Your account cannot create issues.")
+    flash("Ask an admin for the Assignee role.")
     return redirect(url_for("records.domain_page", slug=slug))
   title = request.form.get("title", "").strip()
   if not title:

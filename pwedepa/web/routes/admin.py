@@ -103,8 +103,8 @@ def domain_config_add() -> Response:
   description = str(request.form.get("description", "")).strip()
   try:
     found = domain_store.add(current_app.config["DATABASE"], name, description)
-  except domains_data.DomainConfigError as error:
-    flash(f"Could not add the Domain: {error}")
+  except domains_data.DomainConfigError:
+    flash("The domain was not added. Check the name and try again.")
     return redirect(url_for("admin.domain_config"))
   record_audit(
     db(),
@@ -142,13 +142,13 @@ def domain_config_remove() -> Response:
     name = found.name if found else slug
     flash(
       f"{name} has {_held_phrase(requests, issues)}. "
-      'To remove them too, tick "Delete its Requests and Issues".'
+      'To remove them too, tick "Remove its Requests and Issues too".'
     )
     return redirect(url_for("admin.domain_config"))
   try:
     gone = domain_store.remove(db_path, slug)
-  except domains_data.DomainConfigError as error:
-    flash(f"Could not remove the Domain: {error}")
+  except domains_data.DomainConfigError:
+    flash("The domain was not removed. Reload the page and try again.")
     return redirect(url_for("admin.domain_config"))
   record_audit(
     db(),
@@ -176,8 +176,8 @@ def domain_config_rename() -> Response:
     found = domain_store.rename(
       current_app.config["DATABASE"], slug, name=name, new_slug=new_slug
     )
-  except domains_data.DomainConfigError as error:
-    flash(f"Could not rename the Domain: {error}")
+  except domains_data.DomainConfigError:
+    flash("The domain was not renamed. Check the name and try again.")
     return redirect(url_for("admin.domain_config"))
   record_audit(
     db(),
@@ -203,8 +203,8 @@ def domain_config_import() -> Response:
   source = uploaded.filename
   try:
     found = domains_data.import_bytes(raw, db_path)
-  except domains_data.DomainConfigError as error:
-    flash(f"Could not import the config file: {error}")
+  except domains_data.DomainConfigError:
+    flash("The config file was not imported. Check the YAML and try again.")
     return redirect(url_for("admin.domain_config"))
   record_audit(
     db(),
@@ -248,8 +248,8 @@ def issue_token() -> Response:
     )
     session["issued_enrollment"] = {"token": issued.token}
     flash("Sign-up token created. Copy it now.")
-  except (AuthError, ValueError) as error:
-    flash(str(error))
+  except (AuthError, ValueError):
+    flash("The sign-up token was not created. Try again.")
   return redirect(url_for("admin.users"))
 
 
@@ -306,8 +306,8 @@ def passkey_revoke(passkey_id: int) -> Response:
   try:
     revoke_passkey(db(), passkey_id, at=now(), actor_id=g.admin_user.id)
     flash("Passkey revoked.")
-  except AuthError as error:
-    flash(str(error))
+  except AuthError:
+    flash("The passkey was not revoked. Try again.")
   return redirect(url_for("admin.users"))
 
 
@@ -351,7 +351,7 @@ def site_message() -> Response:
     object_type="site",
     object_id=None,
   )
-  flash("Landing message saved.")
+  flash("Site message saved.")
   return redirect(url_for("admin.overview"))
 
 

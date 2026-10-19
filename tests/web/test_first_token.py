@@ -12,7 +12,7 @@ def test_the_first_start_prints_one_admin_token(tmp_path, capsys):
   token = next(
     line.split(": ", 1)[1].strip()
     for line in out.splitlines()
-    if line.startswith("Enrollment token: ")
+    if line.startswith("Sign-up token: ")
   )
 
   connection = data_db.connect(app.config["DATABASE"])
@@ -22,4 +22,4 @@ def test_the_first_start_prints_one_admin_token(tmp_path, capsys):
 
   print_first_token(app)
   second = capsys.readouterr().out
-  assert "Enrollment token: " not in second
+  assert "Sign-up token: " not in second

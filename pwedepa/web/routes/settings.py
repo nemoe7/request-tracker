@@ -58,9 +58,9 @@ def profile() -> Response:
       at=now(),
       actor_id=user.id,
     )
-    flash("Display name saved.")
-  except AuthError as error:
-    flash(str(error))
+    flash("Profile name saved.")
+  except AuthError:
+    flash("The name was not saved. Try again.")
   return redirect(url_for("settings.settings"))
 
 
@@ -104,7 +104,7 @@ def clock() -> Response:
   elif request.headers.get("X-Requested-With") == "fetch":
     return Response("", status=400)
   else:
-    flash("Unknown time format.")
+    flash("Pick 12-hour or 24-hour.")
   return redirect(url_for("settings.settings"))
 
 

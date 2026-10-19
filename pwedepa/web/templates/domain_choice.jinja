@@ -3,7 +3,7 @@
 {% block content %}
 <div class="list-page">
   <p class="eyebrow">New request</p>
-  <h1>Which Domain is this for?</h1>
+  <h1>Which domain is this for?</h1>
   <p class="desc">A request belongs to one Domain. Pick it and the form opens there.</p>
   <ul class="record-list">
     {% for domain in domains %}
@@ -14,7 +14,7 @@
       </div>
     </li>
     {% else %}
-    <li class="record-row"><div class="record-row-main"><p class="muted">No Domain is configured yet.</p></div></li>
+    <li class="record-row"><div class="record-row-main"><p class="muted">No domains exist yet.</p></div></li>
     {% endfor %}
   </ul>
   <p class="section-actions"><a class="btn" href="{{ url_for('records.requests') }}">Cancel</a></p>

@@ -4,14 +4,14 @@
 <section class="auth-card panel">
   <p class="eyebrow">First time</p>
   <h1>Enroll a passkey</h1>
-  <p class="muted">Paste the one-time token from your admin, then choose a name. The token stops working once your passkey is made, and you are signed in straight after.</p>
+  <p class="muted">Paste the sign-up token from your admin, then choose a name. The token stops working after you make your passkey, and PwedePa signs you in straight after.</p>
   <form id="enroll-form">
-    <label for="token">Enrollment token</label>
+    <label for="token">Sign-up token</label>
     <input id="token" name="token" type="text" autocomplete="off" required placeholder="Paste your token">
     <label for="username">Username</label>
     <input id="username" name="username" type="text" autocomplete="username" required placeholder="Your username">
-    <label for="display-name">Display name</label>
-    <input id="display-name" name="display_name" type="text" autocomplete="name" required placeholder="Your display name">
+    <label for="display-name">Profile name</label>
+    <input id="display-name" name="display_name" type="text" autocomplete="name" required placeholder="Your name">
     <button class="btn primary big" type="submit">Create my passkey</button>
   </form>
   <p class="status" id="status" role="status"></p>

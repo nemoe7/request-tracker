@@ -35,7 +35,7 @@
         </form>
         <form class="form" method="post" action="{{ url_for('admin.domain_config_remove') }}">
           <input type="hidden" name="slug" value="{{ domain.slug }}">
-          <label class="check"><input type="checkbox" name="confirm" value="yes"> Delete its Requests and Issues too</label>
+          <label class="check"><input type="checkbox" name="confirm" value="yes"> Remove its Requests and Issues too</label>
           <div class="form-actions"><button class="btn danger" type="submit">Remove</button></div>
         </form>
       </div>
@@ -47,7 +47,7 @@
 
 <div class="admin-config-forms">
   <section class="panel admin-section">
-    <h2>Add a Domain</h2>
+    <h2>Add a domain</h2>
     <form class="form" method="post" action="{{ url_for('admin.domain_config_add') }}">
       <div class="field">
         <label for="domain-name">Name</label>
@@ -57,7 +57,7 @@
         <label for="domain-description">Description</label>
         <input id="domain-description" name="description" type="text">
       </div>
-      <div class="form-actions"><button class="btn" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Add Domain</button></div>
+      <div class="form-actions"><button class="btn" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Add domain</button></div>
     </form>
   </section>
 

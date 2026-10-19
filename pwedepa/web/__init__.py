@@ -47,7 +47,7 @@ def print_first_token(app: Flask) -> None:
       )
       return
     issued = tokens.issue_enrollment_token(connection, role=Role.ADMIN, at=at)
-    print(f"Enrollment token: {issued.token}", flush=True)
+    print(f"Sign-up token: {issued.token}", flush=True)
   finally:
     connection.close()
 

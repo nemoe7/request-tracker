@@ -11,7 +11,7 @@
     <div class="field field-wide">
       <label for="f-description">Description</label>
       <textarea id="f-description" name="description" rows="5">{{ record.description if record else '' }}</textarea>
-      <p class="help">Say what you need and how you will know it is finished.</p>
+      <p class="help">Say what you need, and what done looks like.</p>
     </div>
     <div class="field">
       {% if domain and not record %}
@@ -30,9 +30,9 @@
         <option value="{{ entry.name }}">{{ entry.name }}</option>
         {% endfor %}
       </select>
-      <p class="help">A request belongs to one Domain.</p>
+      <p class="help">A request belongs to one domain.</p>
       {% else %}
-      <p class="help">No Domain is configured.</p>
+      <p class="help">No domains exist yet.</p>
       {% endif %}
       {% endif %}
     </div>

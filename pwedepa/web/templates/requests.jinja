@@ -48,7 +48,7 @@
   {% else %}
   <div class="empty panel">
     <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="48" height="48">
-    <p>You have no requests yet.</p>
+    <p>No requests yet.</p>
     <a class="btn primary" href="{{ url_for('records.request_new') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Make your first request</a>
   </div>
   {% endif %}

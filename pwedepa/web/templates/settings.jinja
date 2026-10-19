@@ -42,7 +42,7 @@
       <form method="post" action="{{ url_for('settings.profile') }}" data-auto-submit>
         <label class="set-row">
           <span class="set-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg></span>
-          <span class="set-label">Display name</span>
+          <span class="set-label">Profile name</span>
           <input class="set-input" type="text" name="display_name" value="{{ user.display_name }}" required>
         </label>
         <button class="set-row link-row" type="button" data-modal-open="change-username">
@@ -62,7 +62,7 @@
       <form class="modal-form" method="post" action="{{ url_for('settings.username') }}">
         <label for="change-username-field">New username</label>
         <input id="change-username-field" type="text" name="username" value="{{ username_value or user.username }}" required>
-        <p class="help">If another account holds the name, the save is refused.</p>
+        <p class="help">If another account has that username, pick another.</p>
         {% if username_error %}<p class="modal-error" role="alert">{{ username_error }}</p>{% endif %}
         <div class="modal-actions">
           <button class="btn" type="button" data-modal-close>Cancel</button>
@@ -100,7 +100,7 @@
         </div>
       </form>
       <p class="set-note" role="status" data-clock-status></p>
-      <p class="set-note">Times under 72 hours old show short, like 3h ago.</p>
+      <p class="set-note">Times under 72 hours show short, like 3h ago.</p>
       <form class="set-list" method="post" action="{{ url_for('settings.font_size') }}" data-font-size-form>
         <div class="set-row set-row-stack">
           <span class="set-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#type"/></svg></span>
@@ -168,7 +168,7 @@
     <section class="set-group" id="admin" aria-label="Admin">
       <header class="pane-head">
         <h2>Admin</h2>
-        <p>Users, share links, the audit log, Domain config, and the client view.</p>
+        <p>Users, share links, the audit log, domain config, and the client view.</p>
       </header>
       <div class="set-drill" data-admin-drill hidden></div>
       <div class="set-list" data-admin-list>

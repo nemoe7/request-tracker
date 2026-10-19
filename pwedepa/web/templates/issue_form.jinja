@@ -24,7 +24,7 @@
       {% for domain in domains %}
       <label class="check"><input id="i-domains-{{ loop.index }}" type="checkbox" name="domains" value="{{ domain.name }}"{% if record and domain.name in record.domains %} checked{% endif %}> {{ domain.name }}</label>
       {% else %}
-      <p class="help">No Domain is configured.</p>
+      <p class="help">No domains exist yet.</p>
       {% endfor %}
     </fieldset>
     {% endif %}

@@ -31,7 +31,7 @@ def main(argv: list[str] | None = None) -> int:
 def _print_token(db, role: Role, at: datetime) -> None:
   issued = enrollment.issue_enrollment_token(db, role=role, at=at)
   print(f"Role: {role.value}")
-  print(f"Enrollment token: {issued.token}")
+  print(f"Sign-up token: {issued.token}")
   print("Store the token now. It is shown only once.")
 
 
