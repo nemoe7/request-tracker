@@ -468,6 +468,9 @@ document.querySelectorAll("form[data-auto-submit]").forEach((form) => {
     }
   });
 
+  const openOnLoad = document.querySelector(".modal:not([hidden])");
+  if (openOnLoad) open(openOnLoad.id);
+
   window.PwedePaModal = { open, close };
 })();
 

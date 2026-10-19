@@ -53,13 +53,12 @@
         </div>
         <div class="ios-row ios-action" data-save><button class="btn primary icon-only" type="submit" aria-label="Save profile" title="Save profile"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button></div>
       </form>
-      {% call modal("change-username", "Change your username?") %}
+      {% call modal("change-username", "Change your username?", username_error is not none) %}
       <form class="modal-form" method="post" action="{{ url_for('settings.username') }}">
-        <div class="field">
-          <label for="change-username-field">New username</label>
-          <input id="change-username-field" type="text" name="username" value="{{ user.username }}" required>
-          <p class="help">A name another account holds gets refused.</p>
-        </div>
+        <label for="change-username-field">New username</label>
+        <input id="change-username-field" type="text" name="username" value="{{ username_value or user.username }}" required>
+        <p class="help">A name another account holds gets refused.</p>
+        {% if username_error %}<p class="modal-error" role="alert">{{ username_error }}</p>{% endif %}
         <div class="modal-actions">
           <button class="btn" type="button" data-modal-close>Cancel</button>
           <button class="btn primary" type="submit">Save username</button>

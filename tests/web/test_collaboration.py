@@ -605,8 +605,15 @@ def test_a_taken_username_is_refused(cast, db):
     "/settings/username", data={"username": "SAM"}, follow_redirects=True
   )
 
-  assert b"already in use" in answer.data
+  body = answer.data.decode()
+  assert "already in use" in body
   assert users.get_user(db, Mara_user.id).username == "Mara"
+  assert (
+    'id="change-username"' in body
+    and "hidden" not in body.split('id="change-username"')[1].split(">")[0]
+  ), "a refused name keeps the modal open"
+  assert 'role="alert"' in body, "the refusal shows inside the modal"
+  assert body.index('role="alert"') > body.index('id="change-username"')
 
   saved = Mara.post(
     "/settings/username", data={"username": "mara-r"}, follow_redirects=True
@@ -626,10 +633,9 @@ def test_the_username_change_opens_from_a_modal(cast):
     "the modal form must not nest in the profile form"
   )
   modal = main[main.index('id="change-username"') :]
-  field = modal[modal.index('class="field"') : modal.index("</form>")]
-  assert 'class="ios-input"' not in field, (
-    "the row input style drops the box the modal field needs"
-  )
+  form = modal[modal.index('class="modal-form"') : modal.index("</form>")]
+  assert 'class="field"' not in form, "the modal holds one card, not a card inside"
+  assert 'class="ios-input"' not in form, "the row input style drops the box"
 
 
 def test_notification_switches_save_as_they_flip(cast, db):

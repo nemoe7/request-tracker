@@ -37,8 +37,8 @@
 {% endcall %}
 {%- endmacro %}
 
-{% macro modal(id, title) -%}
-<div class="modal" id="{{ id }}" hidden>
+{% macro modal(id, title, open=false) -%}
+<div class="modal" id="{{ id }}"{% if not open %} hidden{% endif %}>
   <div class="modal-scrim" data-modal-close></div>
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="{{ id }}-title">
     <h2 id="{{ id }}-title">{{ title }}</h2>

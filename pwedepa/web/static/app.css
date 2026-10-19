@@ -285,7 +285,7 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .issue-row-meta { color: var(--muted); font-size: calc(12px * var(--font-scale)); white-space: nowrap; }
 .form { display: grid; gap: 14px; }
 .field label { display: block; font-size: calc(13px * var(--font-scale)); font-weight: 600; margin-bottom: 6px; }
-.field input[type="text"], .field input[type="number"], .field select, .field textarea, .comment-form textarea, .modal-form textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: calc(15px * var(--font-scale)); min-height: var(--control-h); box-sizing: border-box; }
+.field input[type="text"], .field input[type="number"], .field select, .field textarea, .comment-form textarea, .modal-form input[type="text"], .modal-form textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: calc(15px * var(--font-scale)); min-height: var(--control-h); box-sizing: border-box; }
 .field .help { font-size: calc(12px * var(--font-scale)); color: var(--muted); margin: 6px 0 0; }
 .check { display: flex; gap: 8px; align-items: center; font-size: calc(14px * var(--font-scale)); min-height: 44px; }
 .field-checks { border: 0; padding: 0; margin: 0; }
@@ -459,7 +459,7 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .pane-head > p { margin: 4px 0 0; color: var(--muted); font-size: calc(13px * var(--font-scale)); }
 .pane-back { display: none; }
 .ios-group > .pane-head > h2, .ios-fieldset > legend { font-size: calc(13px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0; font-weight: 600; }
-.ios-group form, .ios-list { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.ios-group form:not(.modal-form), .ios-list { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
 .ios-list { margin-bottom: 14px; }
 .ios-fieldset { border: 0; margin: 0 0 14px; padding: 0; background: transparent; }
 form.ios-split { background: none; border: 0; overflow: visible; }
@@ -647,6 +647,8 @@ select:not([multiple]) { appearance: none; -webkit-appearance: none; min-height:
 .modal-form { display: grid; gap: 8px; }
 .modal-form label { font-size: calc(13px * var(--font-scale)); color: var(--muted); }
 .modal-form textarea { min-height: 84px; }
+.modal-form .help { margin: 0; font-size: calc(12px * var(--font-scale)); color: var(--muted); }
+.modal-error { margin: 0; font-size: calc(13px * var(--font-scale)); color: var(--danger); }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
 body.has-modal { overflow: hidden; }
 

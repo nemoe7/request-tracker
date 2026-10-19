@@ -11,8 +11,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - `frontend-design` and `taste-skill` join the vendored skills, and both apply
   to every front-end change.
-- Profile offers Change username. A modal asks for the new name, and the app
-  refuses a name another account holds.
+- Profile offers Change username. A modal asks for the new name, and a name
+  another account holds keeps the modal open with its reason.
 
 ### Fixed
 

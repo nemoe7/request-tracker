@@ -1025,6 +1025,7 @@ def test_each_settings_pane_carries_a_head(app, db):
     assert "<h2>" in head and "<p>" in head, "the head carries a name and one line"
   css = client.get("/static/app.css").data.decode()
   assert ".pane-head > .pane-icon" not in css, "no tile rule is left over"
+  assert ".ios-group form:not(.modal-form)" in css, "a modal form is not a group card"
   assert ".pane-head > p { display: none; }" not in css, "the phone keeps the one line"
   wide = css[
     css.index("@media (min-width: 900px)") : css.index("@media (max-width: 899px)")

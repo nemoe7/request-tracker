@@ -20,17 +20,25 @@ from ._helpers import current_user, db
 bp = Blueprint("settings", __name__)
 
 
+def _page(user, **extra) -> str:
+  """Render the settings page for one user, with an optional modal error."""
+  context = {
+    "passkeys": list_passkeys(db(), user.id),
+    "preferences": notifications_data.preferences(db(), user.id),
+    "is_admin": Role.ADMIN in list_roles(db(), user.id),
+    "username_error": None,
+    "username_value": None,
+  }
+  context.update(extra)
+  return render_template("settings.jinja", **context)
+
+
 @bp.get("/settings")
 def settings() -> str | Response:
   user = current_user()
   if user is None:
     return redirect(url_for("pages.login"))
-  return render_template(
-    "settings.jinja",
-    passkeys=list_passkeys(db(), user.id),
-    preferences=notifications_data.preferences(db(), user.id),
-    is_admin=Role.ADMIN in list_roles(db(), user.id),
-  )
+  return _page(user)
 
 
 @bp.post("/settings/profile")
@@ -65,9 +73,16 @@ def username() -> Response:
       at=now(),
       actor_id=user.id,
     )
-    flash("Username saved.")
   except AuthError as error:
-    flash(str(error))
+    return (
+      _page(
+        user,
+        username_error=str(error),
+        username_value=request.form.get("username", ""),
+      ),
+      400,
+    )
+  flash("Username saved.")
   return redirect(url_for("settings.settings"))
 
 
