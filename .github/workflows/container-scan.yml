@@ -31,6 +31,7 @@ permissions:
 
 jobs:
   scan:
+    name: "Scan the image"
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:

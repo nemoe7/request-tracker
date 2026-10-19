@@ -25,6 +25,7 @@ permissions:
 
 jobs:
   actionlint:
+    name: "Lint the workflow files"
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -39,6 +40,7 @@ jobs:
           flags: -config-file .github/actionlint.yaml
 
   zizmor:
+    name: "Audit the workflow files"
     if: github.event_name != 'push'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -53,6 +55,7 @@ jobs:
           annotations: true
 
   zizmor-main:
+    name: "Audit the workflow files on main"
     if: github.event_name == 'push'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -69,6 +72,7 @@ jobs:
           advanced-security: true
 
   contract:
+    name: "Check the workflow set"
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:

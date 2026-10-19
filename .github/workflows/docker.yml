@@ -85,6 +85,7 @@ jobs:
           printf 'build=%s\n' "$build" >>"$GITHUB_OUTPUT"
 
   dev:
+    name: "Build the dev image"
     needs: changes
     if: >-
       needs.changes.outputs.build == 'yes'
@@ -199,6 +200,7 @@ jobs:
 
   # The 2 digests land under 1 manifest list with the dev tags.
   dev-merge:
+    name: "Publish the dev tags"
     needs: dev
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -294,6 +296,7 @@ jobs:
   # image. The job reads the approval itself and skips when the proposal was not
   # approved. 1 build at a time, so latest ends on the newest tag.
   release:
+    name: "Resolve the release tag"
     if: >-
       github.event_name == 'push'
       || (github.event_name == 'workflow_run'
@@ -392,6 +395,7 @@ jobs:
           printf 'skip=%s\n' "$skip" >>"$GITHUB_OUTPUT"
 
   release-build:
+    name: "Build the release image"
     needs: release
     if: needs.release.outputs.skip != 'true'
     runs-on: ${{ matrix.runner }}
@@ -487,6 +491,7 @@ jobs:
 
   # The 2 digests land under 1 manifest list with the release tag and latest.
   release-merge:
+    name: "Publish the release tags"
     needs: [release, release-build]
     if: needs.release.outputs.skip != 'true'
     runs-on: ubuntu-24.04

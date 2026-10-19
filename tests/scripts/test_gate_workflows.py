@@ -217,3 +217,25 @@ def test_ci_tests_the_image_runtime_and_the_python_floor():
   assert versions == {image.group(1), floor_version}, (
     f"CI tests untested-in-production versions: {sorted(versions)}"
   )
+
+
+def test_no_workflow_repeats_a_key():
+  """A repeated key parses without error, and the runner keeps the last one."""
+  problems: list[str] = []
+
+  def walk(node, path: str) -> None:
+    if isinstance(node, yaml.MappingNode):
+      seen: set[str] = set()
+      for key, value in node.value:
+        name = key.value if hasattr(key, "value") else str(key)
+        if name in seen:
+          problems.append(f"{path}/{name} at line {key.start_mark.line + 1}")
+        seen.add(name)
+        walk(value, f"{path}/{name}")
+    elif isinstance(node, yaml.SequenceNode):
+      for index, item in enumerate(node.value):
+        walk(item, f"{path}[{index}]")
+
+  for path in sorted(gate_workflows.WORKFLOW_DIR.glob("*.y*ml")):
+    walk(yaml.compose(path.read_text(encoding="utf-8")), path.name)
+  assert problems == [], f"duplicate YAML keys: {problems}"
