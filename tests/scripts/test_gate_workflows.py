@@ -179,3 +179,41 @@ def test_the_scans_skip_a_skills_only_commit():
   assert "**" in paths, "the scan keeps its whole-tree default"
   assert "!.agents/**" in paths, "the scan skips the skills tree"
   assert "!ARENA.md" in paths, "the scan skips the agent rules"
+
+
+def _ci_document() -> dict:
+  return yaml.safe_load(
+    (gate_workflows.WORKFLOW_DIR / "ci.yml").read_text(encoding="utf-8")
+  )
+
+
+def _setup_python_versions(document: dict) -> set[str]:
+  versions = set()
+  for job in document["jobs"].values():
+    for step in job.get("steps", []):
+      values = step.get("with")
+      if isinstance(values, dict) and "python-version" in values:
+        versions.add(str(values["python-version"]))
+  return versions
+
+
+def test_ci_tests_the_image_runtime_and_the_python_floor():
+  """The image runs one version, and the metadata claims a range from the floor."""
+  import re
+  import tomllib
+
+  root = gate_workflows.ROOT
+  dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
+  image = re.search(r"^FROM python:(\d+\.\d+)-", dockerfile, re.MULTILINE)
+  assert image, "the runtime stage names no Python version"
+  floor = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))[
+    "project"
+  ]["requires-python"]
+  floor_version = floor.removeprefix(">=").strip()
+
+  versions = _setup_python_versions(_ci_document())
+  assert image.group(1) in versions, "no CI job tests the image runtime"
+  assert floor_version in versions, "no CI job tests the declared floor"
+  assert versions == {image.group(1), floor_version}, (
+    f"CI tests untested-in-production versions: {sorted(versions)}"
+  )

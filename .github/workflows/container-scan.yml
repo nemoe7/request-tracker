@@ -37,8 +37,15 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      - name: Build the image
-        run: docker build -t pwedepa:scan .
+      - uses: docker/setup-buildx-action@v4.4.1
+      # The cache scope is its own: a scan build never evicts an image build.
+      - uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          tags: pwedepa:scan
+          load: true
+          cache-from: type=gha,scope=scan
+          cache-to: type=gha,mode=max,scope=scan
       - uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: pwedepa:scan

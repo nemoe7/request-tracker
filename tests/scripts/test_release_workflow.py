@@ -145,3 +145,24 @@ def test_the_changes_job_reads_from_the_last_ci_run():
   assert 'if [[ "$EVENT_NAME" == "workflow_dispatch" ]]' in text, (
     "a manual run always builds"
   )
+
+
+def test_the_contract_job_needs_only_the_standard_library():
+  """`check_pr.py` imports the standard library alone, so no sync may gate it."""
+  text = (WORKFLOWS / "pr-check.yml").read_text(encoding="utf-8")
+  assert "uv sync" not in text, "the contract job syncs the full dependency set"
+  assert "setup-uv" not in text, "the contract job installs uv it never needs"
+  steps = yaml.safe_load(text)["jobs"]["contract"]["steps"]
+  commands = " ".join(str(step.get("run", "")) for step in steps)
+  assert "python scripts/check_pr.py" in commands
+
+
+def test_the_container_scan_reuses_a_layer_cache():
+  steps = _document("container-scan.yml")["jobs"]["scan"]["steps"]
+  uses = [str(step.get("uses", "")) for step in steps]
+  assert any("setup-buildx-action@" in use for use in uses), "no Buildx setup"
+  build = next(
+    step for step in steps if "build-push-action@" in str(step.get("uses", ""))
+  )
+  assert "type=gha" in build["with"]["cache-from"]
+  assert "type=gha" in build["with"]["cache-to"]

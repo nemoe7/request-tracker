@@ -42,7 +42,8 @@ jobs:
       - uses: astral-sh/setup-uv@v10.2.0
         with:
           version: "0.12.21"
-          python-version: "3.12"
+          # The image runtime: the version the container actually runs.
+          python-version: "3.13"
           enable-cache: true
       - run: uv sync --locked
       - run: uv run --no-sync ruff check
@@ -53,3 +54,20 @@ jobs:
         uses: DavidAnson/markdownlint-cli2-action@v24.0.0
         with:
           globs: "**/*.md"
+
+  floor:
+    name: Python floor
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          version: "0.12.21"
+          # The floor in `pyproject.toml`: a claim nothing else tests.
+          python-version: "3.11"
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run --no-sync pytest
