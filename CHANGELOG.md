@@ -20,6 +20,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   fallback Save row hides without a theme click.
 - A seeded request carries a dummy requester, so the Requests page names an
   owner instead of a dash.
+- Light status pills read at 4.5:1 or better.
+- Phone taps stay at 44 px on the top bar and the buttons, and the Admin config
+  file field takes the form style.
+- A clipped workspace row shows its full title and line on hover.
 
 ### Changed
 
@@ -29,6 +33,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   change, and text size hides its row once the script binds.
 - A settings group leads with its plain name and one line over the rows. The
   icon tile and the centred banner are gone.
+- The workspace fills a wide screen, and the Issues page keeps one narrow column.
+- The audit log names each event in words, and the Admin save buttons carry their
+  words.
 
 ## [0.1.0] - 2026-10-16
 
