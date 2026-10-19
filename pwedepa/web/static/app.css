@@ -469,6 +469,10 @@ form.set-split { background: none; border: 0; overflow: visible; }
 .set-row:last-child { border-bottom: 0; }
 .set-head { margin: 0; padding: 16px 16px 6px; font-size: calc(12px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: var(--surface); }
 .set-head + .set-row { border-top: 1px solid var(--line); }
+.set-drill { display: grid; gap: 12px; margin-bottom: 14px; }
+.set-drill > .set-back { justify-content: flex-start; width: auto; background: var(--surface); border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); font-weight: 600; }
+.set-drill .admin-page { display: grid; gap: 12px; }
+.set-drill .page-head { display: none; }
 .set-label { flex: 1; }
 .set-sub { display: block; font-size: calc(12px * var(--font-scale)); color: var(--muted); }
 .set-value { color: var(--muted); }

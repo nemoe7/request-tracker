@@ -348,6 +348,55 @@ document.querySelector("#add-passkey")?.addEventListener("click", async () => {
   }
 });
 
+/* An Admin row opens its page inside Settings, so the rail and the group stay.
+   A form inside that pane posts the same way, then shows the answer in place. */
+const drill = document.querySelector("[data-admin-drill]");
+const adminList = document.querySelector("[data-admin-list]");
+
+if (drill && adminList) {
+  const paneFor = (doc) => {
+    const page = doc.querySelector(".admin-page");
+    if (!page) return null;
+    page.querySelectorAll(".page-head").forEach((head) => head.remove());
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "set-row link-row set-back";
+    back.textContent = "Back to Admin";
+    back.addEventListener("click", () => {
+      drill.hidden = true;
+      drill.replaceChildren();
+      adminList.hidden = false;
+      document.querySelector("[data-admin-pane]")?.focus();
+    });
+    return [back, ...page.childNodes];
+  };
+
+  const show = async (url, options) => {
+    const response = await fetch(url, options);
+    if (!response.ok) return;
+    const nodes = paneFor(new DOMParser().parseFromString(await response.text(), "text/html"));
+    if (!nodes) return;
+    drill.replaceChildren(...nodes);
+    drill.hidden = false;
+    adminList.hidden = true;
+    drill.querySelector("button, a, input, select")?.focus();
+  };
+
+  document.querySelectorAll("[data-admin-pane]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      show(link.href);
+    });
+  });
+
+  drill.addEventListener("submit", (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement)) return;
+    event.preventDefault();
+    show(form.action, { method: "POST", body: new FormData(form) });
+  });
+}
+
 /* The time format saves the moment it is picked, so the page never reloads and
    the buttons stay under the cursor. */
 const clockForm = document.querySelector("[data-clock-form]");

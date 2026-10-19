@@ -13,8 +13,8 @@
     </div>
     <nav class="settings-nav">
       {% set show_client_view = can_view_as_client and not demo_switch %}
-      {% for anchor, label, icon, tint in [("#profile", "Profile", "settings", "chip-blue"), ("#appearance", "Appearance", "contrast", "chip-indigo"), ("#notifications", "Notifications", "bell", "chip-red"), ("#passkeys", "Passkeys", "key-round", "chip-gray"), ("#client-view", "Client view", "contrast", "chip-green"), ("#admin", "Admin", "clipboard-list", "chip-amber")] %}
-      {% if (anchor != "#admin" or is_admin) and (anchor != "#client-view" or show_client_view) %}
+      {% for anchor, label, icon, tint in [("#profile", "Profile", "settings", "chip-blue"), ("#appearance", "Appearance", "contrast", "chip-indigo"), ("#notifications", "Notifications", "bell", "chip-red"), ("#passkeys", "Passkeys", "key-round", "chip-gray"), ("#admin", "Admin", "clipboard-list", "chip-amber")] %}
+      {% if anchor != "#admin" or is_admin or show_client_view %}
       <a href="{{ anchor }}">
         <span class="set-chip {{ tint }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#{{ icon }}"/></svg></span>
         {{ label }}
@@ -158,55 +158,49 @@
       <p class="set-note" id="status" role="status"></p>
     </section>
 
-    {% if show_client_view %}
-    <section class="set-group" id="client-view" aria-label="Client view">
+
+    {% if is_admin or show_client_view %}
+    <section class="set-group" id="admin" aria-label="Admin">
       <header class="pane-head">
-        <h2>Client view</h2>
-        <p>Show records read only, the way a client sees it.</p>
+        <h2>Admin</h2>
+        <p>Users, share links, the audit log, Domain config, and the client view.</p>
       </header>
-      <div class="set-list">
+      <div class="set-drill" data-admin-drill hidden></div>
+      <div class="set-list" data-admin-list>
+        {% if is_admin %}
+        <a class="set-row link-row" data-admin-pane href="{{ url_for('admin.users') }}">
+          <span class="set-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg></span>
+          <span class="set-label">Users</span>
+          <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
+        </a>
+        <a class="set-row link-row" data-admin-pane href="{{ url_for('admin.audit') }}">
+          <span class="set-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg></span>
+          <span class="set-label">Audit log</span>
+          <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
+        </a>
+        <a class="set-row link-row" data-admin-pane href="{{ url_for('admin.shares') }}">
+          <span class="set-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg></span>
+          <span class="set-label">Share links</span>
+          <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
+        </a>
+        <a class="set-row link-row" data-admin-pane href="{{ url_for('admin.domain_config') }}">
+          <span class="set-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg></span>
+          <span class="set-label">Domain config</span>
+          <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
+        </a>
+        <a class="set-row link-row" data-admin-pane href="{{ url_for('admin.site') }}">
+          <span class="set-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#megaphone"/></svg></span>
+          <span class="set-label">Site message and new issue</span>
+          <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
+        </a>
+        {% endif %}
+        {% if show_client_view %}
         <a class="set-row link-row" href="{{ url_for('pages.view_as', mode='staff' if view_as_client else 'client') }}">
           <span class="set-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg></span>
           <span class="set-label">{% if view_as_client %}Exit client view{% else %}View as client{% endif %}</span>
           <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
         </a>
-      </div>
-      <p class="set-note">Records stay read only. Settings save to your account.</p>
-    </section>
-    {% endif %}
-
-    {% if is_admin %}
-    <section class="set-group" id="admin" aria-label="Admin">
-      <header class="pane-head">
-        <h2>Admin</h2>
-        <p>Users, share links, the audit log, and Domain config.</p>
-      </header>
-      <div class="set-list">
-        <a class="set-row link-row" href="{{ url_for('admin.users') }}">
-          <span class="set-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg></span>
-          <span class="set-label">Users</span>
-          <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
-        </a>
-        <a class="set-row link-row" href="{{ url_for('admin.audit') }}">
-          <span class="set-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg></span>
-          <span class="set-label">Audit log</span>
-          <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
-        </a>
-        <a class="set-row link-row" href="{{ url_for('admin.shares') }}">
-          <span class="set-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg></span>
-          <span class="set-label">Share links</span>
-          <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
-        </a>
-        <a class="set-row link-row" href="{{ url_for('admin.domain_config') }}">
-          <span class="set-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg></span>
-          <span class="set-label">Domain config</span>
-          <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
-        </a>
-        <a class="set-row link-row" href="{{ url_for('admin.site') }}">
-          <span class="set-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#megaphone"/></svg></span>
-          <span class="set-label">Site message and new issue</span>
-          <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
-        </a>
+        {% endif %}
       </div>
     </section>
     {% endif %}

@@ -515,7 +515,11 @@ def test_a_staff_member_can_check_the_client_view(cast, db):
   assert b"share-form" not in detail.data
   assert b'href="/view-as/client"' not in detail.data
   assert b'href="/view-as/staff"' in detail.data
-  assert b'id="client-view"' in admin.get("/settings").data
+  page = admin.get("/settings").data
+  admin_group = page[page.index(b'aria-label="Admin"') :]
+  assert b'href="/view-as/' in admin_group[: admin_group.index(b"</section>")], (
+    "the client view lives inside the Admin group"
+  )
 
   queue = admin.get("/")
   assert queue.status_code == 302
@@ -542,7 +546,11 @@ def test_the_staff_view_keeps_its_controls(cast, db):
 
   detail = admin.get(record_url(1))
   assert b'href="/requests/1/edit"' in detail.data
-  assert b'id="client-view"' in admin.get("/settings").data
+  page = admin.get("/settings").data
+  admin_group = page[page.index(b'aria-label="Admin"') :]
+  assert b'href="/view-as/' in admin_group[: admin_group.index(b"</section>")], (
+    "the client view lives inside the Admin group"
+  )
   assert admin.get("/").status_code == 200
 
 
