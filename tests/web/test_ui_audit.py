@@ -1195,6 +1195,21 @@ def test_wide_screens_show_one_settings_pane(app, db):
   assert ".settings-main > .set-group#profile," in css
 
 
+def test_a_wide_rail_holds_the_page_where_it_was(app):
+  """A rail row picks a pane in place, so the browser must not scroll to it."""
+  script = app.test_client().get("/static/app.js").data.decode()
+  assert 'document.querySelector(".settings-nav")' in script, (
+    "the script finds the rail"
+  )
+  assert 'window.matchMedia("(min-width: 900px)")' in script, (
+    "only the wide screen swaps panes in place"
+  )
+  assert 'a[href^="#"]' in script, "each rail row is a hash link"
+  assert "requestAnimationFrame" in script and "window.scrollTo(0, y)" in script, (
+    "the page returns to the reader's place after the swap"
+  )
+
+
 def test_admin_row_buttons_match_their_fields(app):
   """A row with a picker and a button shows one control height."""
   css = app.test_client().get("/static/app.css").data.decode()

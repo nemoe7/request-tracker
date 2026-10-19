@@ -579,3 +579,27 @@ document.querySelectorAll("form[data-auto-submit]").forEach((form) => {
     fitAll();
   }
 })();
+
+// The settings rail swaps panes in place on a wide screen. Each row is a real
+// anchor, so the browser would also scroll the chosen pane to the top; hold the
+// page where the reader left it.
+(() => {
+  const rail = document.querySelector(".settings-nav");
+  if (!rail) return;
+  const wide = window.matchMedia("(min-width: 900px)");
+  const hold = (y) => {
+    const restore = () => {
+      if (window.scrollY !== y) window.scrollTo(0, y);
+    };
+    requestAnimationFrame(() => {
+      restore();
+      requestAnimationFrame(restore);
+    });
+  };
+  rail.addEventListener("click", (event) => {
+    if (!wide.matches || event.defaultPrevented) return;
+    const link = event.target.closest('a[href^="#"]');
+    if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    hold(window.scrollY);
+  });
+})();
