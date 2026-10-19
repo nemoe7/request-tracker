@@ -452,6 +452,15 @@ def test_the_scrollbar_matches_the_theme(app):
   )
 
 
+def test_no_blank_band_waits_for_a_scrollbar(app):
+  """A reserved gutter shows as an empty strip, because the bar cannot paint it."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  root = re.search(r"\nhtml \{([^}]*)\}", css)
+  assert root and "scrollbar-gutter" not in root.group(1), (
+    "the root must not hold a strip open when no scrollbar shows"
+  )
+
+
 def test_normal_service_worker_keeps_its_cache(app):
   body = app.test_client().get("/sw.js").data
   assert b"pwedepa-v4" in body

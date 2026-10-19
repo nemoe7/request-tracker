@@ -641,7 +641,7 @@ form.is-auto [data-save] { display: none; }
 
 
 /* Owner batch: steady pages, centered inspector, account menu, selects. */
-html { background: var(--bg); scrollbar-gutter: stable; }
+html { background: var(--bg); }
 * { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
