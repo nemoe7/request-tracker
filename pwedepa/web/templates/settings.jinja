@@ -84,7 +84,7 @@
         </div>
       </div>
       <p class="ios-note">System follows your device.</p>
-      <form class="ios-list" method="post" action="{{ url_for('settings.clock') }}">
+      <form class="ios-list" method="post"{% if not demo_mode %} data-clock-form{% endif %} action="{{ url_for('settings.clock') }}">
         <div class="ios-row">
           <span class="ios-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clock"/></svg></span>
           <span class="ios-label">Time format</span>
@@ -94,6 +94,7 @@
           </span>
         </div>
       </form>
+      <p class="ios-note" role="status" data-clock-status></p>
       <p class="ios-note">A time under 72 hours old reads short, like 3h ago.</p>
       <form class="ios-list" method="post" action="{{ url_for('settings.font_size') }}" data-font-size-form>
         <div class="ios-row">

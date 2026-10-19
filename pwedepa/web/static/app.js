@@ -348,6 +348,39 @@ document.querySelector("#add-passkey")?.addEventListener("click", async () => {
   }
 });
 
+/* The time format saves the moment it is picked, so the page never reloads and
+   the buttons stay under the cursor. */
+const clockForm = document.querySelector("[data-clock-form]");
+
+if (clockForm) {
+  const note = document.querySelector("[data-clock-status]");
+  const buttons = [...clockForm.querySelectorAll("button[name=clock]")];
+  const mark = (value) => {
+    buttons.forEach((button) => {
+      button.classList.toggle("is-active", button.value === value);
+    });
+  };
+  clockForm.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[name=clock]");
+    if (!button) return;
+    event.preventDefault();
+    const previous = buttons.find((item) => item.classList.contains("is-active"));
+    mark(button.value);
+    try {
+      const response = await fetch(clockForm.action, {
+        method: "POST",
+        headers: { "X-Requested-With": "fetch" },
+        body: new URLSearchParams({ clock: button.value }),
+      });
+      if (!response.ok) throw new Error("The time format did not save.");
+      if (note) note.textContent = "Time format saved.";
+    } catch {
+      if (previous) mark(previous.value);
+      if (note) note.textContent = "That format did not save. Check the connection.";
+    }
+  });
+}
+
 const fontForm = document.querySelector("[data-font-size-form]");
 
 if (fontForm) {

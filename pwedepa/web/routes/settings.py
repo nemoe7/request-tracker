@@ -94,7 +94,11 @@ def clock() -> Response:
   picked = request.form.get("clock", "")
   if picked in preferences_data.CLOCKS:
     preferences_data.set_clock(db(), user.id, picked)
+    if request.headers.get("X-Requested-With") == "fetch":
+      return Response("", status=204)
     flash("Time format saved.")
+  elif request.headers.get("X-Requested-With") == "fetch":
+    return Response("", status=400)
   else:
     flash("Unknown time format.")
   return redirect(url_for("settings.settings"))
