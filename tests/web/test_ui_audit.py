@@ -1883,3 +1883,22 @@ def test_a_phone_workspace_keeps_one_column_with_a_record_open(app):
     css.index("@media (max-width: 1199px)") : css.index("@media (min-width: 900px)")
   ]
   assert "240px minmax(0, 1fr) 0" in wide, "the narrow desktop still keeps its rail"
+
+
+def test_a_settings_pane_name_starts_at_its_card_edge(app, db):
+  """The name sat 16 px inside the card that its rows fill."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  css = client.get("/static/app.css").data.decode()
+  head = css[css.index(".pane-head {") :].split("}", 1)[0]
+  assert "margin: 0 0 14px;" in head, "the name takes the card edge"
+  assert "margin-left: 0" not in css.split(".pane-head {")[1].split("}")[0]
+  assert ">.pane-head { margin-left: 0; }" not in css, "the phone copy is gone"
+
+
+def test_the_phone_settings_controls_take_the_floor(app):
+  """A theme tile was 40x32, a time button 95x32, and the slider 20 px tall."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  phone = css[css.index("@media (max-width: 899px)") :]
+  assert ".seg-control button { min-width: 44px; min-height: 44px; }" in phone
+  assert ".set-row .font-size-control .slider { height: 44px; }" in phone
+  assert ".font-size-control .number { min-height: 44px; }" in phone

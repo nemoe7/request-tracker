@@ -527,7 +527,7 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .settings-main h1 { margin: 4px 0 18px; }
 .set-group { margin-bottom: 26px; scroll-margin-top: 68px; }
 /* The phone keeps the small label; a wide screen shows the whole head. */
-.pane-head { display: grid; grid-template-columns: minmax(0, 1fr); row-gap: 2px; align-items: center; margin: 0 0 14px 16px; }
+.pane-head { display: grid; grid-template-columns: minmax(0, 1fr); row-gap: 2px; align-items: center; margin: 0 0 14px; }
 .pane-head > p { margin: 0; color: var(--muted); font-size: calc(13px * var(--font-scale)); }
 .pane-back { display: none; }
 .set-fieldset > legend, .set-head { font-size: calc(12px * var(--font-scale)); color: var(--muted); margin: 0; font-weight: 600; }
@@ -628,7 +628,6 @@ form.is-auto [data-save] { display: none; }
   .settings-shell:has(.set-group:target) .settings-main > h1 { display: none; }
   .settings-main > .set-group { display: none; }
   .settings-main > .set-group:target { display: block; }
-  .settings-main > .set-group:target > .pane-head { margin-left: 0; }
   .settings-shell:has(.set-group:target) .settings-rail { display: none; }
   .settings-shell:has(.set-group:target) .settings-main > .pane-back {
     display: inline-flex; align-items: center; gap: 4px; min-height: 44px;
@@ -725,6 +724,10 @@ form.is-auto [data-save] { display: none; }
   .bell, .avatar-btn { min-width: 44px; justify-content: center; }
   /* A row whose control is too wide for the line takes the next line, so no
      label reads word by word and the card keeps its width. */
+  /* A fingertip needs 44 px, so the small settings controls take that height. */
+  .seg-control button { min-width: 44px; min-height: 44px; }
+  .set-row .font-size-control .slider { height: 44px; }
+  .font-size-control .number { min-height: 44px; }
   .set-row-stack { display: grid; grid-template-columns: auto minmax(0, 1fr); row-gap: 10px; }
   .set-row-stack .seg-control, .set-row-stack .font-size-control {
     grid-column: 1 / -1; justify-self: end;
