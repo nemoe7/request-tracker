@@ -134,9 +134,9 @@ body.is-guest .auth-card { margin: 0 auto; }
 .queue-item:hover { background: var(--surface-2); }
 .queue-item.is-active { background: var(--st-open-bg); color: var(--accent); font-weight: 600; }
 .count { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: calc(12px * var(--font-scale)); color: var(--muted); margin-left: 8px; }
-.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 4px; gap: 4px; }
-.seg a { padding: 6px 14px; border-radius: 999px; font-size: calc(13px * var(--font-scale)); color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; min-height: 32px; }
-.seg a.is-active { background: var(--accent-fill); color: var(--on-accent); font-weight: 600; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--line); border-radius: 999px; padding: 4px; gap: 4px; }
+.seg a { justify-content: center; min-width: 0; padding: 6px 10px; border-radius: 999px; font-size: calc(13px * var(--font-scale)); font-weight: 600; color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; min-height: 32px; }
+.seg a.is-active { background: var(--accent-fill); color: var(--on-accent); }
 .filters-toggle, .filters-row { display: none; }
 .filters-body h2:first-child { margin-top: 0; }
 .record-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
@@ -416,6 +416,14 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .topbar { view-transition-name: topbar; }
 ::view-transition-old(root), ::view-transition-new(root),
 ::view-transition-old(topbar), ::view-transition-new(topbar) { animation: none; }
+/* A filter switch fades the lists it refilters, so the change reads as one move. */
+.panel.filters { view-transition-name: filters; }
+.panel.records { view-transition-name: records; }
+::view-transition-old(filters), ::view-transition-new(filters),
+::view-transition-old(records), ::view-transition-new(records) {
+  animation: fade-in 160ms var(--ease) both;
+}
+@keyframes fade-in { from { opacity: 0; } }
 .btn, .queue-item, .card, .mini, .seg a, .tabs a, .set-row.link-row, .queue a {
   transition: background-color 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease), transform 180ms var(--ease);
 }
