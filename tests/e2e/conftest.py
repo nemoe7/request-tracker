@@ -1,11 +1,13 @@
 """Shared setup for the end to end checks: one real server on one real port."""
 
+import http.cookiejar
 import os
 import socket
 import subprocess
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
@@ -39,6 +41,53 @@ def fetch(url: str, *, cookie: str | None = None, data: bytes | None = None):
       return answer.status, answer.geturl(), answer.read().decode("utf-8", "replace")
   except urllib.error.HTTPError as error:
     return error.code, error.url, error.read().decode("utf-8", "replace")
+
+
+def walk(base: str, cookie: str | None = None):
+  """Return a guest or a signed-in caller that keeps its own cookies."""
+  jar = http.cookiejar.CookieJar()
+  opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+  if cookie:
+    name, value = cookie.split("=", 1)
+    jar.set_cookie(
+      http.cookiejar.Cookie(
+        version=0,
+        name=name,
+        value=value,
+        port=None,
+        port_specified=False,
+        domain=urllib.parse.urlsplit(base).hostname,
+        domain_specified=False,
+        domain_initial_dot=False,
+        path="/",
+        path_specified=True,
+        secure=False,
+        expires=None,
+        discard=True,
+        comment=None,
+        comment_url=None,
+        rest={},
+      )
+    )
+
+  def go(path: str, form: dict[str, str] | None = None):
+    data = urllib.parse.urlencode(form).encode() if form is not None else None
+    request = urllib.request.Request(f"{base}{path}", data=data)
+    try:
+      with opener.open(request, timeout=5) as answer:
+        return (
+          answer.status,
+          answer.geturl().replace(base, ""),
+          answer.read().decode("utf-8", "replace"),
+        )
+    except urllib.error.HTTPError as error:
+      return (
+        error.code,
+        error.url.replace(base, ""),
+        error.read().decode("utf-8", "replace"),
+      )
+
+  return go
 
 
 @pytest.fixture(scope="session")
