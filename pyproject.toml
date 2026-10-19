@@ -17,6 +17,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+  "playwright>=1.64",
   "pytest>=9.1",
   "pytest-xdist>=3.8.0",
   "PyYAML>=6.0",

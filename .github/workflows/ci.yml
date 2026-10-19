@@ -89,6 +89,7 @@ jobs:
           python-version: "3.13"
           enable-cache: true
       - run: uv sync --locked
+      - run: uv run --no-sync playwright install --with-deps chromium
       - run: uv run --no-sync ruff check
       - run: uv run --no-sync ruff format --check
       - run: uv run --no-sync pytest
@@ -115,5 +116,7 @@ jobs:
           python-version: "3.11"
           enable-cache: true
       - run: uv sync --locked
+      - run: uv run --no-sync playwright install --with-deps chromium
+        if: needs.scope.outputs.code == 'yes'
       - run: uv run --no-sync pytest
         if: needs.scope.outputs.code == 'yes'
