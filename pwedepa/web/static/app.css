@@ -657,6 +657,11 @@ form.is-auto [data-save] { display: none; }
 /* Mobile: native feel, bottom tab bar, tap-first motion. */
 @media (max-width: 899px) {
   .workspace-grid, .workspace-grid.is-open, .workspace-grid.is-picked { grid-template-columns: 1fr; }
+  /* The narrow desktop rule keeps the rail and the list in three columns. A
+     phone drops both, even with a record open, so the table cannot sit off
+     the screen. */
+  .workspace-grid.is-open:not(.is-picked),
+  .workspace-grid.is-picked { grid-template-columns: minmax(0, 1fr); }
   .workspace-grid:not(.is-picked) .inspector { display: none; }
   .workspace-grid .inspector { order: 1; }
   .workspace-grid .records { display: contents; }

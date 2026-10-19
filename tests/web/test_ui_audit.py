@@ -1871,3 +1871,15 @@ def test_an_empty_admin_list_sits_in_a_panel(app, db):
   db.commit()
   audit = client.get("/admin/audit").data.decode()
   assert '<div class="empty panel"><p>No audit events yet.</p></div>' in audit
+
+
+def test_a_phone_workspace_keeps_one_column_with_a_record_open(app):
+  """A three-column grid at 390 pushed the list table off the screen."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  phone = css[css.index("@media (max-width: 899px)") :]
+  assert ".workspace-grid.is-open:not(.is-picked)," in phone
+  assert "grid-template-columns: minmax(0, 1fr);" in phone
+  wide = css[
+    css.index("@media (max-width: 1199px)") : css.index("@media (min-width: 900px)")
+  ]
+  assert "240px minmax(0, 1fr) 0" in wide, "the narrow desktop still keeps its rail"
