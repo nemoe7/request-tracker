@@ -5,7 +5,7 @@ pick.
 
 ## Renders
 
-Each picture is a generic wireframe, not a screenshot. It shows the shape a
+Each picture is a generic wireframe, not a screenshot. It shows the shape that a
 rule adds.
 
 ![A workspace wireframe: a rail on the left, then one table with requester, request, status, and time](images/design-workspace.png)
@@ -22,17 +22,18 @@ rule adds.
   inspector. No sidebar.
 - Admin home lists its four sections as dense rows, each with one line of what it
   holds.
-- Admin users, share links, and the audit log read as dense rows. A person or a
-  Domain row opens in place for its controls.
+- Admin users, share links, and the audit log read as dense rows. A person row
+  and a Domain row open in place, with their controls.
 - The notifications inbox reads as one flat list, newest first. Each row holds its
   message, who did it, the time, and one dismiss button.
 - The staff workspace is the one staff page. It follows Gmail: one flat table of
   requests, no group headings. Unread rows sit first and read bold, and each staff
   member keeps their own read list. One toolbar over the table holds the title, the
   status filter, and the Issues link. New request sits in the top bar as an icon,
-  because staff triage and clients make requests. The open row carries an accent
+  because staff triage and clients make requests. The bar icon opens the new
+  request chooser in the reading pane. The open row carries an accent
   edge on its first cell. At 1200 px and up the reading pane stays open beside
-  the list. The chosen row fills it, and the first row fills it on a load with no
+  the list. The chosen row fills it, and the first row fills it when a load has no
   choice. Below 1200 px the opened request replaces the list in the main column,
   and the rail stays. It carries the same view as its
   page, with state controls, the comment box, and sharing. A Back arrow returns
@@ -76,7 +77,7 @@ rule adds.
 - `config.yml` seeds the Domains once. After that the app owns the list, and an
   admin adds, renames, or removes a Domain in Admin, Domain config. A rename keeps
   the records, and the old slug answers with a redirect. A remove drops the
-  Domain's records behind a confirm that counts them.
+  Domain's records after a confirm that counts them.
 - An admin imports a picked file in Admin, Domain config. The app reads that copy
   before the config file in force.
 - A request lives at `/<slug>/requests/<id>` and an issue at `/<slug>/issues/<id>`.
@@ -144,7 +145,7 @@ Scheme 2, Slate and blue. Components use tokens from
 - IDs, counts, and ages use the ui-monospace stack with tabular figures.
 - Scale: 12, 13, 14, 15, 20, and 28 px. The eyebrow keeps 11 px, and an ID keeps
   the 12 px mono face.
-- One caps treatment, for the page eyebrow only: 11 px at 0.08 em. A group heading
+- One caps treatment covers the page eyebrow only: 11 px at 0.08 em. A group heading
   reads sentence case at 12 px at weight 600, and a pane carries one heading
   treatment.
 - Page titles read 28 px at 600, and a panel title reads 20 px at 600.
@@ -174,8 +175,8 @@ Scheme 2, Slate and blue. Components use tokens from
   request or issue write that still arrives. Account settings stay writable.
 - At 1200 px and up the staff grid runs filters 240 px, list fluid, inspector 360 px.
   The page keeps a 1280 px column, centred, with a 32 px gutter on each side.
-  Spacing follows an 8 px scale, rows are 40 px, panels get 10 px radius, and panels
-  carry no shadow.
+  Spacing follows an 8 px scale, rows are 40 px, and panels have a 10 px radius and
+  no shadow.
 - Breakpoints sit at 1200, 900, and 640 px. Below 900 px the tabs move to a bottom
   bar, the opened item fills the page, and the filters fold into one row.
 - Touch targets run at least 44 px, and tables stack into cards on a phone.
@@ -188,8 +189,8 @@ Scheme 2, Slate and blue. Components use tokens from
 
 - One primary action per view. Primary buttons use the accent fill, and danger stays
   ghost style with red text.
-- Forms put the label above the field, help text in 12 px muted, and errors in danger
-  text that names the fix.
+- Forms put the label above the field. Help text reads at 12 px muted, and an
+  error reads in danger text and names the fix.
 - Empty states use the pleading-face mark, one sentence, and one action.
 - A settings group leads with its plain name and one line over its rows. It has no
   icon tile and no banner.
@@ -239,6 +240,7 @@ Scheme 2, Slate and blue. Components use tokens from
 
 ## Change log
 
+- 2026-10-19. The bar icon opens the new request chooser in the reading pane.
 - 2026-10-19. A settings group leads with its plain name and one line over its rows.
 - 2026-10-17. The request action reads Reject, and a reason comes in a dialog.
 - 2026-10-17. Archive, Remove announcement, and Revoke passkey ask for a reason.
