@@ -23,6 +23,7 @@ function setTheme(theme) {
     }).catch(() => {});
   }
   markThemeButtons();
+}
 
 /* Notification switches save as they flip, the way iOS Settings does, so the
    page never reloads and the button only exists for a browser without JS. */
@@ -57,7 +58,6 @@ document.querySelectorAll("form[data-autosave]").forEach((form) => {
       });
   });
 });
-}
 
 themeButtons.forEach((button) => {
   button.addEventListener("click", () => setTheme(button.dataset.themeSet));

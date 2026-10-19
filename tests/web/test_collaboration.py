@@ -563,6 +563,17 @@ def test_a_staff_member_can_sign_out_from_the_client_view(cast):
     assert "view_as" not in flask_session
 
 
+def _function_body(script: str, name: str) -> str:
+  """Return one function's text, with its braces matched."""
+  start = script.index(f"function {name}(")
+  depth = 0
+  for index in range(script.index("{", start), len(script)):
+    depth += {"{": 1, "}": -1}.get(script[index], 0)
+    if depth == 0:
+      return script[start:index]
+  raise AssertionError(f"{name} has no closing brace")
+
+
 def test_notification_switches_save_as_they_flip(cast, db):
   Mara, Mara_user = cast["Mara"]
   main = Mara.get("/settings").data.decode()
@@ -572,6 +583,11 @@ def test_notification_switches_save_as_they_flip(cast, db):
   css = Mara.get("/static/app.css").data.decode()
   assert "form.is-auto [data-save] { display: none; }" in css, (
     "the script hides the button only after it takes the switches over"
+  )
+  script = Mara.get("/static/app.js").data.decode()
+  assert 'document.querySelectorAll("form[data-autosave]")' in script
+  assert "form[data-autosave]" not in _function_body(script, "setTheme"), (
+    "the switch handler binds at load, not after a theme click"
   )
 
   answer = Mara.post(
