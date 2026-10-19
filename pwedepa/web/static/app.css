@@ -453,14 +453,14 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .inspector .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 240px; gap: 10px; }
 
 /* Settings: grouped rows, one group per pane. */
-.settings-shell { display: grid; grid-template-columns: 260px minmax(0, 720px); gap: 28px; justify-content: center; align-items: start; }
+.settings-shell { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 28px; align-items: start; }
 .settings-rail { position: sticky; top: 72px; align-self: start; }
 .settings-profile { display: flex; gap: 12px; align-items: center; padding: 4px 12px 16px; }
 .avatar.big { width: 52px; height: 52px; font-size: calc(22px * var(--font-scale)); }
 .profile-name { font-weight: 700; font-size: calc(17px * var(--font-scale)); margin: 0; }
 .profile-sub { color: var(--muted); font-size: calc(13px * var(--font-scale)); margin: 2px 0 0; }
 .settings-nav { display: grid; gap: 2px; }
-.settings-nav a { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; color: var(--text); text-decoration: none; font-size: calc(15px * var(--font-scale)); }
+.settings-nav a { display: flex; align-items: center; gap: 10px; padding: 6px 12px; border-radius: 10px; color: var(--text); text-decoration: none; font-size: calc(14px * var(--font-scale)); }
 .settings-nav a:hover { background: var(--surface-2); }
 .settings-nav .set-chip { width: 26px; height: 26px; border-radius: 7px; }
 .settings-nav .set-chip .icon { width: 15px; height: 15px; }
@@ -468,10 +468,13 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .settings-main h1 { margin: 4px 0 18px; }
 .set-group { margin-bottom: 26px; scroll-margin-top: 68px; }
 /* The phone keeps the small label; a wide screen shows the whole head. */
-.pane-head { margin: 0 0 8px 16px; }
-.pane-head > p { margin: 4px 0 0; color: var(--muted); font-size: calc(13px * var(--font-scale)); }
+.pane-head { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; row-gap: 2px; align-items: center; margin: 0 0 14px 16px; }
+.pane-head > .set-chip { grid-row: span 2; width: 30px; height: 30px; border-radius: 8px; }
+.pane-head > .set-chip .icon { width: 17px; height: 17px; }
+.pane-head > p { margin: 0; color: var(--muted); font-size: calc(13px * var(--font-scale)); }
 .pane-back { display: none; }
-.set-group > .pane-head > h2, .set-fieldset > legend, .set-head { font-size: calc(13px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0; font-weight: 600; }
+.set-fieldset > legend, .set-head { font-size: calc(13px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0; font-weight: 600; }
+.set-group > .pane-head > h2 { font-size: calc(20px * var(--font-scale)); letter-spacing: -0.01em; color: var(--text); margin: 0; font-weight: 700; }
 .set-group form:not(.modal-form), .set-list { background: var(--surface); border: 0; border-radius: 16px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
 .set-list { margin-bottom: 14px; }
 .set-fieldset { border: 0; margin: 0 0 14px; padding: 0; background: transparent; }

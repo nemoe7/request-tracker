@@ -1226,6 +1226,27 @@ def test_each_settings_pane_carries_a_head(app, db):
   )
 
 
+def test_the_settings_pane_takes_the_whole_width(app, db):
+  """The pane and its rail match the wide layout of the rest of the app."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  css = client.get("/static/app.css").data.decode()
+  shell = css[css.index(".settings-shell {") :].split("}", 1)[0]
+  assert "minmax(0, 1fr)" in shell, "the pane grows into the free width"
+  assert "720px" not in shell, "no cap leaves a wide margin"
+  rail = css[css.index(".settings-nav a {") :].split("}", 1)[0]
+  assert "padding: 6px 12px" in rail, "a rail row stays a compact target"
+  assert "calc(14px * var(--font-scale))" in rail, "the rail reads at body size"
+  head = css[css.index(".pane-head {") :].split("}", 1)[0]
+  assert "grid-template-columns: auto 1fr" in head, "the chip sits beside the name"
+  name = css[css.index(".set-group > .pane-head > h2 {") :].split("}", 1)[0]
+  assert "calc(20px * var(--font-scale))" in name, "the pane name is a heading"
+  body = client.get("/settings").data.decode()
+  heads = re.findall(r'<header class="pane-head">(.*?)</header>', body, re.DOTALL)
+  assert heads and all("set-chip" in head for head in heads), (
+    "every pane head carries its chip"
+  )
+
+
 def test_the_phone_opens_one_settings_page_at_a_time(app, db):
   """The phone lists the sections first, then pushes one section page."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))

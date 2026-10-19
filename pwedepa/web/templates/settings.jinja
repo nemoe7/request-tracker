@@ -31,6 +31,7 @@
 
     <section class="set-group" id="profile" aria-label="Profile">
       <header class="pane-head">
+        <span class="set-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg></span>
         <h2>Profile</h2>
         <p>Your name, username, and account status.</p>
       </header>
@@ -69,6 +70,7 @@
 
     <section class="set-group" id="appearance" aria-label="Appearance">
       <header class="pane-head">
+        <span class="set-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg></span>
         <h2>Appearance</h2>
         <p>The theme and the time format this account keeps.</p>
       </header>
@@ -112,6 +114,7 @@
 
     <section class="set-group" id="notifications" aria-label="Notifications">
       <header class="pane-head">
+        <span class="set-chip chip-red"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#bell"/></svg></span>
         <h2>Notifications</h2>
         <p>What reaches your inbox, and when the pip shows.</p>
       </header>
@@ -141,6 +144,7 @@
 
     <section class="set-group" id="passkeys" aria-label="Passkeys">
       <header class="pane-head">
+        <span class="set-chip chip-gray"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#key-round"/></svg></span>
         <h2>Passkeys</h2>
         <p>The keys that sign you in on this device.</p>
       </header>
@@ -162,6 +166,7 @@
     {% if is_admin or show_client_view %}
     <section class="set-group" id="admin" aria-label="Admin">
       <header class="pane-head">
+        <span class="set-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg></span>
         <h2>Admin</h2>
         <p>Users, share links, the audit log, Domain config, and the client view.</p>
       </header>
