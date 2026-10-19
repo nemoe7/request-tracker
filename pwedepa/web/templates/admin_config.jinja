@@ -63,12 +63,12 @@
 
   <section class="panel admin-section">
     <h2>Import</h2>
-    <p class="muted">An import saves a copy beside the database, and the app reads that copy before <code>config.yml</code>.</p>
+    <p class="muted">An import saves a copy beside the database. The app reads that copy before <code>config.yml</code>.</p>
     <form class="form" method="post" action="{{ url_for('admin.domain_config_import') }}" enctype="multipart/form-data">
       <div class="field">
         <label for="config-file">Config file</label>
         <input id="config-file" type="file" name="config" accept=".yaml,.yml">
-        <p class="help">The file holds a domains list. Each entry needs a name and may hold a description.</p>
+        <p class="help">The file holds a domains list. Each entry needs a name. A description is optional.</p>
       </div>
       <div class="form-actions"><button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#upload"/></svg>Import config</button></div>
     </form>

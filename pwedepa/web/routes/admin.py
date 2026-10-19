@@ -278,7 +278,7 @@ def change_role(user_id: int) -> Response:
   role = Role(request.form["role"])
   if request.form.get("action") == "revoke":
     if role is Role.ADMIN and user_id == g.admin_user.id:
-      flash("You cannot remove your own Admin role.")
+      flash("Ask another admin to remove your Admin role.")
       return redirect(url_for("admin.users"))
     revoke_role(db(), user_id, role, at=now(), actor_id=g.admin_user.id)
   else:

@@ -75,7 +75,7 @@
     <section class="set-group" id="appearance" aria-label="Appearance">
       <header class="pane-head">
         <h2>Appearance</h2>
-        <p>The theme and the time format this account keeps.</p>
+        <p>The theme and the time format for this account.</p>
       </header>
       <div class="set-list">
         <div class="set-row">
@@ -100,7 +100,7 @@
         </div>
       </form>
       <p class="set-note" role="status" data-clock-status></p>
-      <p class="set-note">Times under 72 hours show short, like 3h ago.</p>
+      <p class="set-note">A time under 72 hours shows short, like 3h ago.</p>
       <form class="set-list" method="post" action="{{ url_for('settings.font_size') }}" data-font-size-form>
         <div class="set-row set-row-stack">
           <span class="set-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#type"/></svg></span>
@@ -118,7 +118,7 @@
     <section class="set-group" id="notifications" aria-label="Notifications">
       <header class="pane-head">
         <h2>Notifications</h2>
-        <p>What reaches your inbox, and when the pip shows.</p>
+        <p>What reaches your inbox, and when the pip appears.</p>
       </header>
       <p class="set-note" role="status" data-autosave-status></p>
       <form class="set-list" method="post"{% if not demo_mode %} data-autosave{% endif %} action="{{ url_for('settings.notification_preferences') }}">
@@ -147,7 +147,7 @@
     <section class="set-group" id="passkeys" aria-label="Passkeys">
       <header class="pane-head">
         <h2>Passkeys</h2>
-        <p>The keys that sign you in on this device.</p>
+        <p>The passkeys that sign you in on this device.</p>
       </header>
       <div class="set-list">
         {% for key in passkeys %}

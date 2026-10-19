@@ -30,7 +30,7 @@
      --database /data/pwedepa.db
    ```
 
-   The person who enrols picks their own username and display name.
+   The person who enrols picks their own username and profile name.
 
 The app listens on `127.0.0.1:5000` and reports health at `/health`. The sidecar
 reaches the app at `http://pwedepa:5000` on the compose network.

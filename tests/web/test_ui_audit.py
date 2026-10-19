@@ -1445,7 +1445,7 @@ def test_an_admin_cannot_take_their_own_admin_role(app, db):
     follow_redirects=True,
   )
   assert Role.ADMIN in list_roles(db, person.id)
-  assert b"You cannot remove your own Admin role" in answer.data
+  assert b"Ask another admin to remove your Admin role" in answer.data
 
 
 def test_admin_rows_draw_the_rule_above(app):

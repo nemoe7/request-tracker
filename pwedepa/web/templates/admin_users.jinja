@@ -17,7 +17,7 @@
 
 <section class="panel admin-section">
   <h2>Sign-up token</h2>
-  <p class="muted">The person who enrols picks their own username and display name.</p>
+  <p class="muted">The person who enrols picks their own username and profile name.</p>
   <form class="form inline-form create-token" method="post" action="{{ url_for('admin.issue_token') }}">
     <div class="field"><label for="new-role">Role</label><select id="new-role" name="role">{% for role in roles %}<option value="{{ role }}">{{ role | capitalize }}</option>{% endfor %}</select></div>
     <button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#key-round"/></svg>Create token</button>

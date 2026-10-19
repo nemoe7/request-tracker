@@ -46,7 +46,7 @@ def create_user(
   username = username.strip()
   display_name = display_name.strip()
   if not username or not display_name:
-    raise AuthError("a user needs a username and a display name")
+    raise AuthError("Add a username and a profile name.")
   try:
     cursor = db.exec_driver_sql(
       "INSERT INTO users (username, display_name, status, created_at, updated_at) "
@@ -80,7 +80,7 @@ def update_display_name(
 ) -> User:
   display_name = display_name.strip()
   if not display_name:
-    raise AuthError("a user needs a display name")
+    raise AuthError("Add a profile name.")
   _require_user(db, user_id)
   db.exec_driver_sql(
     "UPDATE users SET display_name = ?, updated_at = ? WHERE id = ?",
