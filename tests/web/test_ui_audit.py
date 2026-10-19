@@ -701,6 +701,31 @@ def test_the_workspace_reads_as_one_mail_table(app, db):
   )
 
 
+def test_a_clipped_workspace_row_keeps_its_full_text(app, db):
+  """A cell that ends in an ellipsis must still offer the whole line."""
+  client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
+  person = users.get_user_by_username(db, "sam")
+  long_title = "The kitchen tap keeps dripping after the washer was changed twice"
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title=long_title,
+      description="It started on Monday, and the washer looks worn.",
+      requester_id=person.id,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+
+  page = client.get("/").data.decode()
+
+  assert f'title="{long_title}"' in page, "the clipped title keeps its full text"
+  assert 'class="mail-snippet" title="It started on Monday' in page, (
+    "the clipped line keeps its full text"
+  )
+
+
 def test_the_workspace_pane_carries_the_request_view(app, db):
   """The reading pane is the request page, controls and all."""
   client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))

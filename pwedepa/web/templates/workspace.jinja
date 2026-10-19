@@ -57,10 +57,10 @@
           <td class="mail-from">{{ names.get(row.requester_id, "—") }}</td>
           <td class="mail-title">
             {% if row_kind == "request" %}
-            <a class="mail-link" href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter, selected=row.id) }}"{% if selected and row.id == selected.id %} aria-current="true"{% endif %}>{{ row.title }}</a>
-            <span class="mail-snippet">{{ row.description | plain_prose | truncate(140, true) }}</span>
+            <a class="mail-link" href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter, selected=row.id) }}" title="{{ row.title }}"{% if selected and row.id == selected.id %} aria-current="true"{% endif %}>{{ row.title }}</a>
+            <span class="mail-snippet" title="{{ row.description | plain_prose | truncate(400) }}">{{ row.description | plain_prose | truncate(140, true) }}</span>
             {% else %}
-            <a class="mail-link" href="{{ record_path(row, 'issue') }}">{{ row.title }}</a>
+            <a class="mail-link" href="{{ record_path(row, 'issue') }}" title="{{ row.title }}">{{ row.title }}</a>
             <span class="mail-snippet">Issue #{{ row.id }} · {{ row.domains | join(", ") or "—" }}</span>
             {% endif %}
           </td>
