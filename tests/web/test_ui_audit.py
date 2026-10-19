@@ -641,8 +641,12 @@ def test_the_workspace_reads_as_one_mail_table(app, db):
   assert grid and "240px minmax(0, 1fr) 0" in grid.group(1), (
     "the closed list takes the free track"
   )
-  assert "max-width" in grid.group(1) and "margin" in grid.group(1), (
-    "the page stays a centered column"
+  assert "max-width: 1560px" in grid.group(1), "the grid fills a wide screen"
+  assert "margin" in grid.group(1), "the page stays a centered column"
+  assert "0.85fr" not in css and "1.15fr" not in css, "one grid rule, no dead override"
+  card = re.search(r"\.workspace-grid\.is-open\.is-main \.inspector \{([^}]*)\}", css)
+  assert card and "grid-column: 2 / -1" in card.group(1), (
+    "the open card takes the free width"
   )
 
 
