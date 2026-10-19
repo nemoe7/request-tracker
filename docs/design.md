@@ -62,6 +62,8 @@ rule adds.
 - Text size sets the page type from 85 to 130 percent, with a slider and a
   number for the exact value.
 - Admin is one group in Settings, and the group stays hidden for non-admins.
+  Admin rows open their pane inside Settings, and a Back row returns to the list.
+  The client view sits in the Admin group.
 
 ## Domains
 
