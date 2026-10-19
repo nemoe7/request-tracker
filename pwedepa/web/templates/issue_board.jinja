@@ -2,6 +2,7 @@
 {% from "_parts.jinja" import pill %}
 {% block title %}PwedePa | Issues{% endblock %}
 {% block content %}
+<div class="narrow">
 <div class="page-head">
   <h1>Issues</h1>
 </div>
@@ -30,6 +31,7 @@
 <div class="empty panel">
   <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="48" height="48">
   <p>No issues yet.</p>
+</div>
 </div>
 {% endif %}
 {% endblock %}

@@ -274,7 +274,7 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .muted { color: var(--muted); font-size: calc(14px * var(--font-scale)); }
 .empty { text-align: center; padding: 28px 16px; color: var(--muted); font-size: calc(14px * var(--font-scale)); }
 .empty .btn { margin-top: 10px; }
-.issue-groups { display: grid; gap: 28px; max-width: 980px; }
+.issue-groups { display: grid; gap: 28px; }
 .issue-group h2 { display: flex; align-items: center; gap: 8px; font-size: calc(14px * var(--font-scale)); margin: 0 0 8px; }
 .issue-list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .issue-row + .issue-row { border-top: 1px solid var(--line); }

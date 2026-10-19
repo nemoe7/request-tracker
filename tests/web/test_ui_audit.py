@@ -1162,6 +1162,8 @@ def test_the_issues_page_lists_the_work_in_status_groups(app, db):
   page = client.get("/issues").data.decode()
 
   assert 'class="board-col"' not in page, "the page is a list, not a board"
+  board = page[page.index('class="narrow"') :]
+  assert 'class="issue-groups"' in board, "the list sits in the one column"
   assert 'class="issue-group"' in page, "each status keeps its own group"
   assert 'class="issue-row"' in page, "an issue reads as one row"
   assert "Nothing here." not in page, "an empty status stays out of the list"
