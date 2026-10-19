@@ -346,10 +346,15 @@ def workspace() -> str | Response:
     row for row in rows if row.id in read_ids
   ]
   domains = sorted({d for r in all_requests + all_issues for d in r.domains})
+  # Each value keeps its own quotes, so a domain with a comma stays one item.
   filters = [
-    f'domain "{domain}"' if domain else "",
-    f"visibility {visibility}" if visibility else "",
-    f"status {status_filter}" if status_filter else "",
+    f'{name} "{value}"'
+    for name, value in (
+      ("domain", domain),
+      ("visibility", visibility),
+      ("status", status_filter),
+    )
+    if value
   ]
   return render_template(
     "workspace.jinja",
