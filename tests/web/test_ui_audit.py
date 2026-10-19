@@ -1173,6 +1173,9 @@ def test_each_settings_pane_carries_a_head(app, db):
   for pane in ("profile", "appearance", "notifications", "passkeys", "admin"):
     assert f'.settings-nav a[href="#{pane}"]' in wide, "each pane marks its own row"
   assert "background: var(--accent-fill)" in wide, "the picked row takes the accent"
+  assert ".settings-main > .set-group:target { animation: fade-in 160ms" in wide, (
+    "a picked pane fades in, so the swap reads as one move"
+  )
 
 
 def test_the_phone_opens_one_settings_page_at_a_time(app, db):

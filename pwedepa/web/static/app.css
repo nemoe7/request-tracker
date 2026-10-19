@@ -521,6 +521,7 @@ form.is-auto [data-save] { display: none; }
     .settings-main > .set-group { display: none; }
     .settings-main > .set-group#profile,
     .settings-main > .set-group:target { display: block; }
+    .settings-main > .set-group:target { animation: fade-in 160ms var(--ease); }
     .settings-main:has(> .set-group:target) > .set-group#profile:not(:target) { display: none; }
     .settings-shell:not(:has(.set-group:target)) .settings-nav a[href="#profile"],
     .settings-shell:has(#profile:target) .settings-nav a[href="#profile"],
