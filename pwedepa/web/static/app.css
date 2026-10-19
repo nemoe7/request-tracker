@@ -523,9 +523,7 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .settings-main h1 { margin: 4px 0 18px; }
 .set-group { margin-bottom: 26px; scroll-margin-top: 68px; }
 /* The phone keeps the small label; a wide screen shows the whole head. */
-.pane-head { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; row-gap: 2px; align-items: center; margin: 0 0 14px 16px; }
-.pane-head > .set-chip { grid-row: span 2; width: 30px; height: 30px; border-radius: 8px; }
-.pane-head > .set-chip .icon { width: 17px; height: 17px; }
+.pane-head { display: grid; grid-template-columns: minmax(0, 1fr); row-gap: 2px; align-items: center; margin: 0 0 14px 16px; }
 .pane-head > p { margin: 0; color: var(--muted); font-size: calc(13px * var(--font-scale)); }
 .pane-back { display: none; }
 .set-fieldset > legend, .set-head { font-size: calc(12px * var(--font-scale)); color: var(--muted); margin: 0; font-weight: 600; }

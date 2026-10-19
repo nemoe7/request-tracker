@@ -1313,13 +1313,14 @@ def test_the_settings_pane_takes_the_whole_width(app, db):
   assert "padding: 6px 12px" in rail, "a rail row stays a compact target"
   assert "calc(14px * var(--font-scale))" in rail, "the rail reads at body size"
   head = css[css.index(".pane-head {") :].split("}", 1)[0]
-  assert "grid-template-columns: auto 1fr" in head, "the chip sits beside the name"
+  assert "grid-template-columns: minmax(0, 1fr)" in head, "the name takes the line"
+  assert "auto 1fr" not in head, "no tile sits beside the name"
   name = css[css.index(".set-group > .pane-head > h2 {") :].split("}", 1)[0]
   assert "calc(20px * var(--font-scale))" in name, "the pane name is a heading"
   body = client.get("/settings").data.decode()
   heads = re.findall(r'<header class="pane-head">(.*?)</header>', body, re.DOTALL)
-  assert heads and all("set-chip" in head for head in heads), (
-    "every pane head carries its chip"
+  assert heads and not any("set-chip" in head for head in heads), (
+    "a group head leads with its plain name"
   )
 
 
@@ -1769,6 +1770,7 @@ def test_profile_leads_with_the_account_facts(app, db):
   assert "Member since" in facts and "Oct 2026" in facts
   assert "Admin" in facts
   assert "Last sign-in" in facts
+  assert "just now" in facts, "the live session fills the row"
   assert body.index("set-facts") < body.index('action="/settings/profile"')
 
 
