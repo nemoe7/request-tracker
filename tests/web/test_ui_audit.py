@@ -692,6 +692,14 @@ def test_the_workspace_reads_as_one_mail_table(app, db):
   css = client.get("/static/app.css").data.decode()
   row = re.search(r"\.record-table td \{([^}]*)\}", css)
   assert row and "padding: 5px 8px" in row.group(1), "the row keeps one dense height"
+  table = re.search(r"\.record-table \{([^}]*)\}", css)
+  assert table and "14px * var(--font-scale)" in table.group(1), (
+    "table text clears 13.5px"
+  )
+  item = re.search(r"\.queue-item \{([^}]*)\}", css)
+  assert item and "min-height: 40px" in item.group(1), (
+    "the queue row meets the 40px ramp"
+  )
   assert ".mail-table tr.is-unread .mail-title a { font-weight: 700; }" in css
   selected = re.search(r"\.record-table tr\.is-selected td \{([^}]*)\}", css)
   assert selected and "box-shadow" not in selected.group(1), (

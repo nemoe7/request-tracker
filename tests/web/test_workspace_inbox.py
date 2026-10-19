@@ -134,3 +134,14 @@ def test_new_activity_returns_an_opened_item_to_unread(db, staff):
 
   body = client.get("/").get_data(as_text=True)
   assert "is-unread" in _row(body, "Rope climb plan")
+
+
+def test_the_empty_list_names_the_filter_and_clears_it(db, staff):
+  client, _ = staff
+
+  body = client.get("/?status=closed").get_data(as_text=True)
+  assert "No requests match status closed." in body
+  assert "Clear filters" in body
+
+  plain = client.get("/").get_data(as_text=True)
+  assert "No requests in this queue yet." in plain

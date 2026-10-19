@@ -346,12 +346,18 @@ def workspace() -> str | Response:
     row for row in rows if row.id in read_ids
   ]
   domains = sorted({d for r in all_requests + all_issues for d in r.domains})
+  filters = [
+    f'domain "{domain}"' if domain else "",
+    f"visibility {visibility}" if visibility else "",
+    f"status {status_filter}" if status_filter else "",
+  ]
   return render_template(
     "workspace.jinja",
     queue=queue,
     domain=domain,
     visibility=visibility,
     status_filter=status_filter,
+    filters=[word for word in filters if word],
     statuses=[status.value for status in RequestStatus]
     + [status.value for status in IssueStatus if status is not IssueStatus.OPEN],
     domains=domains,
