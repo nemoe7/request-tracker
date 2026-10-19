@@ -1,5 +1,13 @@
 "use strict";
 
+/* A page swap reruns this whole script, so each boot first aborts the
+   listeners the last one added. Nothing binds twice, and a plain page load
+   without a swap works the same. */
+window.pwedepaBoot = function pwedepaBoot() {
+  window.pwedepaLifecycle?.abort();
+  const lifecycle = (window.pwedepaLifecycle = new AbortController());
+  const listen = { signal: lifecycle.signal };
+
 /* Theme: System (default), Light, Dark. A signed-in account holds the choice;
    a signed-out page or a frozen demo keeps it in the browser. */
 const themeButtons = document.querySelectorAll("[data-theme-set]");
@@ -93,20 +101,24 @@ if (userMenuButton && userMenu) {
   });
   document.addEventListener("click", (event) => {
     if (!userMenu.hidden && !event.target.closest(".user-menu-wrap")) closeMenu();
-  });
+  }, listen);
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeMenu();
-  });
+  }, listen);
 }
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js").catch(() => {});
 }
 
-/* Prefetch linked pages on intent, so navigation answers at once. */
+/* Prefetch linked pages on intent, so navigation answers at once. One
+   listener reads each hover, because a page swap brings new links. */
 const prefetched = new Set();
-document.querySelectorAll('a[href^="/"]').forEach((link) => {
-  link.addEventListener("pointerenter", () => {
+document.addEventListener(
+  "pointerover",
+  (event) => {
+    const link = event.target.closest?.('a[href^="/"]');
+    if (!link) return;
     const href = link.getAttribute("href");
     if (!href || prefetched.has(href)) return;
     prefetched.add(href);
@@ -114,8 +126,9 @@ document.querySelectorAll('a[href^="/"]').forEach((link) => {
     hint.rel = "prefetch";
     hint.href = href;
     document.head.appendChild(hint);
-  }, { once: true });
-});
+  },
+  listen
+, listen);
 
 /* Workspace: a row opens the centre card in place, and its link stays real. */
 const workspaceGrid = document.querySelector(".workspace-grid");
@@ -193,7 +206,7 @@ if (workspaceGrid) {
     if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
     event.preventDefault();
     openCard(link.href, null, true);
-  });
+  }, listen);
 
   // The rows are replaced when a filter swaps, so one listener reads each click.
   workspaceGrid.addEventListener("click", (event) => {
@@ -218,7 +231,7 @@ if (workspaceGrid) {
     } else {
       window.location.reload();
     }
-  });
+  }, listen);
 }
 
 /* WebAuthn helpers: the server speaks base64url JSON, the browser wants buffers. */
@@ -498,7 +511,7 @@ document.querySelectorAll("form[data-auto-submit]").forEach((form) => {
 document.addEventListener("change", (event) => {
   const form = event.target.closest?.("form[data-auto-submit]");
   if (form) form.requestSubmit();
-});
+}, listen);
 
 /* Modal: one manager for every custom dialog. An opener carries
    data-modal-open="<id>", and a close control carries data-modal-close. */
@@ -545,7 +558,7 @@ document.addEventListener("change", (event) => {
       event.preventDefault();
       close();
     }
-  });
+  }, listen);
 
   document.addEventListener("keydown", (event) => {
     if (!active) return;
@@ -566,7 +579,7 @@ document.addEventListener("change", (event) => {
       event.preventDefault();
       first.focus();
     }
-  });
+  }, listen);
 
   const openOnLoad = document.querySelector(".modal:not([hidden])");
   if (openOnLoad) open(openOnLoad.id);
@@ -586,13 +599,13 @@ document.addEventListener("change", (event) => {
 
   document.addEventListener("input", (event) => {
     if (event.target instanceof HTMLTextAreaElement) fit(event.target);
-  });
+  }, listen);
   document.addEventListener("focusin", (event) => {
     if (event.target instanceof HTMLTextAreaElement) fit(event.target);
-  });
-  window.addEventListener("resize", fitAll);
+  }, listen);
+  window.addEventListener("resize", fitAll, listen);
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", fitAll);
+    document.addEventListener("DOMContentLoaded", fitAll, listen);
   } else {
     fitAll();
   }
@@ -689,5 +702,65 @@ document.addEventListener("change", (event) => {
   window.addEventListener("popstate", () => {
     if (window.location.pathname !== path) return;
     load(window.location.href, false);
-  });
+  }, listen);
 })();
+  /* Top-level pages swap into the same shell, so the top bar never redraws,
+     the page never blanks, and the scroll stays put. A plain link still
+     loads a whole page when this script is absent. */
+  (() => {
+    const main = document.querySelector("main.wrap");
+    if (!main || !window.fetch || !window.DOMParser) return;
+    let run = 0;
+
+    const swap = async (href, remember) => {
+      const token = ++run;
+      try {
+        const response = await fetch(href, { headers: { Accept: "text/html" } });
+        if (!response.ok) throw new Error(`page ${response.status}`);
+        const page = new DOMParser().parseFromString(await response.text(), "text/html");
+        const nextMain = page.querySelector("main.wrap");
+        if (!nextMain || token !== run) throw new Error("no page");
+        main.className = nextMain.className;
+        main.replaceChildren(...nextMain.childNodes);
+        // The bar carries its own state and controls, so the fresh one replaces
+        // it whole. A leftover copy would bind the same button twice.
+        const bar = document.querySelector("header.topbar");
+        const nextBar = page.querySelector("header.topbar");
+        if (bar && nextBar) bar.replaceWith(nextBar);
+        document.title = page.title;
+        document.body.className = page.body.className;
+        if (remember) history.pushState(null, "", href);
+        window.scrollTo(0, 0);
+        // A reader who lands on a new page keeps a starting point for the
+        // keyboard, and the screen reader reads from there.
+        main.setAttribute("tabindex", "-1");
+        main.focus({ preventScroll: true });
+        window.pwedepaBoot();
+      } catch {
+        window.location.assign(href);
+      }
+    };
+
+    document.addEventListener(
+      "click",
+      (event) => {
+        if (event.defaultPrevented || event.button !== 0) return;
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        const link = event.target.closest("a[href]");
+        if (!link || link.target || link.hasAttribute("download")) return;
+        const url = new URL(link.href, window.location.href);
+        if (url.origin !== window.location.origin || url.hash) return;
+        if (url.pathname === window.location.pathname && url.search === window.location.search) return;
+        if (link.dataset.fullLoad !== undefined) return;
+        event.preventDefault();
+        swap(url.href, true);
+      },
+      listen
+    );
+
+    window.addEventListener("popstate", () => swap(window.location.href, false), listen);
+  })();
+
+};
+
+window.pwedepaBoot();
