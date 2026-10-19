@@ -74,7 +74,8 @@ One root `AGENTS.md` only. Do not add nested `AGENTS.md` files unless a package 
 
 Vendored skills live in `.agents/skills/`. Each imported skill carries an `UPSTREAM.md` with its source repository, pinned revision, and version. The imported set is the folders in that directory, and no others.
 
-- Use `frontend-design` and `taste-skill` for all front-end work: layout, styling, components, and UI review.
+- Use `frontend-design`, `taste-skill`, and `ui-ux-pro-max` for all front-end work: layout, styling, components, interaction, and UI and UX review.
+- Run `ui-ux-pro-max` searches by its own `scripts/search.py` path, with one domain per question.
 - The repo style rules and `docs/design.md` decide a settled pick. The skills advise.
 
 ## Settings UI
