@@ -726,6 +726,17 @@ def test_a_clipped_workspace_row_keeps_its_full_text(app, db):
   )
 
 
+def test_the_admin_saves_read_as_words(app, db):
+  """An action button says what it does. Only the sheet button may drop its words."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+
+  for path, label in (("/admin/site", "Save message"), ("/admin/config", ">Save<")):
+    page = client.get(path).data.decode()
+    button = re.search(r'<button class="btn[^"]*" type="submit">([^<]*)', page)
+    assert button, f"{path} keeps a submit button"
+    assert label in page and "icon-only" not in button.group(0), path
+
+
 def test_the_workspace_pane_carries_the_request_view(app, db):
   """The reading pane is the request page, controls and all."""
   client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
