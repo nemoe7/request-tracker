@@ -413,19 +413,14 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .demo-switch a { padding: 4px 12px; border-radius: 999px; color: var(--muted); font-weight: 600; font-size: calc(13px * var(--font-scale)); }
 .demo-switch a.on { background: var(--accent); color: #fff; }
 
-/* Motion: one fluid curve, state changes only, reduced-motion safe. Page
-   switches keep the top bar steady; the whole page never cross-fades. */
+/* Motion: one fluid curve, state changes only, reduced-motion safe. A page
+   load keeps the top bar steady and swaps at once, so no old frame shows
+   through the new page. A named panel group outlives its page and ghosts the
+   old view, so no panel carries a transition name. */
 @view-transition { navigation: auto; }
 .topbar { view-transition-name: topbar; }
 ::view-transition-old(root), ::view-transition-new(root),
 ::view-transition-old(topbar), ::view-transition-new(topbar) { animation: none; }
-/* A filter switch fades the lists it refilters, so the change reads as one move. */
-.panel.filters { view-transition-name: filters; }
-.panel.records { view-transition-name: records; }
-::view-transition-old(filters), ::view-transition-new(filters),
-::view-transition-old(records), ::view-transition-new(records) {
-  animation: fade-in 160ms var(--ease) both;
-}
 @keyframes fade-in { from { opacity: 0; } }
 /* A filter swap repaints the two panels, so they fade in as one move. */
 .panel.filters.is-swapping, .panel.records.is-swapping { animation: fade-in 160ms var(--ease); }
