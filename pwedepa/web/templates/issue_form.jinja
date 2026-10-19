@@ -1,17 +1,24 @@
 {% extends "base.jinja" %}
-{% block title %}PwedePa | Edit issue #{{ record.id }}{% endblock %}
+{% block title %}PwedePa | {% if record %}Edit issue #{{ record.id }}{% elif domain %}New issue in {{ domain.name }}{% else %}New issue{% endif %}{% endblock %}
 {% block content %}
 <div class="narrow form-page">
-  <h1>Edit issue</h1>
-  <form class="form panel form-2col" method="post" action="{{ url_for('records.issue_edit_save', issue_id=record.id) }}">
+  <h1>{% if record %}Edit issue{% elif domain %}New issue in {{ domain.name }}{% else %}New issue{% endif %}</h1>
+  <form class="form panel form-2col" method="post" action="{% if record %}{{ url_for('records.issue_edit_save', issue_id=record.id) }}{% elif domain %}{{ url_for('records.issue_create_in_domain', slug=domain.slug) }}{% endif %}">
     <div class="field field-wide">
       <label for="i-title">Title</label>
-      <input id="i-title" name="title" type="text" required value="{{ record.title }}">
+      <input id="i-title" name="title" type="text" required value="{{ record.title if record else '' }}">
     </div>
     <div class="field field-wide">
       <label for="i-description">Description</label>
-      <textarea id="i-description" name="description" rows="5">{{ record.description }}</textarea>
+      <textarea id="i-description" name="description" rows="5">{{ record.description if record else '' }}</textarea>
     </div>
+    {% if domain and not record %}
+    <div class="field">
+      <span class="field-label">Domain</span>
+      <p class="field-static">{{ domain.name }}</p>
+      <input type="hidden" name="domain" value="{{ domain.name }}">
+    </div>
+    {% else %}
     <fieldset class="field field-checks">
       <legend>Domains</legend>
       {% for domain in domains %}
@@ -20,19 +27,20 @@
       <p class="help">No Domain is configured.</p>
       {% endfor %}
     </fieldset>
+    {% endif %}
     <div class="field-stack">
       <div class="field">
         <label for="i-visibility">Visibility</label>
         <select id="i-visibility" name="visibility">
-          <option value="PRIVATE"{% if record.visibility.value == 'PRIVATE' %} selected{% endif %}>Private</option>
-          <option value="PUBLIC"{% if record.visibility.value == 'PUBLIC' %} selected{% endif %}>Public</option>
+          <option value="PRIVATE"{% if record and record.visibility.value == 'PRIVATE' %} selected{% endif %}>Private</option>
+          <option value="PUBLIC"{% if record and record.visibility.value == 'PUBLIC' %} selected{% endif %}>Public</option>
         </select>
       </div>
       <div class="field">
         <label for="i-priority">Priority</label>
         <select id="i-priority" name="priority">
           {% for value in priorities %}
-          <option value="{{ value }}"{% if record.priority.value == value %} selected{% endif %}>{{ value | capitalize }}</option>
+          <option value="{{ value }}"{% if record and record.priority.value == value %} selected{% endif %}>{{ value | capitalize }}</option>
           {% endfor %}
         </select>
       </div>
@@ -41,14 +49,14 @@
         <select id="i-assignee" name="assignee_id">
           <option value="">Unassigned</option>
           {% for person in users %}
-          <option value="{{ person.id }}"{% if record.assignee_id == person.id %} selected{% endif %}>{{ person.display_name }}</option>
+          <option value="{{ person.id }}"{% if record and record.assignee_id == person.id %} selected{% endif %}>{{ person.display_name }}</option>
           {% endfor %}
         </select>
       </div>
     </div>
     <div class="form-actions">
-      <button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg>Save changes</button>
-      <a class="btn" href="{{ record_path(record, 'issue') }}">Cancel</a>
+      <button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg>{% if record %}Save changes{% else %}Create issue{% endif %}</button>
+      <a class="btn" href="{% if record %}{{ record_path(record, 'issue') }}{% elif domain %}{{ url_for('records.domain_page', slug=domain.slug) }}{% else %}{{ url_for('records.requests') }}{% endif %}">Cancel</a>
     </div>
   </form>
 </div>

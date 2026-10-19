@@ -1,9 +1,9 @@
 {% extends "base.jinja" %}
-{% block title %}PwedePa | {% if record %}Edit request #{{ record.id }}{% else %}New request{% endif %}{% endblock %}
+{% block title %}PwedePa | {% if record %}Edit request #{{ record.id }}{% elif domain %}New request in {{ domain.name }}{% else %}New request{% endif %}{% endblock %}
 {% block content %}
 <div class="narrow form-page">
-  <h1>{% if record %}Edit request{% else %}New request{% endif %}</h1>
-  <form class="form panel form-2col" method="post" action="{% if record %}{{ url_for('records.request_edit_save', request_id=record.id) }}{% else %}{{ url_for('records.request_create') }}{% endif %}">
+  <h1>{% if record %}Edit request{% elif domain %}New request in {{ domain.name }}{% else %}New request{% endif %}</h1>
+  <form class="form panel form-2col" method="post" action="{% if record %}{{ url_for('records.request_edit_save', request_id=record.id) }}{% elif domain %}{{ url_for('records.request_create_in_domain', slug=domain.slug) }}{% else %}{{ url_for('records.request_create') }}{% endif %}">
     <div class="field field-wide">
       <label for="f-title">Title</label>
       <input id="f-title" name="title" type="text" required value="{{ record.title if record else '' }}">
@@ -14,17 +14,26 @@
       <p class="help">Say what you need and how you will know it is finished.</p>
     </div>
     <div class="field">
+      {% if domain and not record %}
+      <span class="field-label">Domain</span>
+      <p class="field-static">{{ domain.name }}</p>
+      <input type="hidden" name="domain" value="{{ domain.name }}">
+      <p class="help"><a href="{{ url_for('records.domain_page', slug=domain.slug) }}">{{ domain.name }}</a> owns this request. <a href="{{ url_for('records.request_new') }}">Pick another</a>.</p>
+      {% elif record %}
+      <span class="field-label">Domain</span>
+      <p class="field-static">{{ record.domains | join(", ") if record.domains else "No Domain" }}</p>
+      {% else %}
       <label for="f-domain">Domain</label>
       {% if domains %}
-      <select id="f-domain" name="domain">
-        <option value="">No Domain</option>
-        {% for domain in domains %}
-        <option value="{{ domain.name }}"{% if record and domain.name in record.domains %} selected{% endif %}>{{ domain.name }}</option>
+      <select id="f-domain" name="domain" required>
+        {% for entry in domains %}
+        <option value="{{ entry.name }}">{{ entry.name }}</option>
         {% endfor %}
       </select>
       <p class="help">A request belongs to one Domain.</p>
       {% else %}
       <p class="help">No Domain is configured.</p>
+      {% endif %}
       {% endif %}
     </div>
     <div class="field">
@@ -46,7 +55,7 @@
     </div>
     <div class="form-actions">
       {% if record %}<button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg>Save changes</button>{% else %}<button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Create request</button>{% endif %}
-      <a class="btn" href="{% if record %}{{ request_open_path(record) }}{% else %}{{ url_for('records.requests') }}{% endif %}">Cancel</a>
+      <a class="btn" href="{% if record %}{{ request_open_path(record) }}{% elif domain %}{{ url_for('records.domain_page', slug=domain.slug) }}{% else %}{{ url_for('records.requests') }}{% endif %}">Cancel</a>
     </div>
   </form>
 </div>

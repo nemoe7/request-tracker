@@ -1,0 +1,22 @@
+{% extends "base.jinja" %}
+{% block title %}PwedePa | New request{% endblock %}
+{% block content %}
+<div class="narrow">
+  <p class="eyebrow">New request</p>
+  <h1>Which Domain is this for?</h1>
+  <p class="desc">A request belongs to one Domain. Pick it and the form opens there.</p>
+  <ul class="record-list">
+    {% for domain in domains %}
+    <li class="record-row">
+      <div class="record-row-main">
+        <h2><a href="{{ url_for('records.request_new_in_domain', slug=domain.slug) }}">{{ domain.name }}</a></h2>
+        {% if domain.description %}<p class="meta">{{ domain.description }}</p>{% endif %}
+      </div>
+    </li>
+    {% else %}
+    <li class="record-row"><div class="record-row-main"><p class="muted">No Domain is configured yet.</p></div></li>
+    {% endfor %}
+  </ul>
+  <p class="section-actions"><a class="btn" href="{{ url_for('records.requests') }}">Cancel</a></p>
+</div>
+{% endblock %}

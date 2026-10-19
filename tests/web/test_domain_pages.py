@@ -123,14 +123,22 @@ def test_the_old_record_urls_answer_404(db, Mara):
   assert client.get("/issues/1").status_code == 404
 
 
-def test_the_create_form_offers_the_configured_domains(db, Mara):
+def test_the_create_step_starts_with_a_domain(db, Mara):
   client, _ = Mara
   page = client.get("/requests/new")
 
-  assert b'name="domain"' in page.data
   for domain in domains_data.load():
-    assert f'value="{domain.name}"'.encode() in page.data
+    assert f"/{domain.slug}/requests/new".encode() in page.data
   assert b'name="domains"' not in page.data, "a request takes one Domain, not a list"
+
+
+def test_the_domain_form_holds_one_domain(db, Mara):
+  client, _ = Mara
+  page = client.get("/gym/requests/new")
+
+  assert b'name="domain" value="Gym"' in page.data
+  assert b'<select id="f-domain"' not in page.data, "the Domain comes from the URL"
+  assert b"New request in Gym" in page.data
 
 
 def test_a_new_request_keeps_the_chosen_domain(db, Mara):
