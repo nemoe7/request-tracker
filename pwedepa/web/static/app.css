@@ -465,7 +465,7 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 form.set-split { background: none; border: 0; overflow: visible; }
 .set-split .set-fieldset { background: var(--surface); border: 0; border-radius: 16px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
 .set-fieldset > legend { float: left; width: 100%; box-sizing: border-box; padding-top: 12px; }
-.set-row { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 16px; border-bottom: 1px solid var(--line); color: var(--text); font-size: calc(15px * var(--font-scale)); text-decoration: none; box-sizing: border-box; }
+.set-row { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 16px; border: 0; border-bottom: 1px solid var(--line); background: none; width: 100%; text-align: left; font: inherit; font-size: calc(15px * var(--font-scale)); color: var(--text); text-decoration: none; box-sizing: border-box; }
 .set-row:last-child { border-bottom: 0; }
 .set-head { margin: 0; padding: 16px 16px 6px; font-size: calc(12px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: var(--surface); }
 .set-head + .set-row { border-top: 1px solid var(--line); }

@@ -40,12 +40,12 @@
           <span class="set-label">Display name</span>
           <input class="set-input" type="text" name="display_name" value="{{ user.display_name }}" required>
         </label>
-        <div class="set-row">
+        <button class="set-row link-row" type="button" data-modal-open="change-username">
           <span class="set-chip chip-gray"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg></span>
           <span class="set-label">Username</span>
           <span class="set-value">{{ user.username }}</span>
-          <button class="btn" type="button" data-modal-open="change-username">Change</button>
-        </div>
+          <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
+        </button>
         <div class="set-row">
           <span class="set-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg></span>
           <span class="set-label">Status</span>
