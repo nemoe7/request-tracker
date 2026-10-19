@@ -413,6 +413,21 @@ def test_page_switches_do_not_animate_the_whole_page(app):
   )
 
 
+def test_a_page_switch_swaps_the_shell_in_place(app):
+  """The top bar stays put, and the content area takes the new page."""
+  client = app.test_client()
+  js = client.get("/static/app.js").data.decode()
+  assert "window.pwedepaBoot" in js, "the script boots again after a swap"
+  assert "window.pwedepaLifecycle?.abort()" in js, "a second boot drops the first"
+  assert 'querySelector("main.wrap")' in js, "the swap owns the content area"
+  assert "history.pushState" in js, "a swapped page keeps its own url"
+  assert 'addEventListener("popstate"' in js, "the back button swaps too"
+  css = client.get("/static/app.css").data.decode()
+  assert "main.wrap:focus { outline: none; }" in css, (
+    "the focused content must not draw a ring around the page"
+  )
+
+
 def test_client_rows_open_the_record_from_the_title(app, db):
   client = _client(app, db, "mara", "Mara Reyes", roles=(Role.REQUESTER,))
   record = Request(

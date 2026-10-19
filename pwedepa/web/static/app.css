@@ -50,6 +50,8 @@ textarea { resize: none; }
 }
 
 .wrap { padding: 32px; max-width: 1280px; margin: 0 auto; box-sizing: border-box; }
+/* A page swap moves focus to the content, so the page edge must not take a ring. */
+main.wrap:focus { outline: none; }
 .page-head { margin-bottom: 16px; }
 
 .btn {
