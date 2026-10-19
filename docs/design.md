@@ -54,11 +54,11 @@ rule adds.
   and the public board read as dense rows, each with its state and a card link. A
   selected item opens as the wide card, and a phone shows it alone. The client
   surface stays one 720 px column.
-- Settings follow the Apple Settings pattern: grouped rows, label left, control
-  right, and a chevron only when the row navigates. The pattern stays inside Settings.
-  A wide screen works like the Mac pane: the rail picks one group and only that
-  group shows. A phone stacks every group, as iOS does. A switch saves the moment
-  it flips, so a group of switches carries no Save button.
+- Settings read as grouped rows: a rail of groups, one group on screen, a label
+  left, its control right, and a chevron only when the row navigates. The pattern
+  stays inside Settings. A phone stacks every group. A switch saves the moment it
+  flips, so a group of switches carries no Save button, and the time format saves
+  the same way.
 - Text size sets the page type from 85 to 130 percent, with a slider and a
   number for the exact value.
 - Admin is one group in Settings, and the group stays hidden for non-admins.

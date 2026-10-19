@@ -79,4 +79,4 @@ Vendored skills live in `.agents/skills/`. Each imported skill carries an `UPSTR
 
 ## Settings UI
 
-Settings pages follow the Apple Settings pattern: a sidebar on desktop, grouped inset cards, and rows with a label plus a value, chevron, toggle, select, or slider. Lists elsewhere stay clean and utilitarian, with plain status and priority badges.
+Settings pages use the grouped-rows pattern: a sidebar on desktop, inset cards, and rows with a label plus a value, chevron, toggle, select, or slider. Lists elsewhere stay clean and utilitarian, with plain status and priority badges.

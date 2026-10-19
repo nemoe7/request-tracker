@@ -5,7 +5,7 @@ body {
   padding-top: 56px;  /* the fixed bar keeps its room in the flow */
   background: var(--bg);
   color: var(--text);
-  font: 15px/1.45 "Inter", -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font: 15px/1.45 "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 h1, h2 { margin: 0; letter-spacing: -0.02em; }
@@ -440,7 +440,7 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .workspace-grid > .panel { height: 100%; box-sizing: border-box; }
 .inspector .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 240px; gap: 10px; }
 
-/* Settings: Apple Settings pattern. */
+/* Settings: grouped rows, one group per pane. */
 .settings-shell { display: grid; grid-template-columns: 260px minmax(0, 720px); gap: 28px; justify-content: center; align-items: start; }
 .settings-rail { position: sticky; top: 72px; align-self: start; }
 .settings-profile { display: flex; gap: 12px; align-items: center; padding: 4px 12px 16px; }
@@ -492,8 +492,8 @@ form.ios-split { background: none; border: 0; overflow: visible; }
 .btn.danger-quiet { color: var(--danger); background: none; border-color: transparent; }
 form.is-auto [data-save] { display: none; }
 
-/* Settings on a wide screen: the rail picks one pane, as Mac Settings does.
-   The phone keeps every group stacked, as iOS does. */
+/* Settings on a wide screen: the rail picks one pane.
+   The phone keeps every group stacked. */
 @media (min-width: 900px) {
   @supports selector(:has(*)) {
     .settings-main > .ios-group { display: none; }
