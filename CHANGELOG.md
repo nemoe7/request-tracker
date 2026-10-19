@@ -20,6 +20,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   fallback Save row hides without a theme click.
 - A seeded request carries a dummy requester, so the Requests page names an
   owner instead of a dash.
+- A dev image builds for the whole push range, not just the tip commit. A docs
+  commit over code no longer skips the build.
 - Light status pills read at 4.5:1 or better.
 - Phone taps stay at 44 px on the top bar and the buttons, and the Admin config
   file field takes the form style.

@@ -61,21 +61,27 @@ jobs:
             exit 0
           fi
 
-          # A failed read stops the job here, so no commit is guessed at.
-          # The push can hold several commits, so read the range from the
-          # commit before the tested one. A tip-only read misses the rest.
-          parent="$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA" \
-            --jq '.parents[0].sha')"
-          files="$(gh api "repos/$GITHUB_REPOSITORY/compare/$parent...$SHA" \
-            --jq '.files[].filename')"
+          # The range starts at the last CI run on main, not at the parent of
+          # the tested commit. A push can hold many commits, and its tip is
+          # often a docs commit, so a parent read misses the code under it.
+          previous="$(gh api \
+            "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?branch=main&status=success&per_page=50" \
+            --jq '[.workflow_runs[] | select(.head_sha != env.SHA)][0].head_sha // ""')"
           build=no
-          while IFS= read -r path; do
-            case "$path" in
-              pwedepa/*|config.yml|compose.yml|compose.dev.yml|Dockerfile|.dockerignore|pyproject.toml|uv.lock)
-                build=yes
-                ;;
-            esac
-          done <<<"$files"
+          if [[ -z "$previous" ]] \
+            || ! files="$(gh api "repos/$GITHUB_REPOSITORY/compare/$previous...$SHA" \
+              --jq '.files[].filename')"; then
+            # With no earlier run, or a failed read, build rather than guess.
+            build=yes
+          else
+            while IFS= read -r path; do
+              case "$path" in
+                pwedepa/*|config.yml|compose.yml|compose.dev.yml|Dockerfile|.dockerignore|pyproject.toml|uv.lock)
+                  build=yes
+                  ;;
+              esac
+            done <<<"$files"
+          fi
           printf 'build=%s\n' "$build" >>"$GITHUB_OUTPUT"
 
   dev:

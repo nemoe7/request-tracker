@@ -122,13 +122,15 @@ def test_the_dev_build_skips_commits_that_change_no_image_input():
   assert jobs["changes"]["outputs"]["build"] == "${{ steps.paths.outputs.build }}"
 
 
-def test_the_changes_job_reads_the_whole_push_range():
-  """A push can hold several commits, so the tip commit is not enough."""
+def test_the_changes_job_reads_from_the_last_ci_run():
+  """A push tip is often a docs commit over code, so the parent is not the start."""
   text = _docker_text()
-  assert "commits/$SHA" in text and ".parents[0].sha" in text, (
-    "the check needs the commit before the tested one"
+  assert "actions/workflows/ci.yml/runs?branch=main&status=success" in text, (
+    "the range starts at the last successful CI run on main"
   )
-  assert "compare/$parent...$SHA" in text, "the check reads the push range"
+  assert "select(.head_sha != env.SHA)" in text, "a rerun of the same head is skipped"
+  assert "compare/$previous...$SHA" in text, "the check reads the range since that run"
+  assert 'if [[ -z "$previous" ]]' in text, "a first run builds instead of guessing"
   assert ".files[].filename" in text
   for path in (
     "pwedepa/*",
