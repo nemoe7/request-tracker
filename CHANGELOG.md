@@ -7,6 +7,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+
+- `frontend-design` and `taste-skill` join the vendored skills, and both apply
+  to every front-end change.
+
 ### Fixed
 
 - Notification switches now bind at page load. They save on flip, and the

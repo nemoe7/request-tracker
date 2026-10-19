@@ -74,6 +74,9 @@ One root `AGENTS.md` only. Do not add nested `AGENTS.md` files unless a package 
 
 Vendored skills live in `.agents/skills/`. Each imported skill carries an `UPSTREAM.md` with its source repository, pinned revision, and version. The imported set is the folders in that directory, and no others.
 
+- Use `frontend-design` and `taste-skill` for all front-end work: layout, styling, components, and UI review.
+- The repo style rules and `docs/design.md` decide a settled pick. The skills advise.
+
 ## Settings UI
 
 Settings pages follow the Apple Settings pattern: a sidebar on desktop, grouped inset cards, and rows with a label plus a value, chevron, toggle, select, or slider. Lists elsewhere stay clean and utilitarian, with plain status and priority badges.
