@@ -87,6 +87,8 @@ def create_app(config: dict | None = None) -> Flask:
     DEMO_MODE=False,  # the frozen build asks for demo mode in code
     # The frozen build holds both page sets, so it shows the switch.
     DEMO_SWITCH=False,
+    # A dev preview sets this so a browser never shows an old page.
+    NO_STORE=os.environ.get("PWEDEPA_NO_STORE") == "1",
   )
   if config:
     app.config.update(config)
@@ -101,7 +103,7 @@ def create_app(config: dict | None = None) -> Flask:
   app.jinja_env.globals["domain_path"] = domain_path
   app.jinja_env.globals["build_label"] = build_label
 
-  if app.config.get("DEMO_MODE"):
+  if app.config.get("DEMO_MODE") or app.config.get("NO_STORE"):
 
     @app.after_request
     def preview_no_store(response):

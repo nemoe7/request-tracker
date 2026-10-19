@@ -91,9 +91,11 @@ setting: Settings, Pages, source: GitHub Actions. The build writes the site to
   variable sets it.
 - The app reads `PWEDEPA_SECRET_KEY`, `PWEDEPA_DB`, `PWEDEPA_ORIGIN`,
   `PWEDEPA_RP_ID`, `PWEDEPA_RP_NAME`, `PWEDEPA_COOKIE_SECURE`, `PWEDEPA_HOST`,
-  and `PWEDEPA_PORT`. Compose sets the secret, the origin, and the passkey
-  names. The image sets the database path, the address, and the port.
-  `PWEDEPA_COOKIE_SECURE` defaults to `1`. Set it to `0` only for a plain-HTTP
-  trial.
+  `PWEDEPA_PORT`, and `PWEDEPA_NO_STORE`. Compose sets the secret, the origin,
+  and the passkey names. The image sets the database path, the address, and the
+  port. `PWEDEPA_COOKIE_SECURE` defaults to `1`. Set it to `0` only for a
+  plain-HTTP trial. `PWEDEPA_NO_STORE=1` sends `Cache-Control: no-store` on
+  every page, so a preview never serves an old page. Leave it unset in
+  deployment.
 - The sidecar reads `TS_AUTHKEY`, `TS_HOSTNAME`, `TS_STATE_DIR`,
   `TS_SERVE_CONFIG`, and `TS_ENABLE_HEALTH_CHECK`. Compose sets all five.

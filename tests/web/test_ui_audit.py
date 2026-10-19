@@ -241,6 +241,28 @@ def test_demo_responses_forbid_storage(demo_app):
   assert "no-store" in response.headers.get("Cache-Control", "")
 
 
+def test_a_dev_run_can_forbid_storage_without_demo_mode(app, tmp_path):
+  """A preview run sets no-store, and a normal run leaves the default alone."""
+  plain = app.test_client().get("/login")
+  assert "no-store" not in plain.headers.get("Cache-Control", "")
+
+  preview = create_app(
+    {
+      "DATABASE": str(tmp_path / "preview.db"),
+      "WEBAUTHN_RP_ID": "example.com",
+      "WEBAUTHN_RP_NAME": "PwedePa",
+      "WEBAUTHN_ORIGIN": "https://example.com",
+      "SESSION_COOKIE_SECURE": True,
+      "NO_STORE": True,
+    }
+  )
+  client = preview.test_client()
+  assert "no-store" in client.get("/login").headers.get("Cache-Control", "")
+  asset = client.get("/static/app.css")
+  assert "no-store" not in asset.headers.get("Cache-Control", "")
+  assert "no-cache" in asset.headers.get("Cache-Control", "")
+
+
 def test_demo_keeps_pages_fresh_and_lets_assets_revalidate(demo_app):
   client = demo_app.test_client()
   page = client.get("/login")

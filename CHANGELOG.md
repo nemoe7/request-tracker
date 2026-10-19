@@ -17,6 +17,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Notification switches now bind at page load. They save on flip, and the
   fallback Save row hides without a theme click.
 
+### Changed
+
+- `PWEDEPA_NO_STORE=1` sends `Cache-Control: no-store` on every page, so a dev
+  preview never serves an old page.
+
 ## [0.1.0] - 2026-10-16
 
 ### Added
