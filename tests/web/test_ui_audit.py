@@ -188,7 +188,9 @@ def test_the_phone_keeps_a_44_pixel_tap_target(app):
 
 def test_the_stylesheet_holds_one_phone_block(app):
   css = app.test_client().get("/static/app.css").data.decode()
-  assert ".workspace-grid.is-main" in css, "the wide card needs its own grid rule"
+  assert ".workspace-grid.is-open.is-main .inspector" in css, (
+    "the wide card needs its own rule"
+  )
   assert len(re.findall(r"@media \(max-width: 899px\)", css)) == 1, (
     "phones read in one place"
   )
