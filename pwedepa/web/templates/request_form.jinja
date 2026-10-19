@@ -1,26 +1,32 @@
 {% extends "base.jinja" %}
 {% block title %}PwedePa | {% if record %}Edit request #{{ record.id }}{% else %}New request{% endif %}{% endblock %}
 {% block content %}
-<div class="narrow">
+<div class="narrow form-page">
   <h1>{% if record %}Edit request{% else %}New request{% endif %}</h1>
-  <form class="form panel" method="post" action="{% if record %}{{ url_for('records.request_edit_save', request_id=record.id) }}{% else %}{{ url_for('records.request_create') }}{% endif %}">
-    <div class="field">
+  <form class="form panel form-2col" method="post" action="{% if record %}{{ url_for('records.request_edit_save', request_id=record.id) }}{% else %}{{ url_for('records.request_create') }}{% endif %}">
+    <div class="field field-wide">
       <label for="f-title">Title</label>
       <input id="f-title" name="title" type="text" required value="{{ record.title if record else '' }}">
     </div>
-    <div class="field">
+    <div class="field field-wide">
       <label for="f-description">Description</label>
       <textarea id="f-description" name="description" rows="5">{{ record.description if record else '' }}</textarea>
       <p class="help">Say what you need and how you will know it is finished.</p>
     </div>
-    <fieldset class="field field-checks">
-      <legend>Domains</legend>
-      {% for domain in domains %}
-      <label class="check"><input id="f-domains-{{ loop.index }}" type="checkbox" name="domains" value="{{ domain.name }}"{% if record and domain.name in record.domains %} checked{% endif %}> {{ domain.name }}</label>
+    <div class="field">
+      <label for="f-domain">Domain</label>
+      {% if domains %}
+      <select id="f-domain" name="domain">
+        <option value="">No Domain</option>
+        {% for domain in domains %}
+        <option value="{{ domain.name }}"{% if record and domain.name in record.domains %} selected{% endif %}>{{ domain.name }}</option>
+        {% endfor %}
+      </select>
+      <p class="help">A request belongs to one Domain.</p>
       {% else %}
       <p class="help">No Domain is configured.</p>
-      {% endfor %}
-    </fieldset>
+      {% endif %}
+    </div>
     <div class="field">
       <label for="f-visibility">Visibility</label>
       <select id="f-visibility" name="visibility">
@@ -36,10 +42,10 @@
         <option value="{{ value }}"{% if record and record.priority_suggestion and record.priority_suggestion.value == value %} selected{% endif %}>{{ value | capitalize }}</option>
         {% endfor %}
       </select>
+      <label class="check"><input type="checkbox" name="priority_unsure"{% if record and record.priority_unsure %} checked{% endif %}> I am not sure about the priority</label>
     </div>
-    <label class="check"><input type="checkbox" name="priority_unsure"{% if record and record.priority_unsure %} checked{% endif %}> I am not sure about the priority</label>
     <div class="form-actions">
-      {% if record %}<button class="btn primary icon-only" type="submit" aria-label="Save changes" title="Save changes"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button>{% else %}<button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Create request</button>{% endif %}
+      {% if record %}<button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg>Save changes</button>{% else %}<button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Create request</button>{% endif %}
       <a class="btn" href="{% if record %}{{ request_open_path(record) }}{% else %}{{ url_for('records.requests') }}{% endif %}">Cancel</a>
     </div>
   </form>

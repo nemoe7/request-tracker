@@ -96,6 +96,13 @@ def _picked_domains() -> tuple[str, ...]:
   return tuple(name for name in request.form.getlist("domains") if name in names)
 
 
+def _picked_domain() -> tuple[str, ...]:
+  """Read the one Domain a request belongs to, and keep it if configured."""
+  names = {domain.name for domain in _configured_domains()}
+  chosen = str(request.form.get("domain", "")).strip()
+  return (chosen,) if chosen in names else ()
+
+
 def _names() -> dict[int, str]:
   return {
     user.id: user.display_name for user in list_users(db(), include_archived=True)
@@ -493,7 +500,7 @@ def request_create() -> Response:
         visibility=choice(
           Visibility, request.form.get("visibility", "PRIVATE"), Visibility.PRIVATE
         ),
-        domains=_picked_domains(),
+        domains=_picked_domain(),
         created_at=at,
         updated_at=at,
       ),
@@ -615,7 +622,7 @@ def request_edit_save(request_id: int) -> str | Response:
     "visibility": choice(
       Visibility, request.form.get("visibility", ""), record.visibility
     ),
-    "domains": _picked_domains(),
+    "domains": _picked_domain(),
     "priority_suggestion": (
       choice(Priority, priority, record.priority_suggestion) if priority else None
     ),

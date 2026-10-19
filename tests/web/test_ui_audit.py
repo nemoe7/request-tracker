@@ -975,7 +975,8 @@ def test_a_staff_request_link_opens_in_the_workspace(app, db):
   )
 
   page = client.get("/requests").get_data(as_text=True)
-  assert 'href="/?selected=1"' in page, "staff open a request in the workspace"
+  assert page.count("selected=1") >= 1, "the row opens the card in the workspace"
+  assert 'class="record-row-side"' not in page, "a row offers one door, not two"
 
 
 def test_reject_asks_for_a_reason_in_a_modal(app, db):
