@@ -258,14 +258,14 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .card.is-linked { position: relative; }
 .card.is-linked h2 a::after { content: ""; position: absolute; inset: 0; }
 .record-list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-.record-row { position: relative; display: flex; align-items: center; gap: 16px; padding: 12px 16px; }
+.record-row { position: relative; display: flex; align-items: center; gap: 16px; padding: 12px 16px; cursor: pointer; }
 .record-row + .record-row { border-top: 1px solid var(--line); }
 .record-row:hover { background: var(--surface-2); }
 .record-row-main { min-width: 0; }
 .record-row h2 { margin: 0; font-size: calc(15px * var(--font-scale)); }
 .record-row h2 a { color: var(--text); text-decoration: none; }
 /* The whole row is the link, so there is one door into a record. */
-.record-row h2 a::after { content: ""; position: absolute; inset: 0; border-radius: 10px; }
+.record-row h2 a::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: 10px; }
 .record-row:hover h2 a { text-decoration: underline; text-underline-offset: 3px; }
 .record-row:focus-within { outline: 2px solid var(--accent-fill); outline-offset: -2px; }
 .record-row .meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
