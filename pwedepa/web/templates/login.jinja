@@ -5,9 +5,8 @@
 <div class="flash" role="status"><p>{{ site_message.message }}</p></div>
 {% endif %}
 <section class="auth-card panel">
-  <p class="eyebrow">Welcome back</p>
   <h1>Sign in</h1>
-  <p class="muted">Use the passkey you enrolled on this device. Your browser will ask you to confirm.</p>
+  <p class="muted">Use the passkey you enrolled on this device, and confirm when the browser asks.</p>
   <button class="btn primary big" id="login-button" type="button"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#key-round"/></svg>Sign in with a passkey</button>
   <p class="status" id="status" role="status"></p>
   <p class="muted">New here? <a href="{{ url_for('pages.enroll') }}">Enroll with a token</a> instead.</p>

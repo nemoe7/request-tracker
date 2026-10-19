@@ -104,7 +104,7 @@ def domain_config_add() -> Response:
   try:
     found = domain_store.add(current_app.config["DATABASE"], name, description)
   except domains_data.DomainConfigError as error:
-    flash(f"The Domain did not add: {error}")
+    flash(f"Could not add the Domain: {error}")
     return redirect(url_for("admin.domain_config"))
   record_audit(
     db(),
@@ -148,7 +148,7 @@ def domain_config_remove() -> Response:
   try:
     gone = domain_store.remove(db_path, slug)
   except domains_data.DomainConfigError as error:
-    flash(f"The Domain did not remove: {error}")
+    flash(f"Could not remove the Domain: {error}")
     return redirect(url_for("admin.domain_config"))
   record_audit(
     db(),
@@ -177,7 +177,7 @@ def domain_config_rename() -> Response:
       current_app.config["DATABASE"], slug, name=name, new_slug=new_slug
     )
   except domains_data.DomainConfigError as error:
-    flash(f"The Domain did not rename: {error}")
+    flash(f"Could not rename the Domain: {error}")
     return redirect(url_for("admin.domain_config"))
   record_audit(
     db(),
@@ -204,7 +204,7 @@ def domain_config_import() -> Response:
   try:
     found = domains_data.import_bytes(raw, db_path)
   except domains_data.DomainConfigError as error:
-    flash(f"The config file did not import: {error}")
+    flash(f"Could not import the config file: {error}")
     return redirect(url_for("admin.domain_config"))
   record_audit(
     db(),

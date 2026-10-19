@@ -104,7 +104,9 @@ def create(object_type: str, object_id: int) -> Response:
     object_id=object_id,
     data={"link_id": issued.link.id, "permissions": list(issued.link.permissions)},
   )
-  flash("Share link created. Copy it now. The app shows the plain link once.")
+  flash(
+    "Share link created. Copy it now, because this page is the only place it shows."
+  )
   return redirect(safe_next() or _detail_url(record, object_type))
 
 
