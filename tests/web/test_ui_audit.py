@@ -169,6 +169,23 @@ def test_every_status_pill_passes_contrast(app):
     assert ratio >= 4.5, f"the {status} pill reads at {ratio:.2f}:1"
 
 
+def test_the_phone_keeps_a_44_pixel_tap_target(app):
+  """A finger needs 44 px on the top bar and on every button."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  phone = css[css.index("@media (max-width: 899px)") :]
+
+  assert ".brand, .bell, .avatar-btn { min-height: 44px; }" in phone
+  assert ".bell, .avatar-btn { min-width: 44px; justify-content: center; }" in phone
+  grow = re.search(r"\.btn,[^{]*\{ min-height: 44px; \}", phone)
+  assert grow and ".ios-row .btn" in grow.group(0), "the row buttons grow with the rest"
+  assert ".list-toolbar .btn, .list-toolbar .filter-form select," in phone, (
+    "the toolbar steps and selects grow too"
+  )
+  assert ".mail-link { display: inline-block; padding-block: 12px;" in phone, (
+    "the row link reaches 44 px without a gap"
+  )
+
+
 def test_the_stylesheet_holds_one_phone_block(app):
   css = app.test_client().get("/static/app.css").data.decode()
   assert ".workspace-grid.is-main" in css, "the wide card needs its own grid rule"

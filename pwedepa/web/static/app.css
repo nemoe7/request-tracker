@@ -609,6 +609,13 @@ form.is-auto [data-save] { display: none; }
   }
   .tabs a { flex-direction: column; gap: 2px; font-size: calc(10px * var(--font-scale)); padding: 6px 10px; border-radius: 10px; }
   .topbar .tabs .icon { display: block; }
+  /* A finger needs 44 px, so the top bar and the row buttons grow on a phone. */
+  .brand, .bell, .avatar-btn { min-height: 44px; }
+  .bell, .avatar-btn { min-width: 44px; justify-content: center; }
+  .btn, .ios-row .btn, .admin-user-actions .btn, .mini { min-height: 44px; }
+  .list-toolbar .btn, .list-toolbar .filter-form select,
+  body select:not([multiple]) { min-height: 44px; }
+  .mail-link { display: inline-block; padding-block: 12px; margin-block: -12px; }
   body { padding-bottom: 76px; }
   body.is-staff { padding-bottom: 0; }
 }
