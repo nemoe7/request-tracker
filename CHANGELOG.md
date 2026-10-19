@@ -5,47 +5,7 @@ This file lists all notable changes to this project.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-### Added
-
-- `frontend-design` and `taste-skill` join the vendored skills, and both apply
-  to every front-end change.
-- Profile offers Change username. A modal asks for the new name, and a name
-  another account holds keeps the modal open with its reason.
-
-### Fixed
-
-- Notification switches now bind at page load. They save on flip, and the
-  fallback Save row hides without a theme click.
-- A seeded request carries a dummy requester, so the Requests page names an
-  owner instead of a dash.
-- A dev image builds for the whole push range, not just the tip commit. A docs
-  commit over code no longer skips the build.
-- The dev build starts at the newest shipped dev image, not at the last CI run.
-  A docs run can no longer hide code below it.
-- Light status pills read at 4.5:1 or better.
-- Phone taps stay at 44 px on the top bar and the buttons, and the Admin config
-  file field takes the form style.
-- A clipped workspace row shows its full title and line on hover.
-
-### Changed
-
-- CI runs its tests on 3.13, the image runtime, and on 3.11, the declared floor.
-  The contract job needs only plain Python, and the container scan reuses a layer
-  cache.
-- Every workflow job shows a plain name in the run view.
-- `PWEDEPA_NO_STORE=1` sends `Cache-Control: no-store` on every page, so a dev
-  preview never serves an old page.
-- Settings carry no Save row when the script runs. The name field saves on a
-  change, and text size hides its row once the script binds.
-- A settings group leads with its plain name and one line over the rows. The
-  icon tile and the centred banner are gone.
-- The workspace fills a wide screen, and the Issues page keeps one narrow column.
-- The audit log names each event in words, and the Admin save buttons carry their
-  words.
-
-## [0.1.0] - 2026-10-16
+## [0.1.0]
 
 ### Added
 
@@ -83,3 +43,38 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - The passkey ID follows the public origin, unless `PWEDEPA_RP_ID` sets it.
 - The Docker workflow publishes `dev` from a passing CI run on `main`, and an
   approved release publishes the version and `latest`.
+- `frontend-design` and `taste-skill` join the vendored skills, and both apply
+  to every front-end change.
+- Profile offers Change username. A modal asks for the new name, and a name
+  another account holds keeps the modal open with its reason.
+
+### Fixed
+
+- Notification switches now bind at page load. They save on flip, and the
+  fallback Save row hides without a theme click.
+- A seeded request carries a dummy requester, so the Requests page names an
+  owner instead of a dash.
+- A dev image builds for the whole push range, not just the tip commit. A docs
+  commit over code no longer skips the build.
+- The dev build starts at the newest shipped dev image, not at the last CI run.
+  A docs run can no longer hide code below it.
+- Light status pills read at 4.5:1 or better.
+- Phone taps stay at 44 px on the top bar and the buttons, and the Admin config
+  file field takes the form style.
+- A clipped workspace row shows its full title and line on hover.
+
+### Changed
+
+- CI runs its tests on 3.13, the image runtime, and on 3.11, the declared floor.
+  The contract job needs only plain Python, and the container scan reuses a layer
+  cache.
+- Every workflow job shows a plain name in the run view.
+- `PWEDEPA_NO_STORE=1` sends `Cache-Control: no-store` on every page, so a dev
+  preview never serves an old page.
+- Settings carry no Save row when the script runs. The name field saves on a
+  change, and text size hides its row once the script binds.
+- A settings group leads with its plain name and one line over the rows. The
+  icon tile and the centred banner are gone.
+- The workspace fills a wide screen, and the Issues page keeps one narrow column.
+- The audit log names each event in words, and the Admin save buttons carry their
+  words.
