@@ -25,7 +25,7 @@ function setTheme(theme) {
   markThemeButtons();
 }
 
-/* Notification switches save as they flip, the way iOS Settings does, so the
+/* Notification switches save as they flip, so the
    page never reloads and the button only exists for a browser without JS. */
 document.querySelectorAll("form[data-autosave]").forEach((form) => {
   form.classList.add("is-auto");

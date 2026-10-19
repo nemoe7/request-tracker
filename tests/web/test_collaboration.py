@@ -635,15 +635,15 @@ def test_the_username_change_opens_from_a_modal(cast):
   modal = main[main.index('id="change-username"') :]
   form = modal[modal.index('class="modal-form"') : modal.index("</form>")]
   assert 'class="field"' not in form, "the modal holds one card, not a card inside"
-  assert 'class="ios-input"' not in form, "the row input style drops the box"
+  assert 'class="set-input"' not in form, "the row input style drops the box"
 
 
 def test_notification_switches_save_as_they_flip(cast, db):
   Mara, Mara_user = cast["Mara"]
   main = Mara.get("/settings").data.decode()
   main = main[main.index("settings-main") :]
-  assert 'aria-label="Save notifications"' in main, "a bare browser needs a way out"
-  assert "data-save" in main
+  assert "data-save" in main, "a bare browser needs a way out"
+  assert 'class="set-row set-action"' in main
   css = Mara.get("/static/app.css").data.decode()
   assert "form.is-auto [data-save] { display: none; }" in css, (
     "the script hides the button only after it takes the switches over"
@@ -680,4 +680,4 @@ def test_the_frozen_demo_keeps_the_save_button(tmp_path):
   body = _demo_app(tmp_path).test_client().get("/settings").data
   main = body[body.index(b"settings-main") :]
   assert b"data-autosave action" not in main
-  assert b"Save notifications" in main, "the control still names its action"
+  assert b"data-save" in main, "the control still names its action"

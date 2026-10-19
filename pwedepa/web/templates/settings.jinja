@@ -16,7 +16,7 @@
       {% for anchor, label, icon, tint in [("#profile", "Profile", "settings", "chip-blue"), ("#appearance", "Appearance", "contrast", "chip-indigo"), ("#notifications", "Notifications", "bell", "chip-red"), ("#passkeys", "Passkeys", "key-round", "chip-gray"), ("#client-view", "Client view", "contrast", "chip-green"), ("#admin", "Admin", "clipboard-list", "chip-amber")] %}
       {% if (anchor != "#admin" or is_admin) and (anchor != "#client-view" or show_client_view) %}
       <a href="{{ anchor }}">
-        <span class="ios-chip {{ tint }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#{{ icon }}"/></svg></span>
+        <span class="set-chip {{ tint }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#{{ icon }}"/></svg></span>
         {{ label }}
         <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
       </a>
@@ -29,29 +29,29 @@
     <a class="pane-back" href="#"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-left"/></svg>Settings</a>
     <h1>Settings</h1>
 
-    <section class="ios-group" id="profile" aria-label="Profile">
+    <section class="set-group" id="profile" aria-label="Profile">
       <header class="pane-head">
         <h2>Profile</h2>
         <p>Your name, username, and account status.</p>
       </header>
       <form method="post" action="{{ url_for('settings.profile') }}" data-auto-submit>
-        <label class="ios-row">
-          <span class="ios-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg></span>
-          <span class="ios-label">Display name</span>
-          <input class="ios-input" type="text" name="display_name" value="{{ user.display_name }}" required>
+        <label class="set-row">
+          <span class="set-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg></span>
+          <span class="set-label">Display name</span>
+          <input class="set-input" type="text" name="display_name" value="{{ user.display_name }}" required>
         </label>
-        <div class="ios-row">
-          <span class="ios-chip chip-gray"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg></span>
-          <span class="ios-label">Username</span>
-          <span class="ios-value">{{ user.username }}</span>
+        <div class="set-row">
+          <span class="set-chip chip-gray"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg></span>
+          <span class="set-label">Username</span>
+          <span class="set-value">{{ user.username }}</span>
           <button class="btn" type="button" data-modal-open="change-username">Change</button>
         </div>
-        <div class="ios-row">
-          <span class="ios-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg></span>
-          <span class="ios-label">Status</span>
-          <span class="ios-value">{{ user.status.value | capitalize }}</span>
+        <div class="set-row">
+          <span class="set-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg></span>
+          <span class="set-label">Status</span>
+          <span class="set-value">{{ user.status.value | capitalize }}</span>
         </div>
-        <div class="ios-row ios-action" data-save><button class="btn primary icon-only" type="submit" aria-label="Save profile" title="Save profile"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button></div>
+        <div class="set-row set-action" data-save><button class="btn primary icon-only" type="submit" aria-label="Save profile" title="Save profile"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button></div>
       </form>
       {% call modal("change-username", "Change your username?", username_error is not none) %}
       <form class="modal-form" method="post" action="{{ url_for('settings.username') }}">
@@ -67,15 +67,15 @@
       {% endcall %}
     </section>
 
-    <section class="ios-group" id="appearance" aria-label="Appearance">
+    <section class="set-group" id="appearance" aria-label="Appearance">
       <header class="pane-head">
         <h2>Appearance</h2>
         <p>The theme and the time format this account keeps.</p>
       </header>
-      <div class="ios-list">
-        <div class="ios-row">
-          <span class="ios-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg></span>
-          <span class="ios-label">Theme</span>
+      <div class="set-list">
+        <div class="set-row">
+          <span class="set-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg></span>
+          <span class="set-label">Theme</span>
           <span class="seg-control" role="group" aria-label="Theme">
             <button type="button" data-theme-set="system" aria-label="System" title="System"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#monitor"/></svg></button>
             <button type="button" data-theme-set="light" aria-label="Light" title="Light"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#sun"/></svg></button>
@@ -83,128 +83,128 @@
           </span>
         </div>
       </div>
-      <p class="ios-note">System follows your device.</p>
-      <form class="ios-list" method="post"{% if not demo_mode %} data-clock-form{% endif %} action="{{ url_for('settings.clock') }}">
-        <div class="ios-row">
-          <span class="ios-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clock"/></svg></span>
-          <span class="ios-label">Time format</span>
+      <p class="set-note">System follows your device.</p>
+      <form class="set-list" method="post"{% if not demo_mode %} data-clock-form{% endif %} action="{{ url_for('settings.clock') }}">
+        <div class="set-row">
+          <span class="set-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clock"/></svg></span>
+          <span class="set-label">Time format</span>
           <span class="seg-control" role="group" aria-label="Time format">
             <button type="submit" name="clock" value="12"{% if clock != "24" %} class="is-active"{% endif %}><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clock"/></svg>12-hour</button>
             <button type="submit" name="clock" value="24"{% if clock == "24" %} class="is-active"{% endif %}><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clock"/></svg>24-hour</button>
           </span>
         </div>
       </form>
-      <p class="ios-note" role="status" data-clock-status></p>
-      <p class="ios-note">A time under 72 hours old reads short, like 3h ago.</p>
-      <form class="ios-list" method="post" action="{{ url_for('settings.font_size') }}" data-font-size-form>
-        <div class="ios-row">
-          <span class="ios-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#type"/></svg></span>
-          <span class="ios-label">Text size<span class="ios-sub">A percentage of the base size</span></span>
+      <p class="set-note" role="status" data-clock-status></p>
+      <p class="set-note">A time under 72 hours old reads short, like 3h ago.</p>
+      <form class="set-list" method="post" action="{{ url_for('settings.font_size') }}" data-font-size-form>
+        <div class="set-row">
+          <span class="set-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#type"/></svg></span>
+          <span class="set-label">Text size<span class="set-sub">A percentage of the base size</span></span>
           <span class="font-size-control">
             <input class="slider" type="range" min="85" max="130" step="1" value="{{ font_size }}" aria-label="Text size" data-font-size-range>
             <input class="number" type="number" name="font_size" min="85" max="130" step="1" value="{{ font_size }}" aria-label="Text size percentage" data-font-size-number>
           </span>
         </div>
-        <div class="ios-row ios-action" data-save><button class="btn primary icon-only" type="submit" aria-label="Save text size" title="Save text size"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button></div>
+        <div class="set-row set-action" data-save><button class="btn primary icon-only" type="submit" aria-label="Save text size" title="Save text size"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button></div>
       </form>
-      <p class="ios-note" role="status" data-font-size-status></p>
+      <p class="set-note" role="status" data-font-size-status></p>
     </section>
 
-    <section class="ios-group" id="notifications" aria-label="Notifications">
+    <section class="set-group" id="notifications" aria-label="Notifications">
       <header class="pane-head">
         <h2>Notifications</h2>
         <p>What reaches your inbox, and when the pip shows.</p>
       </header>
-      <p class="ios-note" role="status" data-autosave-status></p>
-      <form class="ios-list" method="post"{% if not demo_mode %} data-autosave{% endif %} action="{{ url_for('settings.notification_preferences') }}">
+      <p class="set-note" role="status" data-autosave-status></p>
+      <form class="set-list" method="post"{% if not demo_mode %} data-autosave{% endif %} action="{{ url_for('settings.notification_preferences') }}">
         {% for pref in preferences %}
-        <p class="ios-head">{{ pref.category | capitalize }}</p>
-          <label class="ios-row">
-            <span class="ios-chip chip-red"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#bell"/></svg></span>
-            <span class="ios-label">Enabled</span>
+        <p class="set-head">{{ pref.category | capitalize }}</p>
+          <label class="set-row">
+            <span class="set-chip chip-red"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#bell"/></svg></span>
+            <span class="set-label">Enabled</span>
             <input class="switch" type="checkbox" name="{{ pref.category }}_enabled"{% if pref.enabled %} checked{% endif %}>
           </label>
-          <label class="ios-row">
-            <span class="ios-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg></span>
-            <span class="ios-label">Show in inbox</span>
+          <label class="set-row">
+            <span class="set-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg></span>
+            <span class="set-label">Show in inbox</span>
             <input class="switch" type="checkbox" name="{{ pref.category }}_inbox"{% if pref.inbox_enabled %} checked{% endif %}>
           </label>
-          <label class="ios-row">
-            <span class="ios-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg></span>
-            <span class="ios-label">Show pip</span>
+          <label class="set-row">
+            <span class="set-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg></span>
+            <span class="set-label">Show pip</span>
             <input class="switch" type="checkbox" name="{{ pref.category }}_pip"{% if pref.pip_enabled %} checked{% endif %}>
           </label>
         {% endfor %}
-        <div class="ios-row ios-action" data-save><button class="btn primary" type="submit">Save</button></div>
+        <div class="set-row set-action" data-save><button class="btn primary" type="submit">Save</button></div>
       </form>
     </section>
 
-    <section class="ios-group" id="passkeys" aria-label="Passkeys">
+    <section class="set-group" id="passkeys" aria-label="Passkeys">
       <header class="pane-head">
         <h2>Passkeys</h2>
         <p>The keys that sign you in on this device.</p>
       </header>
-      <div class="ios-list">
+      <div class="set-list">
         {% for key in passkeys %}
-        <div class="ios-row">
-          <span class="ios-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#key-round"/></svg></span>
-          <span class="ios-label">Passkey<span class="ios-sub">Added {{ key.created_at.strftime("%b %d, %Y") if key.created_at else "" }}</span></span>
+        <div class="set-row">
+          <span class="set-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#key-round"/></svg></span>
+          <span class="set-label">Passkey<span class="set-sub">Added {{ key.created_at.strftime("%b %d, %Y") if key.created_at else "" }}</span></span>
           <button class="btn danger-quiet icon-only" type="button" data-modal-open="revoke-passkey-{{ key.id }}" aria-label="Revoke passkey" title="Revoke passkey"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#trash"/></svg></button>
           {{ reason_modal("revoke-passkey-" ~ key.id, url_for('auth.passkey_revoke', passkey_id=key.id), {}, None, title="Revoke this passkey?", submit="Revoke", hint="Why this passkey is revoked") }}
         </div>
         {% endfor %}
-        <div class="ios-row ios-action"><button class="btn" id="add-passkey" type="button"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Add a passkey</button></div>
+        <div class="set-row set-action"><button class="btn" id="add-passkey" type="button"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Add a passkey</button></div>
       </div>
-      <p class="ios-note" id="status" role="status"></p>
+      <p class="set-note" id="status" role="status"></p>
     </section>
 
     {% if show_client_view %}
-    <section class="ios-group" id="client-view" aria-label="Client view">
+    <section class="set-group" id="client-view" aria-label="Client view">
       <header class="pane-head">
         <h2>Client view</h2>
         <p>Show records read only, the way a client sees it.</p>
       </header>
-      <div class="ios-list">
-        <a class="ios-row link-row" href="{{ url_for('pages.view_as', mode='staff' if view_as_client else 'client') }}">
-          <span class="ios-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg></span>
-          <span class="ios-label">{% if view_as_client %}Exit client view{% else %}View as client{% endif %}</span>
+      <div class="set-list">
+        <a class="set-row link-row" href="{{ url_for('pages.view_as', mode='staff' if view_as_client else 'client') }}">
+          <span class="set-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#contrast"/></svg></span>
+          <span class="set-label">{% if view_as_client %}Exit client view{% else %}View as client{% endif %}</span>
           <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
         </a>
       </div>
-      <p class="ios-note">Records stay read only. Settings save to your account.</p>
+      <p class="set-note">Records stay read only. Settings save to your account.</p>
     </section>
     {% endif %}
 
     {% if is_admin %}
-    <section class="ios-group" id="admin" aria-label="Admin">
+    <section class="set-group" id="admin" aria-label="Admin">
       <header class="pane-head">
         <h2>Admin</h2>
         <p>Users, share links, the audit log, and Domain config.</p>
       </header>
-      <div class="ios-list">
-        <a class="ios-row link-row" href="{{ url_for('admin.users') }}">
-          <span class="ios-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg></span>
-          <span class="ios-label">Users</span>
+      <div class="set-list">
+        <a class="set-row link-row" href="{{ url_for('admin.users') }}">
+          <span class="set-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg></span>
+          <span class="set-label">Users</span>
           <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
         </a>
-        <a class="ios-row link-row" href="{{ url_for('admin.audit') }}">
-          <span class="ios-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg></span>
-          <span class="ios-label">Audit log</span>
+        <a class="set-row link-row" href="{{ url_for('admin.audit') }}">
+          <span class="set-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg></span>
+          <span class="set-label">Audit log</span>
           <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
         </a>
-        <a class="ios-row link-row" href="{{ url_for('admin.shares') }}">
-          <span class="ios-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg></span>
-          <span class="ios-label">Share links</span>
+        <a class="set-row link-row" href="{{ url_for('admin.shares') }}">
+          <span class="set-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg></span>
+          <span class="set-label">Share links</span>
           <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
         </a>
-        <a class="ios-row link-row" href="{{ url_for('admin.domain_config') }}">
-          <span class="ios-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg></span>
-          <span class="ios-label">Domain config</span>
+        <a class="set-row link-row" href="{{ url_for('admin.domain_config') }}">
+          <span class="set-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg></span>
+          <span class="set-label">Domain config</span>
           <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
         </a>
-        <a class="ios-row link-row" href="{{ url_for('admin.site') }}">
-          <span class="ios-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#megaphone"/></svg></span>
-          <span class="ios-label">Site message and new issue</span>
+        <a class="set-row link-row" href="{{ url_for('admin.site') }}">
+          <span class="set-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#megaphone"/></svg></span>
+          <span class="set-label">Site message and new issue</span>
           <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
         </a>
       </div>

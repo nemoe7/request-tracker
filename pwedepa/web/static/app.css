@@ -416,7 +416,7 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .topbar { view-transition-name: topbar; }
 ::view-transition-old(root), ::view-transition-new(root),
 ::view-transition-old(topbar), ::view-transition-new(topbar) { animation: none; }
-.btn, .queue-item, .card, .mini, .seg a, .tabs a, .ios-row.link-row, .queue a {
+.btn, .queue-item, .card, .mini, .seg a, .tabs a, .set-row.link-row, .queue a {
   transition: background-color 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease), transform 180ms var(--ease);
 }
 .btn:active, .mini:active, .card:active { transform: translateY(1px); }
@@ -449,36 +449,36 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .settings-nav { display: grid; gap: 2px; }
 .settings-nav a { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; color: var(--text); text-decoration: none; font-size: calc(15px * var(--font-scale)); }
 .settings-nav a:hover { background: var(--surface-2); }
-.settings-nav .ios-chip { width: 26px; height: 26px; border-radius: 7px; }
-.settings-nav .ios-chip .icon { width: 15px; height: 15px; }
+.settings-nav .set-chip { width: 26px; height: 26px; border-radius: 7px; }
+.settings-nav .set-chip .icon { width: 15px; height: 15px; }
 .settings-nav .chev { display: none; width: 18px; height: 18px; margin-left: auto; }
 .settings-main h1 { margin: 4px 0 18px; }
-.ios-group { margin-bottom: 26px; scroll-margin-top: 68px; }
+.set-group { margin-bottom: 26px; scroll-margin-top: 68px; }
 /* The phone keeps the small label; a wide screen shows the whole head. */
 .pane-head { margin: 0 0 8px 16px; }
 .pane-head > p { margin: 4px 0 0; color: var(--muted); font-size: calc(13px * var(--font-scale)); }
 .pane-back { display: none; }
-.ios-group > .pane-head > h2, .ios-fieldset > legend, .ios-head { font-size: calc(13px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0; font-weight: 600; }
-.ios-group form:not(.modal-form), .ios-list { background: var(--surface); border: 0; border-radius: 16px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
-.ios-list { margin-bottom: 14px; }
-.ios-fieldset { border: 0; margin: 0 0 14px; padding: 0; background: transparent; }
-form.ios-split { background: none; border: 0; overflow: visible; }
-.ios-split .ios-fieldset { background: var(--surface); border: 0; border-radius: 16px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
-.ios-fieldset > legend { float: left; width: 100%; box-sizing: border-box; padding-top: 12px; }
-.ios-row { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 16px; border-bottom: 1px solid var(--line); color: var(--text); font-size: calc(15px * var(--font-scale)); text-decoration: none; box-sizing: border-box; }
-.ios-row:last-child { border-bottom: 0; }
-.ios-head { margin: 0; padding: 16px 16px 6px; font-size: calc(12px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: var(--surface); }
-.ios-head + .ios-row { border-top: 1px solid var(--line); }
-.ios-label { flex: 1; }
-.ios-sub { display: block; font-size: calc(12px * var(--font-scale)); color: var(--muted); }
-.ios-value { color: var(--muted); }
-.ios-input { flex: 1; max-width: 300px; border: 0; background: transparent; color: var(--text); font: inherit; text-align: right; padding: 8px 0; }
-.ios-input:focus { outline: none; }
-.ios-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.ios-action { justify-content: flex-end; }
-.ios-note { color: var(--muted); font-size: calc(13px * var(--font-scale)); margin: 8px 16px 0; }
-.ios-chip { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; color: #fff; flex: none; }
-.ios-chip .icon { width: 18px; height: 18px; }
+.set-group > .pane-head > h2, .set-fieldset > legend, .set-head { font-size: calc(13px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0; font-weight: 600; }
+.set-group form:not(.modal-form), .set-list { background: var(--surface); border: 0; border-radius: 16px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
+.set-list { margin-bottom: 14px; }
+.set-fieldset { border: 0; margin: 0 0 14px; padding: 0; background: transparent; }
+form.set-split { background: none; border: 0; overflow: visible; }
+.set-split .set-fieldset { background: var(--surface); border: 0; border-radius: 16px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
+.set-fieldset > legend { float: left; width: 100%; box-sizing: border-box; padding-top: 12px; }
+.set-row { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 16px; border-bottom: 1px solid var(--line); color: var(--text); font-size: calc(15px * var(--font-scale)); text-decoration: none; box-sizing: border-box; }
+.set-row:last-child { border-bottom: 0; }
+.set-head { margin: 0; padding: 16px 16px 6px; font-size: calc(12px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: var(--surface); }
+.set-head + .set-row { border-top: 1px solid var(--line); }
+.set-label { flex: 1; }
+.set-sub { display: block; font-size: calc(12px * var(--font-scale)); color: var(--muted); }
+.set-value { color: var(--muted); }
+.set-input { flex: 1; max-width: 300px; border: 0; background: transparent; color: var(--text); font: inherit; text-align: right; padding: 8px 0; }
+.set-input:focus { outline: none; }
+.set-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.set-action { justify-content: flex-end; }
+.set-note { color: var(--muted); font-size: calc(13px * var(--font-scale)); margin: 8px 16px 0; }
+.set-chip { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; color: #fff; flex: none; }
+.set-chip .icon { width: 18px; height: 18px; }
 .chip-blue { background: #2563EB; } .chip-indigo { background: #4F46E5; } .chip-green { background: #16A34A; }
 .chip-red { background: #DC2626; } .chip-amber { background: #D97706; } .chip-gray { background: #64748B; }
 .chev { color: var(--muted); width: 18px; height: 18px; }
@@ -498,11 +498,11 @@ form.is-auto [data-save] { display: none; }
    The phone keeps every group stacked. */
 @media (min-width: 900px) {
   @supports selector(:has(*)) {
-    .settings-main > .ios-group { display: none; }
-    .settings-main > .ios-group#profile,
-    .settings-main > .ios-group:target { display: block; }
-    .settings-main:has(> .ios-group:target) > .ios-group#profile:not(:target) { display: none; }
-    .settings-shell:not(:has(.ios-group:target)) .settings-nav a[href="#profile"],
+    .settings-main > .set-group { display: none; }
+    .settings-main > .set-group#profile,
+    .settings-main > .set-group:target { display: block; }
+    .settings-main:has(> .set-group:target) > .set-group#profile:not(:target) { display: none; }
+    .settings-shell:not(:has(.set-group:target)) .settings-nav a[href="#profile"],
     .settings-shell:has(#profile:target) .settings-nav a[href="#profile"],
     .settings-shell:has(#appearance:target) .settings-nav a[href="#appearance"],
     .settings-shell:has(#notifications:target) .settings-nav a[href="#notifications"],
@@ -513,7 +513,7 @@ form.is-auto [data-save] { display: none; }
       color: #fff;
       font-weight: 600;
     }
-    .settings-shell:not(:has(.ios-group:target)) .settings-nav a[href="#profile"] .chev,
+    .settings-shell:not(:has(.set-group:target)) .settings-nav a[href="#profile"] .chev,
     .settings-shell:has(#profile:target) .settings-nav a[href="#profile"] .chev,
     .settings-shell:has(#appearance:target) .settings-nav a[href="#appearance"] .chev,
     .settings-shell:has(#notifications:target) .settings-nav a[href="#notifications"] .chev,
@@ -597,11 +597,11 @@ form.is-auto [data-save] { display: none; }
   .settings-nav .chev { display: block; }
   /* One screen at a time: the list is the home, and a section is its own page. */
   .settings-main > h1, .settings-main > .pane-back { display: none; }
-  .settings-main > .ios-group { display: none; }
-  .settings-main > .ios-group:target { display: block; }
-  .settings-main > .ios-group:target > .pane-head { margin-left: 0; }
-  .settings-shell:has(.ios-group:target) .settings-rail { display: none; }
-  .settings-shell:has(.ios-group:target) .settings-main > .pane-back {
+  .settings-main > .set-group { display: none; }
+  .settings-main > .set-group:target { display: block; }
+  .settings-main > .set-group:target > .pane-head { margin-left: 0; }
+  .settings-shell:has(.set-group:target) .settings-rail { display: none; }
+  .settings-shell:has(.set-group:target) .settings-main > .pane-back {
     display: inline-flex; align-items: center; gap: 4px; min-height: 44px;
     margin-bottom: 6px; color: var(--accent); font-weight: 600; text-decoration: none;
   }
@@ -616,7 +616,7 @@ form.is-auto [data-save] { display: none; }
   /* A finger needs 44 px, so the top bar and the row buttons grow on a phone. */
   .brand, .bell, .avatar-btn { min-height: 44px; }
   .bell, .avatar-btn { min-width: 44px; justify-content: center; }
-  .btn, .ios-row .btn, .admin-user-actions .btn, .mini { min-height: 44px; }
+  .btn, .set-row .btn, .admin-user-actions .btn, .mini { min-height: 44px; }
   .list-toolbar .btn, .list-toolbar .filter-form select,
   body select:not([multiple]) { min-height: 44px; }
   .mail-link { display: inline-block; padding-block: 12px; margin-block: -12px; }

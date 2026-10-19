@@ -177,7 +177,7 @@ def test_the_phone_keeps_a_44_pixel_tap_target(app):
   assert ".brand, .bell, .avatar-btn { min-height: 44px; }" in phone
   assert ".bell, .avatar-btn { min-width: 44px; justify-content: center; }" in phone
   grow = re.search(r"\.btn,[^{]*\{ min-height: 44px; \}", phone)
-  assert grow and ".ios-row .btn" in grow.group(0), "the row buttons grow with the rest"
+  assert grow and ".set-row .btn" in grow.group(0), "the row buttons grow with the rest"
   assert ".list-toolbar .btn, .list-toolbar .filter-form select," in phone, (
     "the toolbar steps and selects grow too"
   )
@@ -483,7 +483,7 @@ def test_motion_stays_fluid(app):
 
 def test_display_name_keeps_its_alignment_on_focus(app):
   css = app.test_client().get("/static/app.css").data
-  assert b".ios-input:focus { outline: none; text-align: left; }" not in css
+  assert b".set-input:focus { outline: none; text-align: left; }" not in css
 
 
 def _statements(css: str) -> list[str]:
@@ -552,12 +552,12 @@ def test_every_control_keeps_a_keyboard_focus_ring(app):
     if "outline: 2px solid var(--accent)" in body
   ]
   assert ringed, "no rule draws the shared focus ring"
-  for control in ("input", "select", "textarea", ".ios-input"):
+  for control in ("input", "select", "textarea", ".set-input"):
     assert any(f"{control}:focus-visible" in selector for selector in ringed), (
       f"{control} loses its focus ring"
     )
-  quiet = css.index(".ios-input:focus {")
-  visible = css.index(".ios-input:focus-visible")
+  quiet = css.index(".set-input:focus {")
+  visible = css.index(".set-input:focus-visible")
   assert quiet < visible, "the quiet rule must come first, so the ring wins"
 
 
@@ -565,7 +565,7 @@ def test_settings_rail_carries_icon_rows_and_a_phone_list(app, db):
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   body = client.get("/settings").data.decode()
   rail = body[body.index("settings-rail") : body.index("settings-main")]
-  assert rail.count("ios-chip") >= 4
+  assert rail.count("set-chip") >= 4
   assert rail.count("chevron-right") >= 4
   css = client.get("/static/app.css").data.decode()
   assert ".settings-nav { display: none; }" not in css
@@ -576,10 +576,11 @@ def test_settings_rail_carries_icon_rows_and_a_phone_list(app, db):
 
 def test_wide_screens_stretch_the_shell(app):
   css = app.test_client().get("/static/app.css").data.decode()
-  block = css[css.index("@media (min-width: 1200px)") :]
+  block = css[css.index(".wrap {") :]
   block = block[: block.index("}") + 1]
-  assert ".wrap { max-width:" in block
-  assert "1100px" not in block
+  assert "max-width: 1280px" in block, "the shell keeps one column"
+  assert "padding: 32px" in block, "the column keeps a gutter"
+  assert "@media (min-width: 1200px) { .wrap { max-width:" not in css
 
 
 def test_workspace_puts_the_reading_pane_right_of_the_list(app, db):
@@ -694,8 +695,10 @@ def test_the_workspace_reads_as_one_mail_table(app, db):
   assert grid and "240px minmax(0, 1fr) 0" in grid.group(1), (
     "the closed list takes the free track"
   )
-  assert "max-width: 1560px" in grid.group(1), "the grid fills a wide screen"
-  assert "margin" in grid.group(1), "the page stays a centered column"
+  assert "max-width" not in grid.group(1), "the shell column sets the width"
+  assert "padding-inline" not in grid.group(1), "the shell gutter sets the sides"
+  wrap = re.search(r"\.wrap \{([^}]*)\}", css)
+  assert wrap and "margin: 0 auto" in wrap.group(1), "the shell stays a centered column"
   assert "0.85fr" not in css and "1.15fr" not in css, "one grid rule, no dead override"
   card = re.search(r"\.workspace-grid\.is-open\.is-main \.inspector \{([^}]*)\}", css)
   assert card and "grid-column: 2 / -1" in card.group(1), (
@@ -1067,23 +1070,25 @@ def test_the_share_row_gives_every_control_one_height(app):
 def test_settings_rows_share_grouped_lists(app, db):
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   body = client.get("/settings").data
-  assert body.count(b'class="ios-list"') >= 3
+  assert body.count(b'class="set-list"') >= 3
 
 
 def test_notification_categories_keep_their_own_cards(app, db):
-  """Each category is a card. The save row belongs to the card it saves."""
+  """One list holds every category under a plain head, and one save row."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   body = client.get("/settings").data
-  assert b'class="ios-split"' in body
-  assert body.count(b"<fieldset") == body.count(b"</fieldset>") >= 2
-  card = body[body.rindex(b"<fieldset") : body.rindex(b"</fieldset>")]
-  assert b"<legend>" in card
-  assert b'class="ios-row ios-action"' in card, "a stray card for the button is the bug"
+  main = body[body.index(b"settings-main") :]
+  start = main.index(b'aria-label="Notifications"')
+  notifications = main[start : main.index(b"<section", start)]
+  assert b"<fieldset" not in notifications, "a category is a head, not a card"
+  assert notifications.count(b'class="set-head"') >= 2, "each category names itself"
+  assert notifications.count(b'class="set-row set-action"') == 1, "one save row"
+  assert notifications.index(b'class="set-row set-action"') > notifications.rindex(
+    b'class="set-head"'
+  ), "the button follows the rows it saves"
   css = client.get("/static/app.css").data
-  split = css[css.index(b".ios-split") :]
-  assert b".ios-split .ios-fieldset {" in split
-  assert b"border-radius: 16px" in split[:400]
-  assert b".ios-split > .ios-action {" not in css, "the button needs no card of its own"
+  assert b".set-head {" in css
+  assert b".set-head + .set-row {" in css
 
 
 def test_the_passkey_block_hides_an_empty_row(app, db):
@@ -1132,24 +1137,24 @@ def test_each_settings_pane_carries_a_head(app, db):
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   body = client.get("/settings").data.decode()
   heads = re.findall(r'<header class="pane-head">.*?</header>', body, re.DOTALL)
-  sections = re.findall(r'<section class="ios-group" id="([\w-]+)"', body)
+  sections = re.findall(r'<section class="set-group" id="([\w-]+)"', body)
   assert len(heads) == len(sections) >= 5, "every pane needs one head"
   for head in heads:
     assert "pane-icon" not in head, "the tile is gone"
     assert "<h2>" in head and "<p>" in head, "the head carries a name and one line"
   css = client.get("/static/app.css").data.decode()
   assert ".pane-head > .pane-icon" not in css, "no tile rule is left over"
-  assert ".ios-group form:not(.modal-form)" in css, "a modal form is not a group card"
+  assert ".set-group form:not(.modal-form)" in css, "a modal form is not a group card"
   assert ".pane-head > p { display: none; }" not in css, "the phone keeps the one line"
   wide = css[
     css.index("@media (min-width: 900px)") : css.index("@media (max-width: 899px)")
   ]
-  assert ".settings-main > .ios-group > .pane-head" not in wide, (
+  assert ".settings-main > .set-group > .pane-head" not in wide, (
     "the wide head is no card"
   )
-  assert ".ios-group > .pane-head > h2" not in wide, "one label size at every width"
+  assert ".set-group > .pane-head > h2" not in wide, "one label size at every width"
   assert (
-    '.settings-shell:not(:has(.ios-group:target)) .settings-nav a[href="#profile"]'
+    '.settings-shell:not(:has(.set-group:target)) .settings-nav a[href="#profile"]'
     in wide
   ), "the first pane opens with its row marked"
   for pane in ("profile", "appearance", "notifications", "passkeys", "admin"):
@@ -1164,17 +1169,17 @@ def test_the_phone_opens_one_settings_page_at_a_time(app, db):
   assert 'class="pane-back"' in body, "a pushed page needs its way back"
   css = client.get("/static/app.css").data.decode()
   phone = css[css.index("@media (max-width: 899px)") :]
-  assert ".settings-main > .ios-group { display: none; }" in phone
-  assert ".settings-main > .ios-group:target { display: block; }" in phone
+  assert ".settings-main > .set-group { display: none; }" in phone
+  assert ".settings-main > .set-group:target { display: block; }" in phone
   assert (
-    ".settings-shell:has(.ios-group:target) .settings-rail { display: none; }" in phone
+    ".settings-shell:has(.set-group:target) .settings-rail { display: none; }" in phone
   )
   assert ".settings-main > .pane-back" in phone, "the back row shows on a phone"
   assert "chevron-left" in body, "the back row carries the left chevron"
 
 
 def test_wide_screens_show_one_settings_pane(app, db):
-  """Mac Settings shows one pane. The phone keeps every group stacked."""
+  """A wide screen shows one pane. The phone keeps every group stacked."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   body = client.get("/settings").data.decode()
   rail = body[body.index("settings-rail") : body.index("settings-main")]
@@ -1183,11 +1188,11 @@ def test_wide_screens_show_one_settings_pane(app, db):
     assert f'id="{pane}"' in body
   css = client.get("/static/app.css").data.decode()
   wide = css.index("@media (min-width: 900px)")
-  hide = css.index(".settings-main > .ios-group { display: none; }")
+  hide = css.index(".settings-main > .set-group { display: none; }")
   phone = css.index("@media (max-width: 899px)")
   assert wide < hide < phone, "the pane switch belongs to the wide screen only"
-  assert ".settings-main > .ios-group:target { display: block; }" in css
-  assert ".settings-main > .ios-group#profile," in css
+  assert ".settings-main > .set-group:target { display: block; }" in css
+  assert ".settings-main > .set-group#profile," in css
 
 
 def test_admin_row_buttons_match_their_fields(app):
