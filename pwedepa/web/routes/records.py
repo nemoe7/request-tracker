@@ -432,7 +432,6 @@ def requests() -> str | Response:
     mine=mine,
     public=public,
     visible=visible,
-    recent=visible[:3],
     selected=selected,
     status_words=STATUS_WORDS,
     names=_names(),

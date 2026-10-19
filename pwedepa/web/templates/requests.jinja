@@ -20,21 +20,6 @@
     </div>
   </section>
   {% else %}
-  <section class="client-dash">
-    <div class="panel inspector">
-      <p class="eyebrow" id="today">Today</p>
-      <h2>Your requests and the public board</h2>
-      {% if recent %}
-      <ul class="compact-list">
-        {% for record in recent %}
-        <li><a href="{{ url_for('records.requests', selected=record.id) }}">{{ record.title }}</a>{{ pill(record.status) }}</li>
-        {% endfor %}
-      </ul>
-      {% else %}
-      <p class="muted">No requests yet.</p>
-      {% endif %}
-    </div>
-  </section>
   {% if mine %}
   <ul class="record-list">
     {% for record in mine %}

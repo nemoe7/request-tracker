@@ -72,10 +72,10 @@ def test_the_client_sees_what_is_visible_now(app, db):
 
   body = client.get("/requests").get_data(as_text=True)
 
-  assert 'id="today"' in body
   assert "/gym/requests/1" in body
   assert "/gym/requests/2" in body
   assert "/gym/requests/3" not in body
+  assert body.count("A public request") == 1, "the board names each row once"
 
 
 def test_each_card_opens_the_wide_card(app, db):
