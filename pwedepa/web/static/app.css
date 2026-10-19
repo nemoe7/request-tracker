@@ -651,6 +651,10 @@ form.is-auto [data-save] { display: none; }
   .top-actions { gap: 6px; flex: none; }
   .top-actions .btn { padding: 8px 10px; font-size: calc(13px * var(--font-scale)); }
   .demo-switch a { padding: 5px 9px; font-size: calc(12px * var(--font-scale)); }
+  /* The list and the pane never share a screen below 1200 px, so no row reads as picked. */
+  .record-table tr.is-selected td { background: transparent; }
+  .record-table tr.is-selected td:first-child { box-shadow: none; }
+  .record-table tr.is-selected td:first-child > a { color: var(--text); }
 }
 
 /* Mobile: native feel, bottom tab bar, tap-first motion. */
