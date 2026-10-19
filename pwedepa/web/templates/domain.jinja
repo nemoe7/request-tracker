@@ -42,6 +42,9 @@
   {% endif %}
 
   <h2 class="section-title">Requests</h2>
+  {% if user and not demo_mode %}
+  <p class="section-actions"><a class="btn" href="{{ url_for('records.request_new_in_domain', slug=domain.slug) }}">New request</a></p>
+  {% endif %}
   {% if requests %}
   <ul class="record-list">
     {% for record in requests %}
@@ -59,6 +62,9 @@
   {% endif %}
 
   <h2 class="section-title">Issues</h2>
+  {% if is_staff and not demo_mode %}
+  <p class="section-actions"><a class="btn" href="{{ url_for('records.issue_new_in_domain', slug=domain.slug) }}">New issue</a></p>
+  {% endif %}
   {% if issues %}
   <ul class="record-list">
     {% for record in issues %}

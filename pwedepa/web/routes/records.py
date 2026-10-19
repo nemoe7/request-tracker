@@ -20,6 +20,7 @@ from pwedepa.core import (
   CoreError,
   Event,
   Grant,
+  Issue,
   IssueStatus,
   Priority,
   Request,
@@ -458,25 +459,41 @@ def requests() -> str | Response:
 
 @bp.get("/requests/new")
 def request_new() -> str | Response:
+  """A request lives in a Domain, so the create step starts by picking one."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))
   if not authorize(_actor(user), "request.create"):
     flash("Your account cannot create requests.")
     return redirect(url_for("records.requests"))
+  domains = _configured_domains()
+  if len(domains) == 1:
+    return redirect(url_for("records.request_new_in_domain", slug=domains[0].slug))
+  return render_template("domain_choice.jinja", domains=domains)
+
+
+@bp.get("/<slug>/requests/new")
+def request_new_in_domain(slug: str) -> str | Response:
+  found = domains_data.find(slug, current_app.config["DATABASE"])
+  if found is None:
+    abort(404)
+  user = _user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  if not authorize(_actor(user), "request.create"):
+    flash("Your account cannot create requests.")
+    return redirect(url_for("records.domain_page", slug=slug))
   return render_template(
     "request_form.jinja",
     record=None,
+    domain=found,
     priorities=[p.value for p in Priority],
     domains=_configured_domains(),
   )
 
 
-@bp.post("/requests")
-def request_create() -> Response:
-  user = _user()
-  if user is None:
-    return redirect(url_for("pages.login"))
+def _create_request(user, domain_name: str) -> Response | None:
+  """Create a request in one Domain, or return the redirect to send back."""
   actor = _actor(user)
   if not authorize(actor, "request.create"):
     flash("Your account cannot create requests.")
@@ -484,7 +501,7 @@ def request_create() -> Response:
   title = request.form.get("title", "").strip()
   if not title:
     flash("A request needs a title.")
-    return redirect(url_for("records.request_new"))
+    return None
   at = now()
   priority = request.form.get("priority_suggestion", "")
   with transaction(db()):
@@ -500,7 +517,7 @@ def request_create() -> Response:
         visibility=choice(
           Visibility, request.form.get("visibility", "PRIVATE"), Visibility.PRIVATE
         ),
-        domains=_picked_domain(),
+        domains=(domain_name,) if domain_name else (),
         created_at=at,
         updated_at=at,
       ),
@@ -510,6 +527,35 @@ def request_create() -> Response:
     events_data.append(db(), "request", record.id, created, commit=False)
     _notify_event("request", record, created, commit=False)
   return redirect(record_path(record))
+
+
+@bp.post("/<slug>/requests")
+def request_create_in_domain(slug: str) -> Response:
+  found = domains_data.find(slug, current_app.config["DATABASE"])
+  if found is None:
+    abort(404)
+  user = _user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  done = _create_request(user, found.name)
+  if done is not None:
+    return done
+  flash("A request needs a title.")
+  return redirect(url_for("records.request_new_in_domain", slug=slug))
+
+
+@bp.post("/requests")
+def request_create() -> Response:
+  """The old flat endpoint. It keeps the Domain when a form posts one."""
+  user = _user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  picked = _picked_domain()
+  done = _create_request(user, picked[0] if picked else "")
+  if done is not None:
+    return done
+  flash("A request needs a title.")
+  return redirect(url_for("records.request_new"))
 
 
 @bp.get("/<slug>/requests/<int:request_id>")
@@ -765,6 +811,70 @@ def issue_comment(issue_id: int) -> Response:
     _notify_event("issue", record, event)
   elif text:
     flash("You cannot comment on this issue.")
+  return redirect(record_path(record, "issue"))
+
+
+@bp.get("/<slug>/issues/new")
+def issue_new_in_domain(slug: str) -> str | Response:
+  found = domains_data.find(slug, current_app.config["DATABASE"])
+  if found is None:
+    abort(404)
+  user = _user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  if not is_staff(user):
+    flash("Your account cannot create issues.")
+    return redirect(url_for("records.domain_page", slug=slug))
+  return render_template(
+    "issue_form.jinja",
+    record=None,
+    domain=found,
+    priorities=[p.value for p in Priority],
+    users=list_users(db()),
+    domains=_configured_domains(),
+  )
+
+
+@bp.post("/<slug>/issues")
+def issue_create_in_domain(slug: str) -> Response:
+  found = domains_data.find(slug, current_app.config["DATABASE"])
+  if found is None:
+    abort(404)
+  user = _user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  actor = _actor(user)
+  if not authorize(actor, "issue.create"):
+    flash("Your account cannot create issues.")
+    return redirect(url_for("records.domain_page", slug=slug))
+  title = request.form.get("title", "").strip()
+  if not title:
+    flash("An issue needs a title.")
+    return redirect(url_for("records.issue_new_in_domain", slug=slug))
+  at = now()
+  assignee = request.form.get("assignee_id", "")
+  with transaction(db()):
+    record = issues_data.save(
+      db(),
+      Issue(
+        id=0,
+        title=title,
+        description=request.form.get("description", "").strip(),
+        requester_id=user.id,
+        assignee_id=int(assignee) if assignee else None,
+        priority=choice(Priority, request.form.get("priority", "HIGH"), Priority.HIGH),
+        visibility=choice(
+          Visibility, request.form.get("visibility", "PRIVATE"), Visibility.PRIVATE
+        ),
+        domains=(found.name,),
+        created_at=at,
+        updated_at=at,
+      ),
+      commit=False,
+    )
+    created = Event("issue.created", user.id, at, {})
+    events_data.append(db(), "issue", record.id, created, commit=False)
+    _notify_event("issue", record, created, commit=False)
   return redirect(record_path(record, "issue"))
 
 
