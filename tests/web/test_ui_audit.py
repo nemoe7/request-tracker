@@ -1291,11 +1291,11 @@ def test_each_settings_pane_carries_a_head(app, db):
   )
   assert ".set-group > .pane-head > h2" not in wide, "one label size at every width"
   assert (
-    '.settings-shell:not(:has(.set-group:target)) .settings-nav a[href="#profile"]'
+    '.settings-shell:not(:has(.set-group:target)) .settings-nav a[data-pane="profile"]'
     in wide
   ), "the first pane opens with its row marked"
   for pane in ("profile", "appearance", "notifications", "passkeys", "admin"):
-    assert f'.settings-nav a[href="#{pane}"]' in wide, "each pane marks its own row"
+    assert f'.settings-nav a[data-pane="{pane}"]' in wide, "each pane marks its own row"
   assert "background: var(--accent-fill)" in wide, "the picked row takes the accent"
   assert ".settings-main > .set-group:target { animation: fade-in 160ms" in wide, (
     "a picked pane fades in, so the swap reads as one move"
@@ -1809,3 +1809,65 @@ def test_the_client_list_carries_a_last_reply_line(app, db):
   body = client.get("/requests").data.decode()
   assert "Mara Reyes replied ·" in body, "the row names the last reply"
   assert "No replies yet" in body, "a quiet row says so"
+
+
+def test_a_row_side_cell_meets_the_row_edge(app):
+  """A status pill and a stamp once sat 433 px short of the right edge."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  rule = css[css.index(".record-row-main {") :].split("}", 1)[0]
+  assert "flex: 1" in rule and "min-width: 0" in rule
+
+
+def test_the_settings_rail_marks_its_row_by_pane_name(app, db):
+  """The frozen demo rewrites a hash link, so the mark keys off the pane name."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  body = client.get("/settings").data.decode()
+  rail = body[body.index('class="settings-nav"') : body.index("</nav>")]
+  assert 'data-pane="profile"' in rail
+  assert 'data-pane="appearance"' in rail
+  css = client.get("/static/app.css").data.decode()
+  assert '.settings-nav a[data-pane="profile"]' in css
+  assert '.settings-nav a[href="#profile"]' not in css, (
+    "the mark no longer keys on the link"
+  )
+
+
+def test_a_phone_section_action_shares_the_heading_line(app, db):
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  body = client.get("/3d-print-model").data.decode()
+  heads = re.findall(r'<div class="section-head">.*?</div>', body, re.DOTALL)
+  assert len(heads) == 3, "one head per section"
+  requests_head = next(head for head in heads if ">Requests<" in head)
+  assert "section-actions" in requests_head, "the action sits in the head"
+  assert "New request" in requests_head, "the action shares the heading line"
+  css = client.get("/static/app.css").data.decode()
+  rule = css[css.index(".section-head {") :].split("}", 1)[0]
+  assert "display: flex" in rule
+
+
+def test_the_phone_pane_back_arrow_takes_the_floor(app):
+  css = app.test_client().get("/static/app.css").data.decode()
+  phone = css[css.index("@media (max-width: 899px)") :]
+  assert ".back-to-list { display: inline-flex; min-width: 44px; height: 44px;" in phone
+
+
+def test_the_phone_text_size_row_stacks_its_control(app, db):
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  body = client.get("/settings").data.decode()
+  assert body.count('class="set-row set-row-stack"') == 2, (
+    "the clock and the text row name themselves"
+  )
+  css = client.get("/static/app.css").data.decode()
+  phone = css[css.index("@media (max-width: 899px)") :]
+  assert ".set-row-stack { display: grid;" in phone
+  assert "grid-column: 1 / -1; justify-self: end;" in phone
+
+
+def test_an_empty_admin_list_sits_in_a_panel(app, db):
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  shares = client.get("/admin/shares").data.decode()
+  assert '<div class="empty panel"><p>No share links yet.</p></div>' in shares
+  db.exec_driver_sql("DELETE FROM audit_events")
+  db.commit()
+  audit = client.get("/admin/audit").data.decode()
+  assert '<div class="empty panel"><p>No audit events yet.</p></div>' in audit

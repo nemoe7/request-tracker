@@ -15,7 +15,7 @@
       {% set show_client_view = can_view_as_client and not demo_switch %}
       {% for anchor, label, icon, tint in [("#profile", "Profile", "settings", "chip-blue"), ("#appearance", "Appearance", "contrast", "chip-indigo"), ("#notifications", "Notifications", "bell", "chip-red"), ("#passkeys", "Passkeys", "key-round", "chip-gray"), ("#admin", "Admin", "clipboard-list", "chip-amber")] %}
       {% if anchor != "#admin" or is_admin or show_client_view %}
-      <a href="{{ anchor }}">
+      <a href="{{ anchor }}" data-pane="{{ anchor | replace('#', '') }}">
         <span class="set-chip {{ tint }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#{{ icon }}"/></svg></span>
         {{ label }}
         <svg class="icon chev" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
@@ -90,7 +90,7 @@
       </div>
       <p class="set-note">System follows your device.</p>
       <form class="set-list" method="post"{% if not demo_mode %} data-clock-form{% endif %} action="{{ url_for('settings.clock') }}">
-        <div class="set-row">
+        <div class="set-row set-row-stack">
           <span class="set-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clock"/></svg></span>
           <span class="set-label">Time format</span>
           <span class="seg-control" role="group" aria-label="Time format">
@@ -102,7 +102,7 @@
       <p class="set-note" role="status" data-clock-status></p>
       <p class="set-note">Times under 72 hours old show short, like 3h ago.</p>
       <form class="set-list" method="post" action="{{ url_for('settings.font_size') }}" data-font-size-form>
-        <div class="set-row">
+        <div class="set-row set-row-stack">
           <span class="set-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#type"/></svg></span>
           <span class="set-label">Text size<span class="set-sub">A percentage of the base size</span></span>
           <span class="font-size-control">

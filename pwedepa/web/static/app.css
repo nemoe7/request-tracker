@@ -280,6 +280,9 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .reply { color: var(--muted); font-size: calc(13px * var(--font-scale)); margin: 4px 0 0; }
 
 .section-title { margin: 28px 0 12px; font-size: calc(20px * var(--font-scale)); }
+.section-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 28px 0 12px; }
+.section-head .section-title { margin: 0; }
+.section-head .section-actions { margin: 0 0 0 auto; }
 .card-list { display: grid; gap: 12px; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
 .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
@@ -291,7 +294,8 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .record-row { position: relative; display: flex; align-items: center; gap: 16px; padding: 12px 16px; cursor: pointer; }
 .record-row + .record-row { border-top: 1px solid var(--line); }
 .record-row:hover { background: var(--surface-2); }
-.record-row-main { min-width: 0; }
+/* A side cell meets the row edge, so a status or a stamp lines up down the list. */
+.record-row-main { flex: 1; min-width: 0; }
 .record-row h2 { margin: 0; font-size: calc(15px * var(--font-scale)); }
 .record-row h2 a { color: var(--text); text-decoration: none; }
 /* The whole row is the link, so there is one door into a record. */
@@ -581,24 +585,24 @@ form.is-auto [data-save] { display: none; }
     .settings-main > .set-group:target { display: block; }
     .settings-main > .set-group:target { animation: fade-in 160ms var(--ease); }
     .settings-main:has(> .set-group:target) > .set-group#profile:not(:target) { display: none; }
-    .settings-shell:not(:has(.set-group:target)) .settings-nav a[href="#profile"],
-    .settings-shell:has(#profile:target) .settings-nav a[href="#profile"],
-    .settings-shell:has(#appearance:target) .settings-nav a[href="#appearance"],
-    .settings-shell:has(#notifications:target) .settings-nav a[href="#notifications"],
-    .settings-shell:has(#passkeys:target) .settings-nav a[href="#passkeys"],
-    .settings-shell:has(#client-view:target) .settings-nav a[href="#client-view"],
-    .settings-shell:has(#admin:target) .settings-nav a[href="#admin"] {
+    .settings-shell:not(:has(.set-group:target)) .settings-nav a[data-pane="profile"],
+    .settings-shell:has(#profile:target) .settings-nav a[data-pane="profile"],
+    .settings-shell:has(#appearance:target) .settings-nav a[data-pane="appearance"],
+    .settings-shell:has(#notifications:target) .settings-nav a[data-pane="notifications"],
+    .settings-shell:has(#passkeys:target) .settings-nav a[data-pane="passkeys"],
+    .settings-shell:has(#client-view:target) .settings-nav a[data-pane="client-view"],
+    .settings-shell:has(#admin:target) .settings-nav a[data-pane="admin"] {
       background: var(--accent-fill);
       color: #fff;
       font-weight: 600;
     }
-    .settings-shell:not(:has(.set-group:target)) .settings-nav a[href="#profile"] .chev,
-    .settings-shell:has(#profile:target) .settings-nav a[href="#profile"] .chev,
-    .settings-shell:has(#appearance:target) .settings-nav a[href="#appearance"] .chev,
-    .settings-shell:has(#notifications:target) .settings-nav a[href="#notifications"] .chev,
-    .settings-shell:has(#passkeys:target) .settings-nav a[href="#passkeys"] .chev,
-    .settings-shell:has(#client-view:target) .settings-nav a[href="#client-view"] .chev,
-    .settings-shell:has(#admin:target) .settings-nav a[href="#admin"] .chev {
+    .settings-shell:not(:has(.set-group:target)) .settings-nav a[data-pane="profile"] .chev,
+    .settings-shell:has(#profile:target) .settings-nav a[data-pane="profile"] .chev,
+    .settings-shell:has(#appearance:target) .settings-nav a[data-pane="appearance"] .chev,
+    .settings-shell:has(#notifications:target) .settings-nav a[data-pane="notifications"] .chev,
+    .settings-shell:has(#passkeys:target) .settings-nav a[data-pane="passkeys"] .chev,
+    .settings-shell:has(#client-view:target) .settings-nav a[data-pane="client-view"] .chev,
+    .settings-shell:has(#admin:target) .settings-nav a[data-pane="admin"] .chev {
       color: #fff;
     }
   }
@@ -661,7 +665,7 @@ form.is-auto [data-save] { display: none; }
   .workspace-grid .records > .muted { order: 4; margin: 0 16px; width: calc(100% - 32px); }
   .workspace-grid.is-picked .records, .workspace-grid.is-picked .filters { display: none; }
   .workspace-grid.is-picked .inspector { order: 0; border: 0; border-radius: 0; padding: 16px; max-width: none; margin: 0; }
-  .back-to-list { display: inline-flex; margin-bottom: 10px; }
+  .back-to-list { display: inline-flex; min-width: 44px; height: 44px; margin-bottom: 10px; }
   .issue-head { grid-template-columns: minmax(0, 1fr); }
   .issue-head .issue-bar { grid-column: 1; margin-top: 10px; justify-content: flex-start; }
   .issue-layout { grid-template-columns: 1fr; gap: 20px; }
@@ -714,6 +718,12 @@ form.is-auto [data-save] { display: none; }
   /* A finger needs 44 px, so the top bar and the row buttons grow on a phone. */
   .brand, .bell, .avatar-btn { min-height: 44px; }
   .bell, .avatar-btn { min-width: 44px; justify-content: center; }
+  /* A row whose control is too wide for the line takes the next line, so no
+     label reads word by word and the card keeps its width. */
+  .set-row-stack { display: grid; grid-template-columns: auto minmax(0, 1fr); row-gap: 10px; }
+  .set-row-stack .seg-control, .set-row-stack .font-size-control {
+    grid-column: 1 / -1; justify-self: end;
+  }
   .btn, .set-row .btn, .admin-user-actions .btn, .mini, .icon-btn { min-height: 44px; }
   .icon-btn { min-width: 44px; height: 44px; }
   .list-toolbar .btn, .list-toolbar .filter-form select,

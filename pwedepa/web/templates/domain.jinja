@@ -14,10 +14,12 @@
   </div>
   <p class="desc">{{ domain.description or "No description yet." }}</p>
 
-  <h2 class="section-title">Announcements</h2>
-  {% if is_staff and not demo_mode %}
-  <p class="section-actions"><a class="btn" href="{{ url_for('announcements.new', slug=domain.slug) }}">New announcement</a></p>
-  {% endif %}
+  <div class="section-head">
+    <h2 class="section-title">Announcements</h2>
+    {% if is_staff and not demo_mode %}
+    <p class="section-actions"><a class="btn" href="{{ url_for('announcements.new', slug=domain.slug) }}">New announcement</a></p>
+    {% endif %}
+  </div>
   {% if announcements %}
   <div class="card-list">
     {% for announcement in announcements %}
@@ -41,10 +43,12 @@
   <p class="muted">No announcements yet.</p>
   {% endif %}
 
-  <h2 class="section-title">Requests</h2>
-  {% if user and not demo_mode %}
-  <p class="section-actions"><a class="btn" href="{{ url_for('records.request_new_in_domain', slug=domain.slug) }}">New request</a></p>
-  {% endif %}
+  <div class="section-head">
+    <h2 class="section-title">Requests</h2>
+    {% if user and not demo_mode %}
+    <p class="section-actions"><a class="btn" href="{{ url_for('records.request_new_in_domain', slug=domain.slug) }}">New request</a></p>
+    {% endif %}
+  </div>
   {% if requests %}
   <ul class="record-list">
     {% for record in requests %}
@@ -61,10 +65,12 @@
   <p class="muted">No requests here yet.</p>
   {% endif %}
 
-  <h2 class="section-title">Issues</h2>
-  {% if is_staff and not demo_mode %}
-  <p class="section-actions"><a class="btn" href="{{ url_for('records.issue_new_in_domain', slug=domain.slug) }}">New issue</a></p>
-  {% endif %}
+  <div class="section-head">
+    <h2 class="section-title">Issues</h2>
+    {% if is_staff and not demo_mode %}
+    <p class="section-actions"><a class="btn" href="{{ url_for('records.issue_new_in_domain', slug=domain.slug) }}">New issue</a></p>
+    {% endif %}
+  </div>
   {% if issues %}
   <ul class="record-list">
     {% for record in issues %}
