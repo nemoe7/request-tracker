@@ -135,6 +135,40 @@ def test_the_phone_workspace_folds_its_filters(app, db):
   )
 
 
+def test_every_status_pill_passes_contrast(app):
+  """A 12 px pill needs 4.5:1, and the light theme once fell short."""
+  css = app.test_client().get("/static/tokens.css").data.decode()
+  light = css[css.index(":root,") : css.index(':root[data-theme="dark"]')]
+
+  def hex_value(name):
+    found = re.search(rf"--{name}: (#[0-9A-Fa-f]{{6}})", light)
+    assert found, f"the light theme misses --{name}"
+    return found.group(1)
+
+  def channel(value):
+    value /= 255
+    return value / 12.92 if value <= 0.03928 else ((value + 0.055) / 1.055) ** 2.4
+
+  def luminance(code):
+    red, green, blue = (int(code[index : index + 2], 16) for index in (1, 3, 5))
+    return 0.2126 * channel(red) + 0.7152 * channel(green) + 0.0722 * channel(blue)
+
+  for status in (
+    "open",
+    "pending",
+    "delayed",
+    "blocked",
+    "resolved",
+    "closed",
+    "raised",
+    "rejected",
+  ):
+    fore = luminance(hex_value(f"st-{status}"))
+    back = luminance(hex_value(f"st-{status}-bg"))
+    ratio = (max(fore, back) + 0.05) / (min(fore, back) + 0.05)
+    assert ratio >= 4.5, f"the {status} pill reads at {ratio:.2f}:1"
+
+
 def test_the_stylesheet_holds_one_phone_block(app):
   css = app.test_client().get("/static/app.css").data.decode()
   assert ".workspace-grid.is-main" in css, "the wide card needs its own grid rule"

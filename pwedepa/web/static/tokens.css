@@ -39,12 +39,12 @@
   --ok: #15803D;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --control-h: 44px;
-  --st-open: #2563EB; --st-open-bg: #E8EFFD;
+  --st-open: #1D4ED8; --st-open-bg: #E8EFFD;
   --st-pending: #B45309; --st-pending-bg: #FDF3E3;
   --st-delayed: #7C3AED; --st-delayed-bg: #F1EAFD;
-  --st-blocked: #DC2626; --st-blocked-bg: #FDECEC;
-  --st-resolved: #15803D; --st-resolved-bg: #E6F6EC;
-  --st-closed: #64748B; --st-closed-bg: #EEF2F6;
+  --st-blocked: #B91C1C; --st-blocked-bg: #FDECEC;
+  --st-resolved: #166534; --st-resolved-bg: #E6F6EC;
+  --st-closed: #475569; --st-closed-bg: #EEF2F6;
   --st-raised: #0E7490; --st-raised-bg: #E6F4F8;
   --st-rejected: #BE123C; --st-rejected-bg: #FDEEF1;
   --st-fulfilled: #15803D; --st-fulfilled-bg: #E6F6EC;
