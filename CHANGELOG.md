@@ -80,3 +80,4 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - The workspace fills a wide screen, and the Issues page keeps one narrow column.
 - The audit log names each event in words, and the Admin save buttons carry their
   words.
+- A local run reads the Markdown linter from `package-lock.json`.

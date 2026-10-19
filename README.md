@@ -33,7 +33,7 @@ image, and `compose.dev.yml` builds this checkout.
 
 ## Checks
 
-CI runs `ruff`, `pytest`, `scripts/lint_prose.py`, and `markdownlint-cli2`.
+CI runs `ruff`, `pytest`, `scripts/lint_prose.py`, and `markdownlint-cli2`. A local run needs `npm ci` once, so the Markdown linter comes from the lock file.
 
 ## Docs
 

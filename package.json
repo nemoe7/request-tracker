@@ -1,0 +1,8 @@
+{
+  "name": "pwedepa-checks",
+  "private": true,
+  "description": "The Markdown linter the local check runs.",
+  "devDependencies": {
+    "markdownlint-cli2": "0.23.3"
+  }
+}

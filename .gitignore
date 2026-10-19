@@ -8,3 +8,4 @@ build/
 _site/
 domains.imported.yaml
 .env
+node_modules/
