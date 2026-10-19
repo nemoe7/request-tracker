@@ -240,6 +240,12 @@ def users() -> str | Response:
   )
 
 
+@bp.get("/admin/tokens")
+def token_page() -> Response:
+  """A typed URL lands on the page that issues a token."""
+  return redirect(url_for("admin.users"))
+
+
 @bp.post("/admin/tokens")
 def issue_token() -> Response:
   try:
