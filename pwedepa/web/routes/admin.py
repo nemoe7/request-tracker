@@ -311,10 +311,18 @@ def passkey_revoke(passkey_id: int) -> Response:
   return redirect(url_for("admin.users"))
 
 
+def audit_words(event_type: str) -> str:
+  """Read a key such as user.created as the words it stands for."""
+  words = event_type.replace(".", " ").replace("_", " ").strip()
+  return words[:1].upper() + words[1:]
+
+
 @bp.get("/admin/audit")
 def audit() -> str | Response:
   events = list_audit_events(db(), limit=200)
-  return render_template("admin_audit.jinja", events=events, names=_names())
+  return render_template(
+    "admin_audit.jinja", events=events, names=_names(), words=audit_words
+  )
 
 
 @bp.get("/admin/shares")

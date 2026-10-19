@@ -746,6 +746,18 @@ def test_the_admin_config_file_field_looks_like_the_other_fields(app):
   assert "::file-selector-button" in css
 
 
+def test_the_audit_log_reads_in_words(app, db):
+  """The log names what happened, so the reader never sees a raw key."""
+  client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  person = users.get_user_by_username(db, "Ada")
+  record_audit(db, "user.created", at=AT, actor_id=person.id, object_type="user")
+
+  page = client.get("/admin/audit").data.decode()
+
+  assert "<h2>User created</h2>" in page
+  assert "user.created" not in page
+
+
 def test_the_workspace_pane_carries_the_request_view(app, db):
   """The reading pane is the request page, controls and all."""
   client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
@@ -1314,7 +1326,7 @@ def test_the_admin_lists_read_as_dense_rows(app, db):
   assert audit_page.count('class="record-row"') == len(list_audit_events(db)), (
     "one row per event"
   )
-  assert "request.viewed" in audit_page
+  assert "Request viewed" in audit_page
   assert 'class="record-table"' not in audit_page
 
 

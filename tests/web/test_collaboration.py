@@ -361,7 +361,7 @@ def test_settings_profile_and_admin_pages(cast, db):
   assert users.get_user(db, Mara_user.id).status.value == "ARCHIVED"
   admin.post(f"/admin/users/{Mara_user.id}/reactivate")
   assert users.get_user(db, Mara_user.id).status.value == "ACTIVE"
-  assert b"enrollment_token.issued" in admin.get("/admin/audit").data
+  assert b"Enrollment token issued" in admin.get("/admin/audit").data
 
 
 def test_every_admin_route_stands_behind_the_gate(app, cast, db):
