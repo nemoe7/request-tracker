@@ -41,8 +41,8 @@
     </a>
     {% if not is_staff %}
     <nav class="tabs" aria-label="Main">
-      <a href="{{ url_for('records.requests') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg>Requests</a>
-      <a href="{{ url_for('records.issue_board') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg>Issues</a>
+      <a href="{{ url_for('records.requests') }}"{% if request.endpoint == 'records.requests' %} class="is-active" aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clipboard-list"/></svg>Requests</a>
+      <a href="{{ url_for('records.issue_board') }}"{% if request.endpoint == 'records.issue_board' %} class="is-active" aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg>Issues</a>
     </nav>
     {% endif %}
     <div class="top-actions">

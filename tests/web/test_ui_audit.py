@@ -86,6 +86,25 @@ def test_staff_hold_no_top_tabs(app, db):
   )
 
 
+def test_the_top_tabs_mark_the_current_page(app, db):
+  client = _client(app, db, "Mara", "Mara Reyes", roles=(Role.REQUESTER,))
+
+  def tab(body: str, label: str) -> str:
+    found = re.search(r"<a [^>]*>(?:(?!</a>).)*?" + label + r"</a>", body, re.DOTALL)
+    assert found, f"no {label} tab"
+    return found.group(0)
+
+  for path, current, other in (
+    ("/requests", "Requests", "Issues"),
+    ("/issues", "Issues", "Requests"),
+  ):
+    body = client.get(path).get_data(as_text=True)
+    assert 'aria-current="page"' in tab(body, current), (
+      f"{current} is not marked current"
+    )
+    assert "aria-current" not in tab(body, other), f"{other} claims the current page"
+
+
 def test_admins_hold_no_top_tabs(app, db):
   client = _client(app, db, "Ana", "Ana Lim", roles=(Role.ADMIN,))
   assert '<nav class="tabs"' not in client.get("/").get_data(as_text=True)
