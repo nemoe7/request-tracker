@@ -239,3 +239,65 @@ def test_no_workflow_repeats_a_key():
   for path in sorted(gate_workflows.WORKFLOW_DIR.glob("*.y*ml")):
     walk(yaml.compose(path.read_text(encoding="utf-8")), path.name)
   assert problems == [], f"duplicate YAML keys: {problems}"
+
+
+def _steps(name: str) -> list[dict]:
+  document = yaml.safe_load(
+    (gate_workflows.WORKFLOW_DIR / name).read_text(encoding="utf-8")
+  )
+  return [step for job in document["jobs"].values() for step in job.get("steps", [])]
+
+
+def test_the_pages_job_pins_uv_and_caches_it():
+  """A floating uv can break a deploy with no commit behind the change."""
+  setup = next(
+    step for step in _steps("pages.yml") if "setup-uv@" in str(step.get("uses"))
+  )
+  assert setup["with"]["version"] == "0.12.21"
+  assert setup["with"]["enable-cache"] is True
+
+
+def test_the_workflow_gate_installs_one_import():
+  """`gate_workflows.py` imports `yaml` and nothing else."""
+  text = (gate_workflows.WORKFLOW_DIR / "workflow-security.yml").read_text(
+    encoding="utf-8"
+  )
+  assert "uv sync --locked" not in text, "the workflow gate syncs the whole set"
+  steps = [str(step.get("run", "")) for step in _steps("workflow-security.yml")]
+  assert any("pyyaml" in step.lower() for step in steps), "the gate needs PyYAML"
+
+
+def test_ci_skips_the_tests_on_a_docs_only_change():
+  """A docs commit still gets the prose lint, and no test run."""
+  document = yaml.safe_load(
+    (gate_workflows.WORKFLOW_DIR / "ci.yml").read_text(encoding="utf-8")
+  )
+  jobs = document["jobs"]
+  assert "code" in jobs["scope"]["outputs"], "nothing answers the code question"
+  assert jobs["scope"]["outputs"]["code"].startswith("${{ steps.paths.outputs")
+  for name in ("ci", "floor"):
+    steps = jobs[name]["steps"]
+    assert jobs[name]["needs"] == "scope", f"{name} runs before the scope answer"
+    tests = [step for step in steps if "pytest" in str(step.get("run", ""))]
+    assert tests and all(
+      "needs.scope.outputs.code" in str(step.get("if")) for step in tests
+    ), f"{name} tests a docs-only change"
+  prose = [
+    step for step in jobs["ci"]["steps"] if "lint_prose.py" in str(step.get("run", ""))
+  ]
+  assert prose and "if" not in prose[0], "the prose lint must run on every change"
+
+
+def test_the_uv_pins_match_the_newest_release():
+  """A pin one minor behind drifts without a commit."""
+  text = " ".join(
+    (gate_workflows.WORKFLOW_DIR / name).read_text(encoding="utf-8")
+    for name in (
+      "ci.yml",
+      "dependency-review.yml",
+      "pages.yml",
+      "workflow-security.yml",
+    )
+  )
+  assert "setup-uv@v10.3.0" in text
+  assert "setup-uv@v10.2.0" not in text

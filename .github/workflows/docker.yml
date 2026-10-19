@@ -63,6 +63,7 @@ jobs:
             exit 0
           fi
 
+          # The walk stops at the first dev build and reads at most 20 runs.
           # The range starts at the newest commit a dev build shipped, not at the
           # last CI run. A docs tip is a CI run too, so that head would hide every
           # code change below it.

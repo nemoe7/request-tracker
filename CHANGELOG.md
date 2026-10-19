@@ -69,6 +69,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   The contract job needs only plain Python, and the container scan reuses a layer
   cache.
 - Every workflow job shows a plain name in the run view.
+- CI skips the tests on a docs-only change, pins uv on Pages, and installs
+  PyYAML alone for the workflow gate.
 - `PWEDEPA_NO_STORE=1` sends `Cache-Control: no-store` on every page, so a dev
   preview never serves an old page.
 - Settings carry no Save row when the script runs. The name field saves on a

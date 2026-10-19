@@ -32,15 +32,57 @@ permissions:
   contents: read
 
 jobs:
+  # A docs commit still gets the prose lint, and no test run. This job reads the
+  # file list of the change once, so both test jobs share one answer.
+  scope:
+    name: "Check the change"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      code: ${{ steps.paths.outputs.code }}
+    steps:
+      - id: paths
+        name: Check the Change
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$BASE" || "$BASE" == "0000000000000000000000000000000000000000" ]]; then
+            printf 'code=yes\n' >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+          code=no
+          while IFS= read -r path; do
+            case "$path" in
+              pwedepa/*|tests/*|scripts/*|Dockerfile|config*.yml|compose*.yml)
+                code=yes
+                ;;
+              .env.example|.dockerignore|pyproject.toml|uv.lock|ruff.toml)
+                code=yes
+                ;;
+              .markdownlint-cli2.jsonc|.github/workflows/*)
+                code=yes
+                ;;
+            esac
+          done < <(gh api "repos/$GITHUB_REPOSITORY/compare/$BASE...$HEAD" \
+            --jq '.files[].filename' || printf '%s\n' "unknown")
+          printf 'code=%s\n' "$code" >>"$GITHUB_OUTPUT"
+
   ci:
     name: "Tests, lint, and prose"
+    needs: scope
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@v10.2.0
+      - uses: astral-sh/setup-uv@v10.3.0
         with:
           version: "0.12.21"
           # The image runtime: the version the container actually runs.
@@ -50,6 +92,7 @@ jobs:
       - run: uv run --no-sync ruff check
       - run: uv run --no-sync ruff format --check
       - run: uv run --no-sync pytest
+        if: needs.scope.outputs.code == 'yes'
       - run: uv run --no-sync python scripts/lint_prose.py
       - name: Lint Markdown
         uses: DavidAnson/markdownlint-cli2-action@v24.0.0
@@ -58,13 +101,14 @@ jobs:
 
   floor:
     name: "Tests on Python 3.11"
+    needs: scope
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@v10.2.0
+      - uses: astral-sh/setup-uv@v10.3.0
         with:
           version: "0.12.21"
           # The floor in `pyproject.toml`: a claim nothing else tests.
@@ -72,3 +116,4 @@ jobs:
           enable-cache: true
       - run: uv sync --locked
       - run: uv run --no-sync pytest
+        if: needs.scope.outputs.code == 'yes'
