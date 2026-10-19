@@ -54,6 +54,7 @@ from .users import (
   list_users,
   reactivate_user,
   update_display_name,
+  update_username,
 )
 
 __all__ = [
@@ -105,5 +106,6 @@ __all__ = [
   "start_enrollment_registration",
   "start_registration",
   "update_display_name",
+  "update_username",
   "validate_enrollment_token",
 ]

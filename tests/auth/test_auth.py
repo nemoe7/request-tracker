@@ -318,6 +318,19 @@ def test_enrollment_registration_consumes_the_token(db, monkeypatch):
     enrollment.validate_enrollment_token(db, issued.token, at=AT)
 
 
+def test_a_rename_refuses_a_taken_username(db, user):
+  other = users.create_user(db, "sam", "Sam Lee", at=AT)
+
+  with pytest.raises(AuthError):
+    users.update_username(db, other.id, "ADA", at=LATER)
+
+  assert users.get_user(db, other.id).username == "sam"
+  renamed = users.update_username(db, user.id, "ada-l", at=LATER, actor_id=user.id)
+  assert renamed.username == "ada-l"
+  tail = list_audit_events(db, object_type="user", object_id=user.id)
+  assert tail[-1].event_type == "user.username_changed"
+
+
 def test_a_taken_username_keeps_the_token(db, user, monkeypatch):
   issued = enrollment.issue_enrollment_token(db, role=Role.REQUESTER, at=AT)
   monkeypatch.setattr(

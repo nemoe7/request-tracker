@@ -3,7 +3,14 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from werkzeug.wrappers import Response
 
-from pwedepa.auth import AuthError, Role, list_passkeys, list_roles, update_display_name
+from pwedepa.auth import (
+  AuthError,
+  Role,
+  list_passkeys,
+  list_roles,
+  update_display_name,
+  update_username,
+)
 from pwedepa.data import notifications as notifications_data
 from pwedepa.data import preferences as preferences_data
 
@@ -40,6 +47,25 @@ def profile() -> Response:
       actor_id=user.id,
     )
     flash("Display name saved.")
+  except AuthError as error:
+    flash(str(error))
+  return redirect(url_for("settings.settings"))
+
+
+@bp.post("/settings/username")
+def username() -> Response:
+  user = current_user()
+  if user is None:
+    return redirect(url_for("pages.login"))
+  try:
+    update_username(
+      db(),
+      user.id,
+      request.form.get("username", ""),
+      at=now(),
+      actor_id=user.id,
+    )
+    flash("Username saved.")
   except AuthError as error:
     flash(str(error))
   return redirect(url_for("settings.settings"))

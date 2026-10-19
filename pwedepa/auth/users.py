@@ -100,6 +100,44 @@ def update_display_name(
   return get_user(db, user_id)
 
 
+def update_username(
+  db: Connection,
+  user_id: int,
+  username: str,
+  *,
+  at: datetime,
+  actor_id: int | None = None,
+) -> User:
+  """Rename one user. Refuse a taken name, whatever its case."""
+  username = username.strip()
+  if not username:
+    raise AuthError("a user needs a username")
+  _require_user(db, user_id)
+  taken = get_user_by_username(db, username)
+  if taken is not None and taken.id != user_id:
+    raise AuthError("the username is already in use")
+  try:
+    db.exec_driver_sql(
+      "UPDATE users SET username = ?, updated_at = ? WHERE id = ?",
+      (username, pack_time(at), user_id),
+    )
+  except IntegrityError as exc:
+    db.rollback()
+    raise AuthError("the username is already in use") from exc
+  record_audit(
+    db,
+    "user.username_changed",
+    at=at,
+    actor_id=actor_id,
+    object_type="user",
+    object_id=user_id,
+    data={"username": username},
+    commit=False,
+  )
+  db.commit()
+  return get_user(db, user_id)
+
+
 def get_user(db: Connection, user_id: int) -> User | None:
   row = db.exec_driver_sql("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
   return None if row is None else _from_row(row)

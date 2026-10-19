@@ -1,5 +1,5 @@
 {% extends "base.jinja" %}
-{% from "_parts.jinja" import reason_modal %}
+{% from "_parts.jinja" import modal, reason_modal %}
 {% block title %}PwedePa | Settings{% endblock %}
 {% block content %}
 <div class="settings-shell">
@@ -45,6 +45,7 @@
           <span class="ios-chip chip-gray"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#inbox"/></svg></span>
           <span class="ios-label">Username</span>
           <span class="ios-value">{{ user.username }}</span>
+          <button class="btn" type="button" data-modal-open="change-username">Change</button>
         </div>
         <div class="ios-row">
           <span class="ios-chip chip-green"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#circle-alert"/></svg></span>
@@ -53,6 +54,19 @@
         </div>
         <div class="ios-row ios-action" data-save><button class="btn primary icon-only" type="submit" aria-label="Save profile" title="Save profile"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button></div>
       </form>
+      {% call modal("change-username", "Change your username?") %}
+      <form class="modal-form" method="post" action="{{ url_for('settings.username') }}">
+        <div class="field">
+          <label for="change-username-field">New username</label>
+          <input id="change-username-field" type="text" name="username" value="{{ user.username }}" required>
+          <p class="help">A name another account holds gets refused.</p>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" type="button" data-modal-close>Cancel</button>
+          <button class="btn primary" type="submit">Save username</button>
+        </div>
+      </form>
+      {% endcall %}
     </section>
 
     <section class="ios-group" id="appearance" aria-label="Appearance">

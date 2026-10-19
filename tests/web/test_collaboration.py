@@ -597,6 +597,41 @@ def test_every_settings_control_saves_itself(cast, db):
   assert Mara.get("/settings").data.count(b"Mara R.") >= 1
 
 
+def test_a_taken_username_is_refused(cast, db):
+  """A taken name blocks the write, and the case does not matter."""
+  Mara, Mara_user = cast["Mara"]
+
+  answer = Mara.post(
+    "/settings/username", data={"username": "SAM"}, follow_redirects=True
+  )
+
+  assert b"already in use" in answer.data
+  assert users.get_user(db, Mara_user.id).username == "Mara"
+
+  saved = Mara.post(
+    "/settings/username", data={"username": "mara-r"}, follow_redirects=True
+  )
+  assert b"Username saved." in saved.data
+  assert users.get_user(db, Mara_user.id).username == "mara-r"
+
+
+def test_the_username_change_opens_from_a_modal(cast):
+  Mara, _ = cast["Mara"]
+  main = Mara.get("/settings").data.decode()
+  main = main[main.index("settings-main") :]
+  assert 'data-modal-open="change-username"' in main
+  assert 'id="change-username"' in main
+  assert 'action="/settings/username"' in main
+  assert main.index("</form>") < main.index('id="change-username"'), (
+    "the modal form must not nest in the profile form"
+  )
+  modal = main[main.index('id="change-username"') :]
+  field = modal[modal.index('class="field"') : modal.index("</form>")]
+  assert 'class="ios-input"' not in field, (
+    "the row input style drops the box the modal field needs"
+  )
+
+
 def test_notification_switches_save_as_they_flip(cast, db):
   Mara, Mara_user = cast["Mara"]
   main = Mara.get("/settings").data.decode()
