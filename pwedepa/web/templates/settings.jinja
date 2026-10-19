@@ -116,10 +116,9 @@
         <p>What reaches your inbox, and when the pip shows.</p>
       </header>
       <p class="ios-note" role="status" data-autosave-status></p>
-      <form class="ios-split" method="post"{% if not demo_mode %} data-autosave{% endif %} action="{{ url_for('settings.notification_preferences') }}">
+      <form class="ios-list" method="post"{% if not demo_mode %} data-autosave{% endif %} action="{{ url_for('settings.notification_preferences') }}">
         {% for pref in preferences %}
-        <fieldset class="ios-fieldset">
-          <legend>{{ pref.category | capitalize }}</legend>
+        <p class="ios-head">{{ pref.category | capitalize }}</p>
           <label class="ios-row">
             <span class="ios-chip chip-red"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#bell"/></svg></span>
             <span class="ios-label">Enabled</span>
@@ -135,11 +134,8 @@
             <span class="ios-label">Show pip</span>
             <input class="switch" type="checkbox" name="{{ pref.category }}_pip"{% if pref.pip_enabled %} checked{% endif %}>
           </label>
-          {% if loop.last %}
-          <div class="ios-row ios-action" data-save><button class="btn primary icon-only" type="submit" aria-label="Save notifications" title="Save notifications"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button></div>
-          {% endif %}
-        </fieldset>
         {% endfor %}
+        <div class="ios-row ios-action" data-save><button class="btn primary" type="submit">Save</button></div>
       </form>
     </section>
 

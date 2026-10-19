@@ -459,7 +459,7 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .pane-head { margin: 0 0 8px 16px; }
 .pane-head > p { margin: 4px 0 0; color: var(--muted); font-size: calc(13px * var(--font-scale)); }
 .pane-back { display: none; }
-.ios-group > .pane-head > h2, .ios-fieldset > legend { font-size: calc(13px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0; font-weight: 600; }
+.ios-group > .pane-head > h2, .ios-fieldset > legend, .ios-head { font-size: calc(13px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0; font-weight: 600; }
 .ios-group form:not(.modal-form), .ios-list { background: var(--surface); border: 0; border-radius: 16px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
 .ios-list { margin-bottom: 14px; }
 .ios-fieldset { border: 0; margin: 0 0 14px; padding: 0; background: transparent; }
@@ -468,6 +468,8 @@ form.ios-split { background: none; border: 0; overflow: visible; }
 .ios-fieldset > legend { float: left; width: 100%; box-sizing: border-box; padding-top: 12px; }
 .ios-row { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 16px; border-bottom: 1px solid var(--line); color: var(--text); font-size: calc(15px * var(--font-scale)); text-decoration: none; box-sizing: border-box; }
 .ios-row:last-child { border-bottom: 0; }
+.ios-head { margin: 0; padding: 16px 16px 6px; font-size: calc(12px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: var(--surface); }
+.ios-head + .ios-row { border-top: 1px solid var(--line); }
 .ios-label { flex: 1; }
 .ios-sub { display: block; font-size: calc(12px * var(--font-scale)); color: var(--muted); }
 .ios-value { color: var(--muted); }
