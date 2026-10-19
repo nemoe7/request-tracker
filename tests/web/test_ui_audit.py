@@ -386,6 +386,12 @@ def test_page_switches_do_not_animate_the_whole_page(app):
     assert "animation: none" in rules[selectors], (
       f"{selectors} still animates the switch"
     )
+  assert "view-transition-name: filters" not in css, (
+    "a named panel group ghosts the old page over the new one"
+  )
+  assert "view-transition-name: records" not in css, (
+    "a named panel group ghosts the old page over the new one"
+  )
 
 
 def test_client_rows_open_the_record_from_the_title(app, db):
