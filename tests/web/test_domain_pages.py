@@ -127,34 +127,49 @@ def test_the_create_form_offers_the_configured_domains(db, Mara):
   client, _ = Mara
   page = client.get("/requests/new")
 
-  assert b'name="domains"' in page.data
+  assert b'name="domain"' in page.data
   for domain in domains_data.load():
     assert f'value="{domain.name}"'.encode() in page.data
-  assert b'name="domains" type="text"' not in page.data, "the free text field is gone"
+  assert b'name="domains"' not in page.data, "a request takes one Domain, not a list"
 
 
-def test_a_new_request_keeps_the_checked_domains(db, Mara):
+def test_a_new_request_keeps_the_chosen_domain(db, Mara):
   client, _ = Mara
   done = client.post(
     "/requests",
     data={
       "title": "Rope climb plan",
       "description": "A plan.",
-      "domains": ["Gym", "Asset Tracker"],
+      "domain": "Gym",
       "visibility": "PRIVATE",
     },
   )
 
   saved = requests_data.get(db, 1)
-  assert saved.domains == ("Gym", "Asset Tracker")
+  assert saved.domains == ("Gym",)
   assert done.headers["Location"] == "/gym/requests/1"
+
+
+def test_a_second_domain_is_ignored(db, Mara):
+  """The form posts one Domain, and a stray extra value never lands."""
+  client, _ = Mara
+  client.post(
+    "/requests",
+    data={
+      "title": "Rope climb plan",
+      "domain": "Gym",
+      "domains": ["Gym", "Asset Tracker"],
+    },
+  )
+
+  assert requests_data.get(db, 1).domains == ("Gym",)
 
 
 def test_an_unknown_domain_is_dropped(db, Mara):
   client, _ = Mara
   client.post(
     "/requests",
-    data={"title": "Rope climb plan", "domains": ["Not A Domain"]},
+    data={"title": "Rope climb plan", "domain": "Not A Domain"},
   )
 
   assert requests_data.get(db, 1).domains == ()

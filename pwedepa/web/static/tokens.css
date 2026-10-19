@@ -28,6 +28,7 @@
   --bg: #F4F6F8;
   --surface: #FFFFFF;
   --surface-2: #F8FAFC;
+  --field: #F6F8FB;
   --line: #DCE3EA;
   --text: #17222E;
   --muted: #5B6B7B;
@@ -57,6 +58,7 @@
   --bg: #0C1118;
   --surface: #131B26;
   --surface-2: #182233;
+  --field: #1C2838;
   --line: #243144;
   --text: #E4EBF3;
   --muted: #93A5B8;
@@ -85,6 +87,7 @@
     --bg: #0C1118;
     --surface: #131B26;
     --surface-2: #182233;
+    --field: #1C2838;
     --line: #243144;
     --text: #E4EBF3;
     --muted: #93A5B8;

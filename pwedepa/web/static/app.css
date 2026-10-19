@@ -216,6 +216,8 @@ body.is-guest .auth-card { margin: 0 auto; }
 .event-meta { display: block; font-size: calc(12px * var(--font-scale)); color: var(--muted); margin-top: 2px; }
 .comment p { margin: 0 0 2px; }
 .narrow { max-width: 720px; margin: 0 auto; }
+/* A list reads at a wider measure than a form, and the rows carry the extra width. */
+.list-page { max-width: 1040px; margin: 0 auto; }
 body.is-guest.is-share { display: block; }
 body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .issue-page { max-width: 1100px; margin: 0 auto; }
@@ -256,12 +258,17 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .card.is-linked { position: relative; }
 .card.is-linked h2 a::after { content: ""; position: absolute; inset: 0; }
 .record-list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-.record-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 14px; }
+.record-row { position: relative; display: flex; align-items: center; gap: 16px; padding: 12px 16px; }
 .record-row + .record-row { border-top: 1px solid var(--line); }
 .record-row:hover { background: var(--surface-2); }
 .record-row-main { min-width: 0; }
 .record-row h2 { margin: 0; font-size: calc(15px * var(--font-scale)); }
 .record-row h2 a { color: var(--text); text-decoration: none; }
+/* The whole row is the link, so there is one door into a record. */
+.record-row h2 a::after { content: ""; position: absolute; inset: 0; border-radius: 10px; }
+.record-row:hover h2 a { text-decoration: underline; text-underline-offset: 3px; }
+.record-row:focus-within { outline: 2px solid var(--accent-fill); outline-offset: -2px; }
+.record-row .meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .record-row .meta { margin: 2px 0 0; }
 .record-row-side { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
 .record-row-side .mini { font-size: calc(13px * var(--font-scale)); }
@@ -290,8 +297,21 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .field label { display: block; font-size: calc(13px * var(--font-scale)); font-weight: 600; margin-bottom: 6px; }
 .field input[type="file"] { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: calc(15px * var(--font-scale)); min-height: var(--control-h); box-sizing: border-box; }
 .field input[type="file"]::file-selector-button { min-height: 32px; margin-right: 12px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
-.field input[type="text"], .field input[type="number"], .field select, .field textarea, .comment-form textarea, .modal-form input[type="text"], .modal-form textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: calc(15px * var(--font-scale)); min-height: var(--control-h); box-sizing: border-box; }
+.field input[type="text"], .field input[type="number"], .field select, .field textarea, .comment-form textarea, .modal-form input[type="text"], .modal-form textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--field); color: var(--text); font: inherit; font-size: calc(15px * var(--font-scale)); min-height: var(--control-h); box-sizing: border-box; }
+.field input:hover, .field textarea:hover, .field select:hover { border-color: var(--muted); }
 .field .help { font-size: calc(12px * var(--font-scale)); color: var(--muted); margin: 6px 0 0; }
+/* A form page widens with the list, but only above the breakpoint below. */
+@media (min-width: 1200px) {
+  .form-page { max-width: 1040px; }
+}
+/* A wide screen puts short fields side by side, so the card stops being a keyhole. */
+@media (min-width: 1200px) {
+  .form.panel.form-2col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px 20px; align-items: start; }
+  .form-2col > .field-wide, .form-2col > .check, .form-2col > .form-actions, .form-2col > .help, .form-2col > .status { grid-column: 1 / -1; }
+  .form-2col > .form-actions { margin-top: 4px; }
+  .form-2col > .check { min-height: 36px; }
+  .form-2col > .field-stack { display: flex; flex-direction: column; gap: 16px; }
+}
 .check { display: flex; gap: 8px; align-items: center; font-size: calc(14px * var(--font-scale)); min-height: 44px; }
 .field-checks { border: 0; padding: 0; margin: 0; }
 .field-checks legend { font-size: calc(13px * var(--font-scale)); font-weight: 600; margin-bottom: 6px; padding: 0; }

@@ -78,15 +78,15 @@ def test_the_client_sees_what_is_visible_now(app, db):
   assert body.count("A public request") == 1, "the board names each row once"
 
 
-def test_each_card_opens_the_wide_card(app, db):
+def test_each_row_has_one_door(app, db):
   Mara = _person(db, "Mara")
   _request(db, 1, Mara.id, "My own request")
   client = _client(app, db, Mara)
 
   body = client.get("/requests").get_data(as_text=True)
 
-  assert 'href="/requests?selected=1"' in body, "a card opens its own wide card"
-  assert 'href="/gym/requests/1"' in body, "the card keeps a link to the request"
+  assert 'href="/gym/requests/1"' in body, "the row opens the request"
+  assert body.count("selected=1") == 0, "and the row offers no second door"
 
 
 def test_a_selected_item_opens_as_the_wide_card(app, db):
