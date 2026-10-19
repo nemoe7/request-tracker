@@ -424,10 +424,13 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
   animation: fade-in 160ms var(--ease) both;
 }
 @keyframes fade-in { from { opacity: 0; } }
-.btn, .queue-item, .card, .mini, .seg a, .tabs a, .set-row.link-row, .queue a {
+.btn, .queue-item, .card, .mini, .seg a, .tabs a, .set-row, .settings-nav a, .queue a, .record-row, .mail-table tr {
   transition: background-color 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease), transform 180ms var(--ease);
 }
 .btn:active, .mini:active, .card:active { transform: translateY(1px); }
+.set-row:active, .settings-nav a:active, .queue-item:active { background: var(--surface-2); }
+.record-row, .mail-table tbody tr { transition: background-color 140ms var(--ease); }
+.record-row:hover, .mail-table tbody tr:hover { background: var(--surface-2); }
 #tagline { transition: opacity 160ms var(--ease); }
 #tagline.swap { opacity: 0; }
 #tagline-marks { display: inline-block; min-width: 1.5em; }
@@ -665,6 +668,10 @@ select:not([multiple]) { appearance: none; -webkit-appearance: none; min-height:
 .modal[hidden] { display: none; }
 .modal-scrim { position: absolute; inset: 0; background: rgb(0 0 0 / 0.55); }
 .modal-card { position: relative; width: min(420px, 100%); padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: 0 24px 60px rgb(0 0 0 / 0.35); }
+.modal:not([hidden]) .modal-scrim { animation: scrim-in 160ms var(--ease) both; }
+.modal:not([hidden]) .modal-card { animation: dialog-in 180ms var(--ease) both; }
+@keyframes scrim-in { from { opacity: 0; } }
+@keyframes dialog-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
 .modal .modal-card h2 { margin: 0 0 10px; font-size: calc(17px * var(--font-scale)); text-transform: none; letter-spacing: 0; color: var(--text); }
 .modal-form { display: grid; gap: 8px; }
 .modal-form label { font-size: calc(13px * var(--font-scale)); color: var(--muted); }
