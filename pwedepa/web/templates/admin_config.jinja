@@ -63,7 +63,7 @@
 
   <section class="panel admin-section">
     <h2>Import</h2>
-    <p class="muted">An import saves a copy beside the database. The app reads that copy before <code>config.yml</code>.</p>
+    <p class="muted">An import saves a copy beside the database, and the app reads that copy before <code>config.yml</code>.</p>
     <form class="form" method="post" action="{{ url_for('admin.domain_config_import') }}" enctype="multipart/form-data">
       <div class="field">
         <label for="config-file">Config file</label>

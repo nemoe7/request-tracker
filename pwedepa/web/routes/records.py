@@ -542,7 +542,7 @@ def request_transition(request_id: int) -> Response:
   record, actor = _load_request(actor, request_id)
   target = choice(RequestStatus, request.form.get("target", ""), None)
   if target is None:
-    flash("That move is not available.")
+    flash("This record cannot move to that status.")
     return redirect(record_path(record))
   at = now()
   try:
@@ -712,7 +712,7 @@ def issue_transition(issue_id: int) -> Response:
   record, actor = _load_issue(actor, issue_id)
   target = choice(IssueStatus, request.form.get("target", ""), None)
   if target is None:
-    flash("That move is not available.")
+    flash("This record cannot move to that status.")
     return redirect(record_path(record, "issue"))
   try:
     change = transition_issue(record, target, actor, at=now())

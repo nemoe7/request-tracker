@@ -6,7 +6,7 @@
   <div class="share-once">
     <label for="share-link-{{ record.id }}">Copy this link now</label>
     <input id="share-link-{{ record.id }}" type="text" readonly value="{{ url_for('sharing.open_link', token=issued_token, _external=True) }}">
-    <p class="help">The app cannot show the plain link again.</p>
+    <p class="help">This page is the only place the link appears.</p>
   </div>
   {% endif %}
   <form class="share-form" method="post" action="{{ url_for('sharing.create', object_type=object_type, object_id=record.id) }}">

@@ -60,7 +60,7 @@ document.querySelectorAll("form[data-autosave]").forEach((form) => {
           box.checked = saved.has(box.name);
         });
         if (status) {
-          status.textContent = "That switch did not save. Check the connection.";
+          status.textContent = "Could not save the switch. Check the connection.";
           status.scrollIntoView({ block: "nearest" });
         }
       });
@@ -258,7 +258,7 @@ async function postJson(url, body) {
     body: JSON.stringify(body || {}),
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "Something went wrong.");
+  if (!response.ok) throw new Error(data.error || "The action failed.");
   return data;
 }
 
@@ -448,11 +448,11 @@ if (clockForm) {
         headers: { "X-Requested-With": "fetch" },
         body: new URLSearchParams({ clock: button.value }),
       });
-      if (!response.ok) throw new Error("The time format did not save.");
+      if (!response.ok) throw new Error("Could not save the time format.");
       if (note) note.textContent = "Time format saved.";
     } catch {
       if (previous) mark(previous.value);
-      if (note) note.textContent = "That format did not save. Check the connection.";
+      if (note) note.textContent = "Could not save the format. Check the connection.";
     }
   });
 }
@@ -489,7 +489,7 @@ if (fontForm) {
         body,
         headers: { "X-Requested-With": "fetch" },
       });
-      if (!response.ok) throw new Error("The text size did not save.");
+      if (!response.ok) throw new Error("Could not save the text size.");
       if (note) note.textContent = "";
     } catch (error) {
       if (note) note.textContent = error.message;
