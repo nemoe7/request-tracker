@@ -21,6 +21,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - `PWEDEPA_NO_STORE=1` sends `Cache-Control: no-store` on every page, so a dev
   preview never serves an old page.
+- Settings carry no Save row when the script runs. The name field saves on a
+  change, and text size hides its row once the script binds.
 
 ## [0.1.0] - 2026-10-16
 

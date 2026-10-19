@@ -574,6 +574,29 @@ def _function_body(script: str, name: str) -> str:
   raise AssertionError(f"{name} has no closing brace")
 
 
+def test_every_settings_control_saves_itself(cast, db):
+  """One save model per view: each control writes, and no Save row waits."""
+  Mara = cast["Mara"][0]
+  main = Mara.get("/settings").data.decode()
+  main = main[main.index("settings-main") :]
+  profile = main[main.index('action="/settings/profile"') :]
+  profile = profile[: profile.index("</form>")]
+  assert "data-auto-submit" in profile, "a changed name sends the form"
+  assert "data-save" in profile, "a bare browser keeps one way to save the name"
+  size = main[main.index('action="/settings/font-size"') :]
+  assert "data-save" in size[: size.index("</form>")], (
+    "a bare browser keeps one way to save the size"
+  )
+  script = Mara.get("/static/app.js").data.decode()
+  assert 'fontForm.classList.add("is-auto")' in script, (
+    "the script hides the row only after it saves the size"
+  )
+  assert 'form[data-auto-submit]")' in script
+
+  Mara.post("/settings/profile", data={"display_name": "Mara R."})
+  assert Mara.get("/settings").data.count(b"Mara R.") >= 1
+
+
 def test_notification_switches_save_as_they_flip(cast, db):
   Mara, Mara_user = cast["Mara"]
   main = Mara.get("/settings").data.decode()

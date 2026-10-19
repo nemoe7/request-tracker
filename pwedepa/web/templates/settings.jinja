@@ -35,7 +35,7 @@
         <h2>Profile</h2>
         <p>Your name, username, and account status.</p>
       </header>
-      <form method="post" action="{{ url_for('settings.profile') }}">
+      <form method="post" action="{{ url_for('settings.profile') }}" data-auto-submit>
         <label class="ios-row">
           <span class="ios-chip chip-blue"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#settings"/></svg></span>
           <span class="ios-label">Display name</span>
@@ -51,7 +51,7 @@
           <span class="ios-label">Status</span>
           <span class="ios-value">{{ user.status.value | capitalize }}</span>
         </div>
-        <div class="ios-row ios-action"><button class="btn primary icon-only" type="submit" aria-label="Save profile" title="Save profile"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button></div>
+        <div class="ios-row ios-action" data-save><button class="btn primary icon-only" type="submit" aria-label="Save profile" title="Save profile"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button></div>
       </form>
     </section>
 
@@ -93,7 +93,7 @@
             <input class="number" type="number" name="font_size" min="85" max="130" step="1" value="{{ font_size }}" aria-label="Text size percentage" data-font-size-number>
           </span>
         </div>
-        <div class="ios-row ios-action"><button class="btn primary icon-only" type="submit" aria-label="Save text size" title="Save text size"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button></div>
+        <div class="ios-row ios-action" data-save><button class="btn primary icon-only" type="submit" aria-label="Save text size" title="Save text size"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button></div>
       </form>
       <p class="ios-note" role="status" data-font-size-status></p>
     </section>

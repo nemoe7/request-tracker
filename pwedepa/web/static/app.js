@@ -351,6 +351,7 @@ document.querySelector("#add-passkey")?.addEventListener("click", async () => {
 const fontForm = document.querySelector("[data-font-size-form]");
 
 if (fontForm) {
+  fontForm.classList.add("is-auto");
   const range = fontForm.querySelector("[data-font-size-range]");
   const number = fontForm.querySelector("[data-font-size-number]");
   const note = document.querySelector("[data-font-size-status]");
@@ -395,6 +396,7 @@ document.querySelector("#logout-button")?.addEventListener("click", async () => 
 });
 
 document.querySelectorAll("form[data-auto-submit]").forEach((form) => {
+  form.classList.add("is-auto");
   form.addEventListener("change", () => form.requestSubmit());
 });
 
