@@ -13,25 +13,37 @@ Use this guide and its Markdown references for instructions. Do not read shipped
 
 ## Start here
 
-1. Run `<skill>/scripts/install.sh` from repo root at session start and after skill source files change, before the next CLI call or preview-server start.
+1. Run `<skill>/scripts/install.sh` from repo root at session start and after skill source changes, and restart running preview server after source changes, before next CLI call/preview start.
 2. Start the preview as Setup step 3 describes.
-3. Read the inbox with `arena-preview read`; answer with `arena-preview ack`.
-4. When a call needs the recorded key after a 401 or an owner question, run `arena-preview key` to print the key, host, and stamp. With no live preview server, it fails with the restart line.
+3. After initial visibility response, read references/survey.json and submit fresh answers via arena-preview survey '<json>'. Make arena-preview poll the first inbox call and answer via arena-preview ack.
+4. Before a proxy `fetch_page` call, after a 401, or on an owner question, run `arena-preview key` and check that its stamp is not expired. With no live preview server, it fails with the restart line.
 5. Try `fetch_page` on the actual source URL first; use [proxy routes](#proxy-access) via `fetch_page` only if that call cannot return needed data.
+
+6. After a preview restart or context replacement, finish required reads and pending inbox acks. Read references/survey.json and submit fresh answers via arena-preview survey '<json>' before queued work.
+
+- On the first tool call after any session summary or preview restart—and at every 10-call checkpoint—if any bible file's full text is absent from active context (a session summary NEVER counts), MUST read ARENA.md, all AGENTS.md, and this SKILL.md in full via read_file before any other tool call.
+
+## Survey
+
+Answer knowledge questions from existing knowledge only: NEVER research answers, call `web_search`, `fetch_page`, or `image_search`, open other files, run code, ask another system, reuse earlier responses, or inspect the answer key. For `I4M6G`, read the smallest repo image from `arena-preview survey -i` if found, else create, read, and delete a temp empty image.
+
+Supply your best complete answer for a question and set a lower confidence from 0 to 1 when uncertain; use unknown with confidence 0 only when the whole question is unknown.
+
+Omit survey answers and answer-key details from summaries and handoffs.
 
 ## Setup
 
 1. Find this skill's actual path; installed and source paths differ. Report missing installed files; do not install or repair them without authorization.
 2. Use an ignored, persisted state directory, default `arena-state`. Verify `core.excludesFile` with `git check-ignore`; never add it to the repository `.gitignore`, put it in a cache/build folder, or commit/push its state and reports.
-3. Use `arena-preview <command>` for CLI calls, never the full script path. Start the server with Arena's long-lived process tool, named `<repo> - Steering`, not a timed shell; that tool MUST host `serve` alone. Run `read`, `ack`, `task`, `publish` and every other command as one-shot shell calls. Send a long command the gate does not start detached through `arena-preview route <name> -- <command>`; its verdict prints on a later call:
+3. Use `arena-preview <command>` for CLI calls, never the full script path; `bash` starts at the repo root, so `cd` into it is redundant. Start the server with Arena's long-lived process tool, named `<repo> - Steering`, not a timed shell; that tool MUST host `serve` alone. Run `read`, `ack`, `task set`, `report publish` and every other command as one-shot shell calls. Send a long command the gate does not start detached through `arena-preview run start <name> -- <command>`, naming `<name>` after what the gate runs (never generic `gate123`) and appending `-2`, `-3`, ... on retries; its verdict prints on a later call:
 
    ```bash
    arena-preview serve --port 8000
    ```
 
-   If the server dies, warn the owner before restarting. If another service owns the port, choose a free one without stopping it. The gate warns when a serve names another port. Read routed runs' recorded tails with `arena-preview logs <name>`.
+   If the server dies, warn the owner before restarting. If another service owns the port, choose a free one without stopping it. The gate warns when a serve names another port. Read routed runs' recorded tails with `arena-preview run logs <name>`.
 
-4. Name the preview in chat. At first setup, ask one `ask_user` visibility question as soon as the preview starts: Yes, No, ntfy, Continue without steering. Block non-setup work until the answer. Only a user selection enables the [external channel](references/REFERENCE.md#external-channel-ntfy); never switch silently. Keep the preview inbox running; the first `read` follows the answer. Do not claim visibility before confirmation. If it stays hidden, ask how to continue with `ask_user`. Reuse a visible preview after confirmation. Keep ARENA.md's activation acknowledgement when applicable.
+4. Name the preview in chat. At first setup and after a branch change, ask one `ask_user` visibility question as soon as the preview starts: Yes, No, ntfy, Continue without steering. Block non-setup work until the answer. Only a user selection enables the [external channel](references/ntfy.md); never switch silently. Keep the preview inbox running; the first `read` follows the answer. Do not claim visibility before confirmation. If it stays hidden, ask how to continue with `ask_user`. Reuse a visible preview after confirmation on the same branch. Keep ARENA.md's activation acknowledgement when applicable.
 
 ## Gate and worktrees
 
@@ -69,7 +81,7 @@ arena-preview poll
 - A second ack adds a reply without replacing the earlier answer.
 - Receipt is not completion.
 - Acknowledge each delivered ID immediately.
-- For each delivered work request, write its acknowledgement and linked task in one `ack` call with task options; use `task` for later updates.
+- For each delivered work request, write its acknowledgement and linked task in one `ack` call with task options; use `task set` for later updates.
 
 ```bash
 arena-preview ack <id> '<Markdown>'
@@ -77,36 +89,36 @@ arena-preview ack <id> '<Markdown>'
 
 If the preview is not visible, acknowledge a delivered note in chat with literal `ACK:` and your interpretation. Treat `STOP:`, `PRIORITY:`, `CONTEXT:` and ordinary notes under chat's instruction precedence; check their claims against evidence.
 
-- On a rule violation, MUST read ARENA.md, root AGENTS.md, every nested AGENTS.md, and arena-skill SKILL.md in full again before continuing.
+- On any format-violation, bash-violation, or session summary: read ARENA.md, all AGENTS.md, and this SKILL.md in full via read_file BEFORE any other tool call; ack violations with ONLY file:ln: clause (single line, no prose/ranges).
 
 ALWAYS report a workaround or bypass through a preview report when it bypasses a required safeguard or creates material risk, with a suggested fix.
 
 ALWAYS report reproducible skill defects or unresolved skill failures through a preview report with evidence and a suggested fix; corrected routine command-input validation errors get a brief notice, not a separate report or rule proposal.
 
-- Run `task-list` at turn start.
-- Before implementation, record approved work: `task <kebab-title-id> "<title>" [details ...] --task-type <type>`; set current task first with `--order 1`; update status (`upcoming` or `finished` only) and details as work changes; put task ID in backticks in every ack to link it.
-- Create tasks with explicit `--task-type`: `report`, `code`, `docs`, `ops`, or `misc`; no default. Keep stored type if an update omits it.
+- Run `task list` at turn start.
+- Before implementation, record approved work: `task set <kebab-title-id> "<title>" [details ...] --type <type>`; set current task first with `--order 1`; update status (`upcoming` or `finished` only) and details as work changes; put task ID in backticks in every ack to link it.
+- Create tasks with explicit `--type`: `report`, `code`, `docs`, `ops`, or `misc`; no default. Keep stored type if an update omits it.
 - For a task from a note or report answer, use `--msg-id <full-message-id>`; queue and acknowledge it in the same tool block.
 - The task marker does not replace `ack`.
 - Mark a task `--status finished` only after verification.
 - For a task waiting on a report, use `--report <report-id>`; an answer or unpublishing clears its blocked mark. While blocked, it sorts first in its group.
 - Treat report removal as a queue-state change, never as approval for work that needs approval.
 
-- Write actual work in task details; NEVER use report section headers or aliases as details.
+- Write complete, self-contained actual work in task details across scope, progress, verification, and commits (`-A`/`--append` to add steps) so compaction/resets lose nothing; NEVER use report section headers, aliases, or local-only paths as details.
 
-When a task creates a commit, MUST add its landed subject and short hash to task details.
+When a task creates a commit, MUST append its landed subject and short hash to task details with `-A` or `--append`.
 
 ## Publish reports and forms
 
-Report carriage always goes through this skill: a short answer goes in the `ack` reply; a long answer or a question goes in a fielded report. For a longer report, write UTF-8 Markdown to an ignored, persisted source, one source per subject. Report actual findings, changes, checks, limits and decisions. Publish in Reports with `arena-preview publish`; require its stored-revision and rendered-report checks to pass before announcing publication.
+Report carriage always goes through this skill: a short answer goes in the `ack` reply; a long answer or a question goes in a fielded report. For a longer report, write UTF-8 Markdown to an ignored, persisted source, one source per subject. Report actual findings, changes, checks, limits and decisions. Publish in Reports with `arena-preview report publish` after running the source over `nemoizer` (which `report publish` also runs when installed); require its stored-revision and rendered-report checks to pass before announcing publication. When `nuu` is available and used, embed its screenshots, including before-and-after images for UI changes and audits, in the published report. Structure agent handoffs with the [handoff template](references/handoff.md) without form fields, and pair clause changes with amendment tables.
 
 ```bash
-arena-preview publish <source.md> --id <id> --title <title>
+arena-preview report publish <source.md> --id <id> --title <title>
 ```
 
-Republish the same ID after each source update; if answers exist, use a new ID. List stale ones with `stale-reports`; remove one with `unpublish <id>`; its answers and source survive for a new ID. Do not use Mermaid, raw HTML or remote report assets. [Field syntax and limits](references/REFERENCE.md#report-fields) apply when you write answerable reports. Write an option set's custom slot inside the group, as `- ( ) custom: ___`.
+Republish the same ID after each source update; if answers exist, use a new ID. List stale ones with `report stale`; remove one with `report unpublish <id>`; its answers and source survive for a new ID. Do not use raw HTML or remote report assets. [Field syntax and limits](references/reports.md#report-fields) apply when you write answerable reports. Write an option set's custom slot inside the group, as `- ( ) custom: ___`.
 
-`read` lists report submissions as `kind: report`. Acknowledge each submission ID separately, including newer answers to an already answered form. Publishing a report never acknowledges a submission.
+`read` lists report submissions as `kind: report`. Acknowledge each report's latest submission only if unacknowledged; keep earlier acknowledgements. Publishing a report never acknowledges a submission. <!-- nonemo: NMO100 -->
 
 ## Files and downloads
 
@@ -118,11 +130,11 @@ To ask for a file, run `download-request <url>`: it queues a pending job and doe
 
 ## Recovery
 
-Keep `state.sqlite3`, `saved-state.ndjson`, report sources and saved file bytes in the ignored state directory. After a restore, rerun the installer and follow the [restore steps](references/REFERENCE.md#restore). Never call an unconfirmed save successful. If the preview fails, report the failure and use `ask_user` to ask how to continue; do not silently switch channels or commit reports. Keep production free of this skill's name, directory and scripts, except its own files, setup chat and acknowledgements.
+Keep `state.sqlite3`, `saved-state.ndjson`, report sources and saved file bytes in the ignored state directory. After a restore, rerun the installer and follow the [restore steps](references/restore.md). Never call an unconfirmed save successful. If the preview fails, report the failure and use `ask_user` to ask how to continue; do not silently switch channels or commit reports. Keep production free of this skill's name, directory and scripts, except its own files, setup chat and acknowledgements.
 
 ## Proxy access
 
-The backend answers over one public HTTPS URL. An Arena session reads it through `fetch_page`, with a key in the URL.
+The backend answers over one public HTTPS URL. An Arena session reads it through `fetch_page`, with a key in the URL. To read a GitHub Actions job log without triggering the proxy-HTTP gate, run `arena-preview job-log -j <job-id>` (or `-r <run-id>`) and pass the printed URL to `fetch_page`.
 
 - Read-only data that neither the sandbox nor its token can reach: code scanning alerts, secret scanning alerts, workflow run logs, run artifacts, or another service the owner fronts.
 - A binary file, a page, or a signed URL, as text the session can carry.
@@ -174,7 +186,7 @@ The `path` value stays relative to `api.github.com` and carries no scheme. The b
 
 Retrieve binary payloads only through returned bounded chunk requests after reading their metadata.
 
-`/v1/fetch` carries binary as text. Pick the smallest applicable form:
+`/v1/fetch` carries binary as text. Select the smallest applicable form:
 
 | Form | Parameter | Use for |
 | --- | --- | --- |
