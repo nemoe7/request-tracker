@@ -54,9 +54,12 @@ def requester(app, db):
   return _client(app, db, "Mara", roles=(Role.REQUESTER,))
 
 
-def test_an_admin_opens_the_domain_config_page(admin):
+def test_an_admin_opens_the_domain_config_page(app, admin):
   page = admin.get("/admin/config")
   assert page.status_code == 200
+  active = domains_data.active_path(app.config["DATABASE"])
+  assert f"<code>{active.name}</code>".encode() in page.data
+  assert str(active.parent).encode() not in page.data
   for name in domains_data.starter_domains():
     assert name.encode() in page.data
   assert b'type="file"' in page.data, "the picker is offered"
@@ -79,10 +82,13 @@ def test_an_import_replaces_the_copy_before_it(app, admin):
     )
     assert done.status_code == 302
 
-  assert domains_data.imported_path(db_path).is_file()
+  imported = domains_data.imported_path(db_path)
+  assert imported.is_file()
   assert [domain.name for domain in domains_data.load(db_path)] == ["Gym"]
   page = admin.get("/admin/config")
   assert b"Gym" in page.data
+  assert f"<code>{imported.name}</code>".encode() in page.data
+  assert str(imported.parent).encode() not in page.data
 
 
 def test_an_admin_imports_a_chosen_file(app, admin):

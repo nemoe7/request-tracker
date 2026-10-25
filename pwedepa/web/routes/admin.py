@@ -91,8 +91,8 @@ def domain_config() -> str | Response:
   return render_template(
     "admin_config.jinja",
     domains=domains_data.load(db_path),
-    active=domains_data.active_path(db_path),
-    imported=domains_data.imported_path(db_path),
+    active=domains_data.active_path(db_path).name,
+    imported=domains_data.imported_path(db_path).name,
     imported_exists=domains_data.imported_path(db_path).is_file(),
   )
 
