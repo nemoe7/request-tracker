@@ -36,7 +36,6 @@ One root `AGENTS.md` only. Do not add nested `AGENTS.md` files unless a package 
 - Never simplify away trust-boundary validation, data-loss error handling, security, or accessibility.
 - State lives behind a persistence layer. Core logic must not depend on SQLite-only behavior.
 - Name things by convention and by what they are. Package names follow PEP 8: short, lowercase, plain words.
-- After each completed feature, run a ponytail-review and publish it as a fielded report in the steering preview.
 
 ## Style
 
@@ -73,10 +72,6 @@ One root `AGENTS.md` only. Do not add nested `AGENTS.md` files unless a package 
 ## Skills
 
 Vendored skills live in `.agents/skills/`. Each imported skill carries an `UPSTREAM.md` with its source repository, pinned revision, and version. The imported set is the folders in that directory, and no others.
-
-- Use `frontend-design`, `taste-skill`, and `ui-ux-pro-max` for all front-end work: layout, styling, components, interaction, and UI and UX review.
-- Run `ui-ux-pro-max` searches by its own `scripts/search.py` path, with one domain per question.
-- The repo style rules and `docs/design.md` decide a settled pick. The skills advise.
 
 ## Settings UI
 
