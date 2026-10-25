@@ -13,7 +13,7 @@
   {% if selected %}
   <section class="client-dash is-open is-main">
     <div class="panel inspector is-main">
-      <a class="back-to-list" href="{{ url_for('records.requests') }}" aria-label="Back to the list" title="Back to the list"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#arrow-left"/></svg></a>
+      <a class="back-to-list" href="{{ url_for('records.requests') }}" aria-label="Back to list" title="Back to list"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#arrow-left"/></svg></a>
       <div class="issue-title-line">
         <h2><span class="issue-number">#{{ selected.id }}</span> {{ selected.title }}</h2>
         {{ pill(selected.status) }}

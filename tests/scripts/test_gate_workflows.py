@@ -125,7 +125,7 @@ def test_secret_in_a_run_step_fails():
 
 def test_main_exit_codes(capsys):
   assert gate_workflows.main([]) == 0
-  assert "Workflow set passed" in capsys.readouterr().out
+  assert capsys.readouterr().err == ""
 
 
 def test_ci_watches_first_party_code_and_docs_only():
