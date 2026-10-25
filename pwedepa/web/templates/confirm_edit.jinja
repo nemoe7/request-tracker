@@ -4,7 +4,7 @@
 <div class="narrow">
   <h1>This edit reopens the request</h1>
   <div class="panel">
-    <p>Editing a pending request sends Request #{{ record.id }} back to Open. Staff then review it again from the start.</p>
+    <p>Saving reopens Request #{{ record.id }} for fresh staff review.</p>
     <form method="post" action="{{ url_for('records.request_edit_save', request_id=record.id) }}">
       {% for name, value in fields %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
       <input type="hidden" name="confirmed" value="1">

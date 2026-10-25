@@ -5,8 +5,8 @@
   <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="72" height="72">
   <h1>{{ error.code }} · {{ error.name }}</h1>
   <p class="muted">
-    {% if error.code == 404 %}That page is not here. It may have moved, or the link may be old.
-    {% else %}You do not have access to this page.{% endif %}
+    {% if error.code == 404 %}Page moved, removed, or link expired.
+    {% else %}Access denied.{% endif %}
   </p>
   <a class="btn primary" href="{{ url_for('records.workspace') }}"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#house"/></svg>Go to PwedePa</a>
 </section>

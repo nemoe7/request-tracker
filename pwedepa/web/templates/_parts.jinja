@@ -49,7 +49,7 @@
 </dialog>
 {%- endmacro %}
 
-{% macro reason_modal(id, action, fields, next_href, title="Revoke this?", submit="Revoke", hint="Why this is revoked") -%}
+{% macro reason_modal(id, action, fields, next_href, title="Revoke this?", submit="Revoke", hint="Reason for revoking") -%}
 {% call modal(id, title) %}
 <form class="modal-form" method="post" action="{{ action }}">
   {% for name, value in fields.items() %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}

@@ -11,14 +11,14 @@
     <div class="field field-wide">
       <label for="f-description">Description</label>
       <textarea id="f-description" name="description" rows="5">{{ record.description if record else '' }}</textarea>
-      <p class="help">Say what you need, and what done looks like.</p>
+      <p class="help">Describe the need and expected result.</p>
     </div>
     <div class="field">
       {% if domain and not record %}
       <span class="field-label">Domain</span>
       <p class="field-static">{{ domain.name }}</p>
       <input type="hidden" name="domain" value="{{ domain.name }}">
-      <p class="help"><a href="{{ url_for('records.domain_page', slug=domain.slug) }}">{{ domain.name }}</a> owns this request. <a href="{{ url_for('records.request_new') }}">Pick another</a>.</p>
+      <p class="help">Owned by <a href="{{ url_for('records.domain_page', slug=domain.slug) }}">{{ domain.name }}</a>. <a href="{{ url_for('records.request_new') }}">Select another</a>.</p>
       {% elif record %}
       <span class="field-label">Domain</span>
       <p class="field-static">{{ record.domains | join(", ") if record.domains else "No Domain" }}</p>
@@ -30,7 +30,7 @@
         <option value="{{ entry.name }}">{{ entry.name }}</option>
         {% endfor %}
       </select>
-      <p class="help">A request belongs to one domain.</p>
+      <p class="help">One domain per request.</p>
       {% else %}
       <p class="help">No domains exist yet.</p>
       {% endif %}

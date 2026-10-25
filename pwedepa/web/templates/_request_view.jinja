@@ -26,9 +26,9 @@
           {% for target, label in actions %}
           <button class="btn{% if target == 'REJECTED' %} danger{% endif %}" type="submit" name="target" value="{{ target }}"{% if target == 'REJECTED' %} data-modal-open="reject-request-{{ record.id }}"{% endif %}>{{ label }}</button>
           {% endfor %}
-          <noscript><input class="reason" type="text" name="reason" placeholder="Reason (needed to reject)" required></noscript>
+          <noscript><input class="reason" type="text" name="reason" placeholder="Reason for rejecting" required></noscript>
         </form>
-        {{ reason_modal("reject-request-" ~ record.id, url_for('records.request_transition', request_id=record.id), {"target": "REJECTED"}, next_href, "Reject this?", "Reject", "Why this is rejected") }}
+        {{ reason_modal("reject-request-" ~ record.id, url_for('records.request_transition', request_id=record.id), {"target": "REJECTED"}, next_href, "Reject this?", "Reject", "Reason for rejecting") }}
         {% endif %}
         {% if can_edit %}<a class="icon-btn" href="{{ url_for('records.request_edit', request_id=record.id) }}" aria-label="Edit" title="Edit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#pencil"/></svg></a>{% endif %}
       </div>

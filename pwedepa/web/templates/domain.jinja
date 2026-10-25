@@ -30,7 +30,7 @@
         <span class="card-actions">
           <a class="icon-btn" href="{{ url_for('announcements.edit', slug=domain.slug, announcement_id=announcement.id) }}" aria-label="Edit announcement" title="Edit announcement"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#pencil"/></svg></a>
           <button class="icon-btn" type="button" data-modal-open="remove-announcement-{{ announcement.id }}" aria-label="Remove announcement" title="Remove announcement"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#trash"/></svg></button>
-          {{ reason_modal("remove-announcement-" ~ announcement.id, url_for('announcements.remove', slug=domain.slug, announcement_id=announcement.id), {}, None, title="Remove this announcement?", submit="Remove", hint="Why this announcement goes") }}
+          {{ reason_modal("remove-announcement-" ~ announcement.id, url_for('announcements.remove', slug=domain.slug, announcement_id=announcement.id), {}, None, title="Remove this announcement?", submit="Remove", hint="Reason for removing") }}
         </span>
         {% endif %}
       </div>

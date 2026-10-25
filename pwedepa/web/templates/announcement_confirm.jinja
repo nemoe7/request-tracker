@@ -9,7 +9,7 @@
     <p class="announcement-body">{{ announcement.body }}</p>
   </div>
   <form class="form panel" method="post" action="{{ action }}">
-    <p>The post comes off the {{ domain.name }} page for everyone. This cannot be undone.</p>
+    <p>Removes this post from {{ domain.name }}. Cannot be undone.</p>
     <div class="form-actions">
       <button id="remove-announcement" class="btn primary" type="submit">Remove announcement</button>
       <a class="btn" href="{{ url_for('records.domain_page', slug=domain.slug) }}">Cancel</a>
