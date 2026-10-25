@@ -94,7 +94,10 @@ jobs:
       - run: uv run --no-sync ruff format --check
       - run: uv run --no-sync pytest
         if: needs.scope.outputs.code == 'yes'
-      - run: uv run --no-sync python scripts/lint_prose.py
+      - name: Run Nemoizer Selftest
+        run: python3 .agents/skills/nemoizer/scripts/nemoizer --selftest
+      - name: Lint Repo Prose
+        run: python3 .agents/skills/nemoizer/scripts/nemoizer
       - name: Lint Markdown
         uses: DavidAnson/markdownlint-cli2-action@v24.0.0
         with:
