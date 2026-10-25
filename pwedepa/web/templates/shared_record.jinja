@@ -6,10 +6,19 @@
 {% block content %}
 <article class="issue-page">
   <header class="issue-head">
-    <p class="eyebrow">Shared {{ object_type }} #{{ record.id }}</p>
-    <h1><span class="issue-number">#{{ record.id }}</span> {{ record.title }}</h1>
-    <div class="issue-bar">
-      <p class="issue-state">{{ pill(record.status) }}<span class="vis">{{ record.visibility.value | capitalize }}</span></p>
+    <div class="issue-title-row">
+      <div class="issue-title-text">
+        <p class="eyebrow">Shared {{ object_type }}</p>
+        <div class="issue-title-line">
+          <h1><span class="issue-number">#{{ record.id }}</span> {{ record.title }}</h1>
+          {{ pill(record.status) }}
+        </div>
+        <p class="byline">
+          <span>{{ (record.created_at | stamp_time(clock)) if record.created_at else "—" }}</span>
+          <span class="sep">·</span>
+          <span>{{ record.visibility.value | capitalize }}</span>
+        </p>
+      </div>
     </div>
   </header>
 
