@@ -484,20 +484,21 @@ def test_a_share_expiry_is_clamped(cast, db):
   Mara, Mara_user = cast["Mara"]
   _request(db, Mara_user.id)
 
+  now_utc = datetime.now(UTC)
   huge = Mara.post(
     "/records/request/1/share", data={"permission": "VIEW", "expires_days": "99999999"}
   )
   assert huge.status_code == 302
   farthest = sharing_data.list_for_object(db, "request", 1)[-1]
   assert farthest.expires_at is not None
-  assert farthest.expires_at <= AT.replace(year=AT.year + 10)
+  assert farthest.expires_at <= now_utc + timedelta(days=3651)
 
   past = Mara.post(
     "/records/request/1/share", data={"permission": "VIEW", "expires_days": "-5"}
   )
   assert past.status_code == 302
   newest = sharing_data.list_for_object(db, "request", 1)[-1]
-  assert newest.expires_at > AT
+  assert newest.expires_at > now_utc - timedelta(minutes=1)
 
 
 def test_a_staff_member_can_check_the_client_view(cast, db):
