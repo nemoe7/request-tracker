@@ -55,14 +55,13 @@
       </thead>
       <tbody>
         {% for row in rows %}
-        <tr class="mail-row{% if row.id not in read_ids %} is-unread{% endif %}{% if selected and row.id == selected.id and row_kind == "request" %} is-selected{% endif %}">
+        <tr class="mail-row{% if row.id not in read_ids %} is-unread{% endif %}{% if selected and row.id == selected.id %} is-selected{% endif %}">
           <td class="mail-from">{{ names.get(row.requester_id, "—") }}</td>
           <td class="mail-title">
-            {% if row_kind == "request" %}
             <a class="mail-link" href="{{ url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter, selected=row.id) }}" title="{{ row.title }}"{% if selected and row.id == selected.id %} aria-current="true"{% endif %}>{{ row.title }}</a>
+            {% if row_kind == "request" %}
             <span class="mail-snippet" title="{{ row.description | plain_prose | truncate(400) }}">{{ row.description | plain_prose | truncate(140, true) }}</span>
             {% else %}
-            <a class="mail-link" href="{{ record_path(row, 'issue') }}" title="{{ row.title }}">{{ row.title }}</a>
             <span class="mail-snippet">Issue #{{ row.id }} · {{ row.domains | join(", ") or "—" }}</span>
             {% endif %}
           </td>
@@ -83,7 +82,7 @@
     {% endif %}
   </section>
 
-  <aside class="panel inspector" aria-label="Request">
+  <aside class="panel inspector" aria-label="{{ 'Issue' if row_kind == 'issue' else 'Request' }}">
     {% if selected %}
     {% set back_href = url_for('records.workspace', queue=queue, domain=domain, visibility=visibility, status=status_filter) %}
     {% set record = selected %}
@@ -93,11 +92,17 @@
     {% set events = selected_events %}
     {% set share_links = selected_share_links %}
     {% set can_share = selected_can_share %}
-    {% set object_type = "request" %}
+    {% set object_type = row_kind %}
     {% set issued_token = selected_token %}
     {% set pane = true %}
     {% set next_href = return_to %}
+    {% if row_kind == "issue" %}
+    {% set can_change_priority = selected_can_change_priority %}
+    {% set source_request = selected_source_request %}
+    {% include "_issue_view.jinja" %}
+    {% else %}
     {% include "_request_view.jinja" %}
+    {% endif %}
     {% else %}
     <div class="empty">
       <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="48" height="48">

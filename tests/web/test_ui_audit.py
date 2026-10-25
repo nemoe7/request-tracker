@@ -712,13 +712,16 @@ def test_wide_screens_stretch_the_shell(app):
 
 
 def test_workspace_puts_the_reading_pane_right_of_the_list(app, db):
-  """The list comes first, and the record card reads on its right."""
+  """DOM keeps list then pane while wide CSS places the pane in the center."""
   client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   body = client.get("/").data
   assert body.index(b"panel records") < body.index(b"panel inspector")
   assert b"<th>Requester</th>" not in body
   assert b"<th>Domain</th>" not in body
   assert b'class="client-dash"' not in body
+  css = client.get("/static/app.css").data.decode()
+  assert ".workspace-grid.is-open .inspector { grid-column: 2;" in css
+  assert ".workspace-grid.is-open .records { grid-column: 3;" in css
 
 
 def test_the_workspace_list_carries_one_toolbar(app, db):
@@ -1140,9 +1143,9 @@ def test_the_workspace_keeps_the_rail_when_a_request_opens(app, db):
     "the closed card leaves the row"
   )
   assert re.search(
-    r"\.workspace-grid\.is-open \{[^}]*grid-template-columns: 240px minmax\(0, 1fr\) 360px",
+    r"\.workspace-grid\.is-open \{[^}]*grid-template-columns: 280px minmax\(0, 1fr\) 280px",
     css,
-  ), "a wide screen keeps the list beside the open request"
+  ), "a wide screen keeps equal side panels beside the open record"
   assert ".workspace-grid.is-open .records { display: none; }" not in css, (
     "a wide screen never drops the list"
   )

@@ -344,27 +344,28 @@ def workspace() -> str | Response:
   selected = None
   picked = False
   selected_id = request.args.get("selected", type=int)
-  if row_kind == "request" and selected_id:
-    # A move can filter the row out. The open request keeps its pane either way.
-    selected = next((r for r in all_requests if r.id == selected_id), None)
+  pool = all_issues if row_kind == "issue" else all_requests
+  if selected_id:
+    # A move can filter the row out. The open record keeps its pane either way.
+    selected = next((r for r in pool if r.id == selected_id), None)
     picked = selected is not None
   if selected is not None:
-    workspace_reads.mark(db(), user.id, "request", selected.id, at=now())
+    workspace_reads.mark(db(), user.id, row_kind, selected.id, at=now())
   read_ids = workspace_reads.read_ids(db(), user.id, row_kind)
   # Gmail keeps one list. Unread work still leads, and the row itself reads bold.
   rows = [row for row in rows if row.id not in read_ids] + [
     row for row in rows if row.id in read_ids
   ]
-  if (
-    selected is None
-    and row_kind == "request"
-    and rows
-    and not current_app.config.get("DEMO_MODE")
-  ):
+  if selected is None and rows and not current_app.config.get("DEMO_MODE"):
     # A wide screen keeps the pane open, so a load with no choice fills it.
     # Default loads stay unread until someone selects that row. Frozen
     # demos open one record per page instead, so static files hold no form.
     selected = rows[0]
+  selected_source_request = None
+  if selected is not None and row_kind == "issue" and selected.source_request_id:
+    candidate = requests_data.get(db(), selected.source_request_id)
+    if candidate is not None and _can(actor, "request.view", candidate):
+      selected_source_request = candidate
   domains = sorted({d for r in all_requests + all_issues for d in r.domains})
   # Each value keeps its own quotes, so a domain with a comma stays one item.
   filters = [
@@ -376,6 +377,7 @@ def workspace() -> str | Response:
     )
     if value
   ]
+  is_issue = row_kind == "issue"
   return render_template(
     "workspace.jinja",
     queue=queue,
@@ -392,19 +394,45 @@ def workspace() -> str | Response:
     read_ids=read_ids,
     selected=selected,
     picked=picked,
-    selected_actions=_request_actions(actor, selected) if selected else [],
+    selected_actions=(
+      (
+        _issue_actions(actor, selected)
+        if is_issue
+        else _request_actions(actor, selected)
+      )
+      if selected
+      else []
+    ),
     selected_events=(
-      events_data.list_for(db(), "request", selected.id) if selected else []
+      events_data.list_for(db(), row_kind, selected.id) if selected else []
     ),
-    selected_can_edit=selected is not None and _can(actor, "request.edit", selected),
-    selected_can_comment=(
-      selected is not None and _can(actor, "request.comment", selected)
+    selected_can_edit=selected is not None
+    and (
+      (actor.is_admin or _can(actor, "issue.edit", selected))
+      if is_issue
+      else _can(actor, "request.edit", selected)
     ),
+    selected_can_comment=selected is not None
+    and (
+      _can_comment_issue(actor, selected)
+      if is_issue
+      else _can(actor, "request.comment", selected)
+    ),
+    selected_can_change_priority=selected is not None
+    and is_issue
+    and (
+      actor.is_admin
+      or actor.id == selected.assignee_id
+      or actor.id == selected.requester_id
+      or _can(actor, "issue.edit", selected)
+    ),
+    priorities=[priority.value for priority in Priority],
+    selected_source_request=selected_source_request,
     selected_share_links=(
-      sharing_data.list_for_object(db(), "request", selected.id) if selected else []
+      sharing_data.list_for_object(db(), row_kind, selected.id) if selected else []
     ),
     selected_can_share=selected is not None and can_share(user, selected),
-    selected_token=_issued_token("request", selected.id) if selected else None,
+    selected_token=_issued_token(row_kind, selected.id) if selected else None,
     return_to=request.full_path if request.query_string else request.path,
     names=_names(),
   )
@@ -780,14 +808,14 @@ def issue_transition(issue_id: int) -> Response:
   target = choice(IssueStatus, request.form.get("target", ""), None)
   if target is None:
     flash("That status is not on this record. Reload the page and try again.")
-    return redirect(record_path(record, "issue"))
+    return redirect(safe_next() or record_path(record, "issue"))
   try:
     change = transition_issue(record, target, actor, at=now())
     issues_data.save(db(), change.object)
     _append_all("issue", record, change)
   except CoreError as error:
     flash(str(error))
-  return redirect(record_path(record, "issue"))
+  return redirect(safe_next() or record_path(record, "issue"))
 
 
 @bp.post("/issues/<int:issue_id>/priority")
@@ -808,7 +836,7 @@ def issue_priority(issue_id: int) -> Response:
     _append_all("issue", record, change)
   except CoreError as error:
     flash(str(error))
-  return redirect(record_path(record, "issue"))
+  return redirect(safe_next() or record_path(record, "issue"))
 
 
 @bp.post("/issues/<int:issue_id>/comment")
@@ -825,7 +853,7 @@ def issue_comment(issue_id: int) -> Response:
     _notify_event("issue", record, event)
   elif text:
     flash("Ask an admin for comment access.")
-  return redirect(record_path(record, "issue"))
+  return redirect(safe_next() or record_path(record, "issue"))
 
 
 @bp.get("/<slug>/issues/new")

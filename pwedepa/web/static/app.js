@@ -522,12 +522,14 @@ window.pwedepaBoot = function pwedepaBoot(bootOptions = {}) {
       "popstate",
       () => {
         const url = window.location.href;
+        const parsed = new URL(url);
         if (url === baseHref) {
           closeCard();
-        } else if (cardHrefs.has(url)) {
-          const row = rowLinks.find((link) => link.href === url)?.closest("tr");
+        } else if (cardHrefs.has(url) || (parsed.pathname === basePath && parsed.searchParams.has("selected"))) {
+          const liveLinks = [...workspaceGrid.querySelectorAll(".record-table tbody a[href]")];
+          const row = liveLinks.find((link) => link.href === url)?.closest("tr");
           openCard(url, row, false);
-        } else if (new URL(url).pathname === basePath) {
+        } else if (parsed.pathname === basePath) {
           return;
         } else {
           window.location.reload();
@@ -1103,13 +1105,22 @@ window.pwedepaBoot = function pwedepaBoot(bootOptions = {}) {
     };
 
     const repaint = (page) => {
+      const nextGrid = page.querySelector(".workspace-grid");
       const nextFilters = page.querySelector(".workspace-grid > .panel.filters");
       const nextRecords = page.querySelector(".workspace-grid > .panel.records");
-      if (!nextFilters || !nextRecords) return false;
+      const nextInspector = page.querySelector(".workspace-grid > .panel.inspector");
+      if (!nextGrid || !nextFilters || !nextRecords) return false;
       const seg = filters.querySelector(".seg");
       const open = filters.querySelector("#filters-toggle")?.checked;
+      grid.className = nextGrid.className;
       filters.innerHTML = nextFilters.innerHTML;
       records.innerHTML = nextRecords.innerHTML;
+      const inspector = grid.querySelector(":scope > .panel.inspector");
+      if (inspector && nextInspector) {
+        const label = nextInspector.getAttribute("aria-label");
+        if (label) inspector.setAttribute("aria-label", label);
+        inspector.innerHTML = nextInspector.innerHTML;
+      }
       keepSeg(seg, filters.querySelector(".seg"));
       const toggle = filters.querySelector("#filters-toggle");
       if (toggle && open) toggle.checked = true;

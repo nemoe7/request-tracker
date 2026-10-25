@@ -132,12 +132,14 @@ body.is-guest .auth-card { margin: 0 auto; }
 .workspace-grid .inspector { scroll-margin-top: 72px; }
 /* A record that is still loading dims its pane, so the click answers at once. */
 .workspace-grid .inspector.is-loading { opacity: 0.5; }
-/* A wide screen keeps the list and the pane, as Gmail reads a message. */
-.workspace-grid.is-open { grid-template-columns: 240px minmax(0, 1fr) 360px; }
-.workspace-grid.is-open .inspector { padding: 22px; }
+/* A wide screen centers the opened record between symmetric side panels. */
+.workspace-grid.is-open { grid-template-columns: 280px minmax(0, 1fr) 280px; }
+.workspace-grid.is-open .inspector { grid-column: 2; grid-row: 1; padding: 22px; }
+.workspace-grid.is-open .records { grid-column: 3; grid-row: 1; }
 /* Below 1200 px a pick takes the whole column, and the list returns on Back. */
 @media (max-width: 1199px) {
   .workspace-grid.is-open:not(.is-picked) { grid-template-columns: 240px minmax(0, 1fr) 0; }
+  .workspace-grid.is-open:not(.is-picked) .records { grid-column: 2; grid-row: 1; }
   .workspace-grid:not(.is-picked) .inspector { display: none; }
   .workspace-grid.is-picked { grid-template-columns: 240px minmax(0, 1fr) 0; }
   .workspace-grid.is-picked .records { display: none; }
@@ -249,15 +251,15 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .issue-page { max-width: 1100px; margin: 0 auto; }
 .issue-page.is-pane { max-width: none; }
 .is-pane .issue-head h1 { font-size: calc(20px * var(--font-scale)); }
-/* The pane is one 360 px column, so its facts stack under the timeline. */
+/* The center card pairs timeline and facts like client detail views. */
 .is-pane .issue-head { grid-template-columns: minmax(0, 1fr); }
 .is-pane .issue-head .issue-bar { grid-column: 1; margin-top: 10px; justify-content: flex-start; }
 .is-pane .issue-actions { margin-left: 0; }
-.is-pane .issue-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
-/* A share row stacks in the narrow pane, so no control is squeezed. */
+.is-pane .issue-layout { grid-template-columns: minmax(0, 1fr) 168px; gap: 20px; }
+/* A share row stacks in the pane, so no control is squeezed. */
 .is-pane .share-form { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .is-pane .share-form .btn { grid-column: 1 / -1; justify-self: start; }
-.is-pane .issue-side { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; }
+.is-pane .issue-side { grid-template-columns: minmax(0, 1fr); gap: 16px; }
 /* The actions sit on the title line, as GitHub places them. */
 .issue-head { margin-bottom: 18px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 10px 16px; }
 .issue-title-row { grid-column: 1; }
@@ -279,7 +281,7 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .labels { display: flex; flex-wrap: wrap; gap: 6px; }
 .labels a, .labels > span { display: inline-flex; align-items: center; min-height: 24px; padding: 2px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-2); color: var(--text); font-size: calc(12px * var(--font-scale)); text-decoration: none; }
 .labels .muted { border: 0; background: none; padding: 0; }
-.side-block .priority-form { display: grid; gap: 8px; margin: 0; }
+.side-block .priority-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; margin: 0; }
 .side-block .priority-form select { width: 100%; padding: 8px 10px; min-height: 36px; }
 .timeline { list-style: none; margin: 0; padding: 0; }
 .timeline-comment { margin: 0; padding: 14px 0; border-bottom: 1px solid var(--line); background: none; }
@@ -400,6 +402,39 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
   .mail-table .mail-time {
     grid-area: time; padding: 0; border: 0; text-align: right;
   }
+}
+@media (min-width: 1200px) {
+  .workspace-grid:not(.is-open) { grid-template-columns: 280px minmax(0, 1fr) 0; }
+  .workspace-grid > .panel { min-width: 0; }
+  .workspace-grid.is-open .records .list-actions { margin-left: 0; width: 100%; }
+  .workspace-grid.is-open .records .filter-form { flex: 1 1 auto; }
+  .workspace-grid.is-open .records .filter-form select { width: 100%; }
+  .workspace-grid.is-open .record-table thead { display: none; }
+  .workspace-grid.is-open .record-table td { display: block; border-bottom: 0; padding: 3px 8px; }
+  .workspace-grid.is-open .record-table tr { display: block; border-bottom: 1px solid var(--line); padding: 6px 0; }
+  .workspace-grid.is-open .record-table tr.is-selected,
+  .workspace-grid.is-open .record-table tr.is-selected td:first-child {
+    background: color-mix(in srgb, var(--surface) 86%, var(--accent-fill));
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .workspace-grid.is-open .record-table tr.is-selected td:not(:first-child) { background: transparent; }
+  .workspace-grid.is-open .mail-table { table-layout: auto; }
+  .workspace-grid.is-open .mail-table tr.mail-row {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "from time" "title title" "snippet status";
+    column-gap: 10px; row-gap: 3px; padding: 10px 8px;
+  }
+  .workspace-grid.is-open .mail-table .mail-from {
+    grid-area: from; margin-left: -8px; padding: 0 0 0 8px; border: 0;
+    font-size: calc(12px * var(--font-scale)); color: var(--muted);
+  }
+  .workspace-grid.is-open .mail-table .mail-title { display: contents; }
+  .workspace-grid.is-open .mail-table .mail-link { grid-area: title; white-space: normal; }
+  .workspace-grid.is-open .mail-table .mail-snippet {
+    grid-area: snippet; margin-left: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .workspace-grid.is-open .mail-table .mail-status { grid-area: status; padding: 0; border: 0; justify-self: end; }
+  .workspace-grid.is-open .mail-table .mail-time { grid-area: time; padding: 0; border: 0; text-align: right; }
 }
 .page-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .filter-form { display: grid; gap: 8px; }
@@ -701,7 +736,7 @@ form.is-auto [data-save] { display: none; }
   .back-to-list { display: inline-flex; min-width: 44px; height: 44px; margin-bottom: 10px; }
   .issue-head { grid-template-columns: minmax(0, 1fr); }
   .issue-head .issue-bar { grid-column: 1; margin-top: 10px; justify-content: flex-start; }
-  .issue-layout { grid-template-columns: 1fr; gap: 20px; }
+  .issue-layout, .is-pane .issue-layout { grid-template-columns: 1fr; gap: 20px; }
   .issue-head h1 { font-size: calc(20px * var(--font-scale)); }
   .issue-actions { margin-left: 0; gap: 6px; }
   .issue-actions .actions { gap: 6px; }

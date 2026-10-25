@@ -173,7 +173,7 @@ Scheme 2, Slate and blue. Components use tokens from
 - A staff member can switch the whole session to the client view from Settings.
   Request and issue pages lose the write controls, and the server refuses a
   request or issue write that still arrives. Account settings stay writable.
-- At 1200 px and up the staff grid runs filters 240 px, list fluid, inspector 360 px.
+- From 1200 px up, the staff grid runs filters 280 px, record card fluid, and list 280 px.
   The page keeps a 1280 px column, centred, with a 32 px gutter on each side.
   Spacing follows an 8 px scale, rows are 40 px, and panels have a 10 px radius and
   no shadow.
