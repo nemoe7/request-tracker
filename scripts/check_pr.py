@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import subprocess
 import sys
@@ -11,7 +10,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-STE_LINT = ROOT / ".agents" / "skills" / "asd-ste100" / "scripts" / "ste-lint.py"
+NEMOIZER = ROOT / ".agents" / "skills" / "nemoizer" / "scripts" / "nemoizer"
+FINDING = re.compile(r"^.+?:(\d+): \[([A-Z]+\d+)\] \(([^)]+)\) (.+)$")
 
 ALLOWED_TYPES = (
   "feat",
@@ -253,27 +253,42 @@ def _check_none_or_bullets(title: str, entries: list[tuple[int, str]]) -> list[F
   return failures
 
 
+def run_nemoizer(path: Path) -> tuple[bool, str]:
+  """Run nemoizer on a Markdown file and reject hard or advisory prose findings."""
+  result = subprocess.run(
+    [sys.executable, str(NEMOIZER), "--no-config", str(path)],
+    capture_output=True,
+    text=True,
+    check=False,
+  )
+  if result.returncode not in (0, 1):
+    detail = (result.stderr or result.stdout).strip() or f"exit {result.returncode}"
+    return False, f"PR body: nemoizer failed ({detail})"
+  findings = [
+    m
+    for line in result.stdout.splitlines()
+    if (m := FINDING.match(line)) and m[2] != "NMO902"
+  ]
+  if not findings:
+    return True, "PR body: prose passed (0 violations)"
+  first = findings[0]
+  level = first[3]
+  desc = first[4]
+  return False, f"PR body: prose finding on line {first[1]} ({level}): {desc}"
+
+
 def run_ste_lint(text: str) -> tuple[bool, str]:
+  import tempfile
+
+  with tempfile.NamedTemporaryFile(
+    "w", encoding="utf-8", suffix=".md", delete=False
+  ) as temp:
+    temp.write(text)
+    temp_path = Path(temp.name)
   try:
-    result = subprocess.run(
-      [sys.executable, str(STE_LINT), "--json"],
-      input=text,
-      capture_output=True,
-      text=True,
-      check=False,
-    )
-  except OSError as exc:
-    return False, f"STE lint could not run: {exc}"
-  output = (result.stdout + result.stderr).strip()
-  if result.returncode or result.stderr:
-    return False, output or f"STE lint exited with status {result.returncode}."
-  try:
-    report = json.loads(result.stdout)
-  except ValueError:
-    return False, f"Invalid STE lint JSON.\n{output}".strip()
-  if not isinstance(report, dict) or not isinstance(report.get("violations"), list):
-    return False, f"Invalid STE lint findings.\n{output}".strip()
-  return not report["violations"], output
+    return run_nemoizer(temp_path)
+  finally:
+    temp_path.unlink(missing_ok=True)
 
 
 def _git(*arguments: str) -> str:
@@ -350,9 +365,9 @@ def check(
     failures.extend(validate_pr_body(text))
     failures.extend(validate_breaking_crosscheck(subjects, text))
     if ste:
-      passed, output = run_ste_lint(text)
+      passed, message = run_nemoizer(Path(body_file))
       if not passed:
-        failures.append(Failure("PR body", f"STE lint failed:\n{output}"))
+        failures.append(Failure("PR body", message.removeprefix("PR body: ")))
   return failures
 
 

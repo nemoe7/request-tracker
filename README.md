@@ -33,7 +33,7 @@ image, and `compose.dev.yml` builds this checkout.
 
 ## Checks
 
-CI runs `ruff`, `pytest`, `scripts/lint_prose.py`, and `markdownlint-cli2`. A local run needs `npm ci` once, so the Markdown linter comes from the lock file.
+CI runs `ruff`, `pytest`, `nemoizer`, and `markdownlint-cli2`. A local run needs `npm ci` once, so the Markdown linter comes from the lock file.
 
 The end to end checks drive a real Chromium, so a local run needs
 `uv run playwright install chromium` once.

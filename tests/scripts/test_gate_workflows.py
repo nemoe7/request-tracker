@@ -283,7 +283,7 @@ def test_ci_skips_the_tests_on_a_docs_only_change():
       "needs.scope.outputs.code" in str(step.get("if")) for step in tests
     ), f"{name} tests a docs-only change"
   prose = [
-    step for step in jobs["ci"]["steps"] if "lint_prose.py" in str(step.get("run", ""))
+    step for step in jobs["ci"]["steps"] if "nemoizer" in str(step.get("run", ""))
   ]
   assert prose and "if" not in prose[0], "the prose lint must run on every change"
 

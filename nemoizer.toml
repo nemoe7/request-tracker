@@ -1,0 +1,42 @@
+# nemoizer config.
+# Discovery: repo-root nemoizer.toml, or [tool.nemoizer] in pyproject.toml.
+
+context = "unknown"
+paragraph-cap = 4
+comment-block-cap = 2
+test-helpers = []
+extend-exclude = [
+  "*.sql",
+  "*.dbml",
+  "*.svg",
+  "*.yml",
+  "*.yaml",
+  "*.json",
+  "*.webmanifest",
+  ".env*",
+  "Dockerfile",
+  "pwedepa/web/templates/**",
+  "pwedepa/web/static/**",
+  ".github/**",
+]
+
+[lint]
+select = ["ALL"]
+ignore = []
+
+[lint.per-file-ignores]
+"CHANGELOG.md" = ["NMP100"]
+"docs/**" = ["NMO003", "NMP100", "STE001", "STE200"]
+"pwedepa/data/seed.py" = ["NMO100"]
+"pwedepa/data/db.py" = ["STE200"]
+"pwedepa/data/reset.py" = ["STE200"]
+"pwedepa/web/__init__.py" = ["NMO100", "NMP101", "STE200"]
+"pwedepa/web/routes/_helpers.py" = ["NMO100"]
+"pwedepa/web/routes/demo.py" = ["NMP101"]
+"pwedepa/web/routes/records.py" = ["NMO100", "NMP101"]
+"scripts/build_pages_demo.py" = ["NMO100", "STE200"]
+"scripts/check_pr.py" = ["NMO100"]
+"scripts/gate_workflows.py" = ["NMP101", "STE200"]
+"scripts/pr_snapshot.py" = ["NMO100"]
+"scripts/render_schema.py" = ["NMO100"]
+"tests/**" = ["NMO100", "NMT100", "STE200"]

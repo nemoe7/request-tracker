@@ -41,7 +41,7 @@ One root `AGENTS.md` only. Do not add nested `AGENTS.md` files unless a package 
 
 - Indent width, lint rules, and format rules are set in `ruff.toml`. Run the gates from `.github/workflows/ci.yml`, with no CLI overrides.
 - Markdown rules are set in `.markdownlint-cli2.jsonc`.
-- All human-facing prose gets two passes before it ships: the STE pass in `scripts/lint_prose.py`, and a humanizer pass. Keep sentences short, with one meaning each.
+- All human-facing prose gets checked by `nemoizer` before it ships. Keep sentences short, with one meaning each.
 - Add a code comment only when the method is complex enough to need one.
 
 ## Docs
