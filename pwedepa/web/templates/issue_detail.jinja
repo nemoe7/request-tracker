@@ -11,7 +11,7 @@
     <p class="byline">
       <span>{{ names.get(record.requester_id, "—") }}</span>
       <span class="sep">·</span>
-      <span>{{ (record.created_at | stamp(clock)) if record.created_at else "—" }}</span>
+      <span>{{ (record.created_at | stamp_time(clock)) if record.created_at else "—" }}</span>
       <span class="sep">·</span>
       <span>{{ record.visibility.value | capitalize }} · {{ record.priority.value | capitalize }} priority</span>
     </p>
@@ -36,13 +36,13 @@
       <ol class="timeline">
         <li class="timeline-comment is-body">
           <div class="prose">{{ record.description | prose if record.description else "No description." }}</div>
-          <p class="event-meta">{{ names.get(record.requester_id, "Someone") }} · {{ (record.created_at | stamp(clock)) if record.created_at else "—" }}</p>
+          <p class="event-meta">{{ names.get(record.requester_id, "Someone") }} · {{ (record.created_at | stamp_time(clock)) if record.created_at else "—" }}</p>
         </li>
         {% for event in events %}
         {% if event.event_type == "issue.comment" %}
         <li class="timeline-comment">
           <p>{{ event.data.get("text", "") }}</p>
-          <p class="event-meta">{{ names.get(event.actor_id, "Someone") }} · {{ event.at | stamp(clock) }}</p>
+          <p class="event-meta">{{ names.get(event.actor_id, "Someone") }} · {{ event.at | stamp_time(clock) }}</p>
         </li>
         {% elif not event.event_type.endswith("created") %}
         {{ event_line(event, names) }}
@@ -91,7 +91,7 @@
         <dl class="facts">
           <div><dt>Source request</dt><dd>{% if source_request %}<a href="{{ request_open_path(source_request) }}">Request #{{ source_request.id }}</a>{% else %}—{% endif %}</dd></div>
           <div><dt>Visibility</dt><dd>{{ record.visibility.value | capitalize }}</dd></div>
-          <div><dt>Updated</dt><dd>{{ (record.updated_at | stamp(clock)) if record.updated_at else "—" }}</dd></div>
+          <div><dt>Updated</dt><dd>{{ (record.updated_at | stamp_time(clock)) if record.updated_at else "—" }}</dd></div>
         </dl>
       </section>
     </aside>

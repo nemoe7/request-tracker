@@ -19,7 +19,7 @@
     <li class="notice">
       <div class="notice-main">
         <p class="notice-message">{{ notice.message }}</p>
-        <p class="event-meta">{{ notice.category | capitalize }} · {{ names.get(notice.actor_id, "Someone") }} · {{ notice.created_at | stamp(clock) }}</p>
+        <p class="event-meta">{{ notice.category | capitalize }} · {{ names.get(notice.actor_id, "Someone") }} · {{ notice.created_at | stamp_time(clock) }}</p>
       </div>
       <div class="notice-side">
         {% if links.get(notice.id) %}<a class="btn" href="{{ links[notice.id] }}">Open {{ notice.object_type }}</a>{% endif %}

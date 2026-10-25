@@ -167,6 +167,23 @@ def create_app(config: dict | None = None) -> Flask:
 
     return format_stamp(value, clock, now())
 
+  @app.template_filter("stamp_time")
+  def stamp_time(value: datetime | None, clock: str = "12"):
+    from markupsafe import Markup, escape
+
+    from .stamps import RELATIVE_LIMIT, format_stamp
+
+    if value is None:
+      return ""
+    current = now()
+    text = escape(format_stamp(value, clock, current))
+    iso = escape(value.isoformat())
+    if current - value < RELATIVE_LIMIT:
+      return Markup(
+        f'<time datetime="{iso}" data-relative-time="compact">{text}</time>'
+      )
+    return Markup(f'<time datetime="{iso}">{text}</time>')
+
   @app.context_processor
   def inject_actor() -> dict:
     from pwedepa.data import notifications as notifications_data

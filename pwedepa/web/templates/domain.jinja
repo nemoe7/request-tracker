@@ -35,7 +35,7 @@
         {% endif %}
       </div>
       <p class="announcement-body">{{ announcement.body }}</p>
-      <p class="meta">by {{ names.get(announcement.author_id, "—") }} · {{ announcement.published_at | stamp(clock) }}{% if announcement.edited_at %} · edited {{ announcement.edited_at | stamp(clock) }}{% endif %}</p>
+      <p class="meta">by {{ names.get(announcement.author_id, "—") }} · {{ announcement.published_at | stamp_time(clock) }}{% if announcement.edited_at %} · edited {{ announcement.edited_at | stamp_time(clock) }}{% endif %}</p>
     </article>
     {% endfor %}
   </div>

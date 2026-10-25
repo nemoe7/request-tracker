@@ -162,3 +162,95 @@ def test_the_service_worker_takes_control_after_a_load(page, served):
     assert worker["script"] == f"{served['base']}/sw.js"
   finally:
     context.close()
+
+
+def test_nuu_recipes_work_in_the_browser(page, served):
+  """Page memory paints before fetch finishes, and modal and loading helpers work."""
+  context, tab = page(served["cookie"], DESKTOP)
+  try:
+    tab.goto(f"{served['base']}/", wait_until="networkidle")
+    check = tab.evaluate(
+      """async () => {
+        let fetchCount = 0;
+        let releaseFetch = null;
+        const origFetch = window.fetch.bind(window);
+        window.fetch = (input, init) => {
+          const url = typeof input === "string" ? input : input.url;
+          if (url.endsWith("/notifications")) {
+            fetchCount += 1;
+            if (fetchCount === 2) {
+              return new Promise((resolve) => {
+                releaseFetch = () => resolve(origFetch(input, init));
+              });
+            }
+          }
+          return origFetch(input, init);
+        };
+
+        const inboxLink = document.querySelector('a.bell[href="/notifications"]');
+        inboxLink.click();
+        await new Promise((r) => setTimeout(r, 150));
+        const firstHeading = document.querySelector("main.wrap h1")?.textContent?.trim();
+
+        document.querySelector("a.brand").click();
+        await new Promise((r) => setTimeout(r, 150));
+
+        document.querySelector('a.bell[href="/notifications"]').click();
+        const paintedBeforeAnswer =
+          document.querySelector("main.wrap h1")?.textContent?.trim() === "Notifications";
+        const busyOnHit = document.querySelector("main.wrap")?.dataset?.loading === "true";
+        if (releaseFetch) releaseFetch();
+        await new Promise((r) => setTimeout(r, 150));
+        window.fetch = origFetch;
+
+        const trigger = document.querySelector("#user-menu-button");
+        trigger.focus();
+        const pendingConfirm = window.PwedePaModal.confirm({
+          title: "Confirm action?",
+          slots: { message: "Check shared modal shell.", "confirm-label": "Proceed" },
+          trigger,
+        });
+        const shell = document.getElementById("modal-shell");
+        const modalOpen = shell.open && shell.dataset.suppressRing === "true";
+        const cancelFocused = document.activeElement?.textContent?.trim() === "Cancel";
+        shell.close("cancel");
+        const modalResult = await pendingConfirm;
+        const focusRestored = document.activeElement === trigger;
+
+        const dummyBtn = document.createElement("button");
+        document.body.appendChild(dummyBtn);
+        let btnBusyDuring = false;
+        await window.runButtonFetch(dummyBtn, async () => {
+          btnBusyDuring =
+            dummyBtn.disabled && dummyBtn.getAttribute("aria-busy") === "true";
+        });
+        const btnIdleAfter =
+          !dummyBtn.disabled && dummyBtn.getAttribute("aria-busy") === "false";
+        dummyBtn.remove();
+
+        return {
+          fetchCount,
+          firstHeading,
+          paintedBeforeAnswer,
+          busyOnHit,
+          modalOpen,
+          cancelFocused,
+          modalResult,
+          focusRestored,
+          btnBusyDuring,
+          btnIdleAfter,
+        };
+      }"""
+    )
+    assert check["firstHeading"] == "Notifications"
+    assert check["fetchCount"] == 2
+    assert check["paintedBeforeAnswer"] is True
+    assert check["busyOnHit"] is False
+    assert check["modalOpen"] is True
+    assert check["cancelFocused"] is True
+    assert check["modalResult"] == "cancel"
+    assert check["focusRestored"] is True
+    assert check["btnBusyDuring"] is True
+    assert check["btnIdleAfter"] is True
+  finally:
+    context.close()

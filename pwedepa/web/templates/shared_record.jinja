@@ -17,12 +17,12 @@
       <ol class="timeline">
         <li class="timeline-comment is-body">
           <div class="prose">{{ record.description | prose if record.description else "No description." }}</div>
-          <p class="event-meta">{{ record.created_at | stamp(clock) }}</p>
+          <p class="event-meta">{{ record.created_at | stamp_time(clock) }}</p>
         </li>
         {% for event in comments %}
         <li class="timeline-comment">
           <p>{{ event.data.get("text", "") }}</p>
-          <p class="event-meta">{{ event.at | stamp(clock) }}</p>
+          <p class="event-meta">{{ event.at | stamp_time(clock) }}</p>
         </li>
         {% endfor %}
       </ol>
@@ -44,7 +44,7 @@
         <h2>Details</h2>
         <dl class="facts">
           <div><dt>Shared link</dt><dd>{{ link.permissions | join(", ") | capitalize }}</dd></div>
-          <div><dt>Updated</dt><dd>{{ (record.updated_at | stamp(clock)) if record.updated_at else "—" }}</dd></div>
+          <div><dt>Updated</dt><dd>{{ (record.updated_at | stamp_time(clock)) if record.updated_at else "—" }}</dd></div>
         </dl>
       </section>
     </aside>

@@ -67,7 +67,7 @@
             {% endif %}
           </td>
           <td class="mail-status">{{ pill(row.status) }}</td>
-          <td class="mail-time">{{ (row.updated_at | stamp(clock)) if row.updated_at else "—" }}</td>
+          <td class="mail-time">{{ (row.updated_at | stamp_time(clock)) if row.updated_at else "—" }}</td>
         </tr>
         {% endfor %}
       </tbody>

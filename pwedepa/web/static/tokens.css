@@ -5,21 +5,38 @@
   font-family: "Inter";
   src: url("fonts/inter-latin-400-normal.woff2") format("woff2");
   font-weight: 400;
-  font-display: swap;
+  font-style: normal;
+  font-display: block;
 }
 
 @font-face {
   font-family: "Inter";
   src: url("fonts/inter-latin-600-normal.woff2") format("woff2");
   font-weight: 600;
-  font-display: swap;
+  font-style: normal;
+  font-display: block;
 }
 
 @font-face {
   font-family: "Inter";
   src: url("fonts/inter-latin-800-normal.woff2") format("woff2");
   font-weight: 800;
-  font-display: swap;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial");
+  size-adjust: 107.64%;
+  ascent-override: 90.49%;
+  descent-override: 22.48%;
+  line-gap-override: 0%;
+}
+
+:root {
+  --font: "Inter", "Inter Fallback", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --scrollbar-thumb: var(--scroll-thumb);
 }
 
 :root,

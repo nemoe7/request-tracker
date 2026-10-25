@@ -1936,36 +1936,82 @@ def test_a_typed_token_url_lands_on_the_users_page(app, db):
   assert answer.headers["Location"].endswith("/admin/users")
 
 
-def test_nuu_recipes_are_integrated(app):
-  """Verify adopted nuu recipes in stylesheets and client scripts."""
-  client = app.test_client()
-  css = client.get("/static/app.css").data.decode()
-  js = client.get("/static/app.js").data.decode()
+def test_nuu_recipes_are_integrated(app, db):
+  """Verify all eleven shipped nuu recipes across templates, CSS, and JS."""
+  admin = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  requests_data.save(
+    db,
+    Request(
+      id=1,
+      title="Lobby light",
+      description="Bulb flickers.",
+      requester_id=users.get_user_by_username(db, "Ada").id,
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+  tokens = admin.get("/static/tokens.css").data.decode()
+  css = admin.get("/static/app.css").data.decode()
+  js = admin.get("/static/app.js").data.decode()
+  home = admin.get("/").data.decode()
 
-  # Live dot recipe
+  # Offline fonts recipe: preload before scripts and stylesheets, block display
+  head = home.split("</head>", 1)[0]
+  assert head.index('rel="preload"') < head.index("<script>")
+  assert head.index('rel="preload"') < head.index('rel="stylesheet"')
+  assert "font-display: block" in tokens
+  assert '"Inter Fallback"' in tokens
+  assert "var(--font)" in css
+  assert "document.fonts?.ready" in js
+
+  # Scrollbars recipe: Firefox properties gated behind @supports not selector
+  assert "@supports not selector(::-webkit-scrollbar)" in css
+
+  # Live dot recipe: aria-hidden dot and amber pending pulse
+  assert '<span class="dot" aria-hidden="true"></span>' in home
   assert ".dot { width: 6px; height: 6px;" in css
+  assert ".pill.st-pending .dot" in css
   assert "animation: pulse 1.4s" in css
+  assert "window.liveDot = function liveDot" in js
 
-  # Scroll-edge fade recipe
+  # Scroll-edge fade and floating-overlay scroll fade recipes
   assert "--edge-fade: 12px;" in css
   assert "--edge-ramp: 192px;" in css
   assert "animation-timeline: scroll(self)" in css
+  assert ".floating-composer" in css
+  assert ".scroll-log" in css
 
   # Table to cards recipe
   assert "@media (max-width: 75em)" in css
   assert ".table-cards { display: block;" in css
+  assert "minmax(min(100%, 330px), 1fr)" in css
 
-  # Loading bar recipe
+  # Loading bar and inline button loading recipe
   assert "animation: nuu-edge-loading" in css
+  assert 'main[data-loading="true"]' in css
+  assert '.btn[aria-busy="true"] .spinner' in css
+  assert "window.loadPanel = loadPanel" in js
+  assert "window.runButtonFetch = runButtonFetch" in js
 
-  # Anti-clipping recipe
+  # Shared modal manager recipe
+  assert 'id="modal-shell"' in home
+  assert 'data-modal-template="confirm"' in home
+  assert "window.createModalManager = function createModalManager" in js
+
+  # Anti-clipping recipe: no overflow hidden on non-scrolling list cards
   assert '[role="tooltip"]' in css
+  list_rule = css[css.index(".record-list {") :].split("}", 1)[0]
+  assert "overflow: hidden" not in list_rule
 
-  # Client-side relative timestamps recipe
+  # Relative timestamps recipe: semantic time elements and live refresher
   assert "window.relativeTime = function relativeTime" in js
+  assert "window.refreshRelativeTimes = function refreshRelativeTimes" in js
+  assert "<time datetime=" in home
 
-  # Page memory recipe
+  # Page memory recipe: versioned keys, instant paint, and diff-only replace
   assert "pageMemory = new Map()" in js
+  assert "function pageMemoryKey" in js
+  assert "const unchanged =" in js
 
 
 MIN_TEXT_CONTRAST = 4.5

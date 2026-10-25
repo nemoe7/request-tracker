@@ -339,10 +339,12 @@ def test_safe_next_returns_only_a_local_path(app):
 
 
 def test_the_font_waits_for_no_paint(app):
-  """A refresh must not strand the page on the fallback face."""
+  """Bundled fonts preload with font-display block and a metric-matched fallback."""
   with app.test_client() as client:
     sheet = client.get("/static/tokens.css").get_data(as_text=True)
-  assert "font-display: swap" in sheet
+  assert "font-display: block" in sheet
+  assert '"Inter Fallback"' in sheet
+  assert "font-display: swap" not in sheet
   assert "font-display: optional" not in sheet
 
 

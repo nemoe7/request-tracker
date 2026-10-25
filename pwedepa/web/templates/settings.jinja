@@ -37,7 +37,7 @@
       <dl class="set-list set-facts">
         <div class="set-row"><dt class="set-label">Member since</dt><dd class="set-value">{{ user.created_at.strftime("%b %Y") if user.created_at else "—" }}</dd></div>
         <div class="set-row"><dt class="set-label">Role</dt><dd class="set-value">{{ roles }}</dd></div>
-        <div class="set-row"><dt class="set-label">Last sign-in</dt><dd class="set-value">{{ (last_used | stamp(clock)) if last_used else "—" }}</dd></div>
+        <div class="set-row"><dt class="set-label">Last sign-in</dt><dd class="set-value">{{ (last_used | stamp_time(clock)) if last_used else "—" }}</dd></div>
       </dl>
       <form method="post" action="{{ url_for('settings.profile') }}" data-auto-submit>
         <label class="set-row">
@@ -61,7 +61,7 @@
       {% call modal("change-username", "Change your username?", username_error is not none) %}
       <form class="modal-form" method="post" action="{{ url_for('settings.username') }}">
         <label for="change-username-field">New username</label>
-        <input id="change-username-field" type="text" name="username" value="{{ username_value or user.username }}" required>
+        <input id="change-username-field" type="text" name="username" value="{{ username_value or user.username }}" required autofocus>
         <p class="help">If another account has that username, pick another.</p>
         {% if username_error %}<p class="modal-error" role="alert">{{ username_error }}</p>{% endif %}
         <div class="modal-actions">

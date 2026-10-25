@@ -34,7 +34,7 @@
           <span class="meta">@{{ person.username }} · <span class="id">#{{ person.id }}</span> · {{ person.status.value | capitalize }}</span>
         </span>
         <span class="admin-user-roles">
-          {% for role in details[person.id].roles %}<span class="pill st-open"><span class="dot"></span>{{ role.value | capitalize }}</span>{% else %}<span class="muted">No roles</span>{% endfor %}
+          {% for role in details[person.id].roles %}<span class="pill st-open"><span class="dot" aria-hidden="true"></span>{{ role.value | capitalize }}</span>{% else %}<span class="muted">No roles</span>{% endfor %}
         </span>
         <svg class="icon admin-user-chevron" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#chevron-right"/></svg>
       </summary>
@@ -50,7 +50,7 @@
 
         <h3>Roles</h3>
         <div class="chip-list">
-          {% for role in details[person.id].roles %}<span class="pill st-open"><span class="dot"></span>{{ role.value | capitalize }}</span>{% else %}<span class="muted">No roles</span>{% endfor %}
+          {% for role in details[person.id].roles %}<span class="pill st-open"><span class="dot" aria-hidden="true"></span>{{ role.value | capitalize }}</span>{% else %}<span class="muted">No roles</span>{% endfor %}
         </div>
         {% set held = details[person.id].roles %}
         {% set free_roles = roles | reject("in", held) | list %}
