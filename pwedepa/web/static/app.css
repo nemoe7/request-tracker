@@ -480,6 +480,12 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .compact-list form { display: inline; }
 .empty-state { text-align: center; }
 .empty-state .btn { margin-top: 12px; }
+.wrap:has(> .error-state) { min-height: calc(100dvh - 56px); display: grid; place-items: center; }
+body.is-guest .wrap:has(> .error-state) { min-height: 0; }
+body:has(.tabbar) .wrap:has(> .error-state) { min-height: calc(100dvh - 128px); }
+.error-state { display: flex; flex-direction: column; align-items: center; }
+.error-state img { margin-bottom: 4px; }
+.error-state p { margin: 8px 0 0; }
 @media (max-width: 639px) {
   .share-form { grid-template-columns: 1fr; }
   .setting-row { align-items: flex-start; flex-direction: column; gap: 6px; }

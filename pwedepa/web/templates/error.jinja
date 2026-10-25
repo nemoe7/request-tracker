@@ -1,7 +1,7 @@
 {% extends "base.jinja" %}
 {% block title %}PwedePa | {{ error.code }}{% endblock %}
 {% block content %}
-<section class="panel empty-state">
+<section class="empty-state error-state">
   <img src="{{ url_for('static', filename='icons/icon-static.png') }}" alt="" width="72" height="72">
   <h1>{{ error.code }} · {{ error.name }}</h1>
   <p class="muted">
