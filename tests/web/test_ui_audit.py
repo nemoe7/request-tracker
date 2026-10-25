@@ -671,13 +671,20 @@ def test_every_control_keeps_a_keyboard_focus_ring(app):
     if "outline: 2px solid var(--accent)" in body
   ]
   assert ringed, "no rule draws the shared focus ring"
-  for control in ("input", "select", "textarea", ".set-input"):
+  for control in ("input", "select", "textarea", ".set-input", "main.wrap"):
     assert any(f"{control}:focus-visible" in selector for selector in ringed), (
       f"{control} loses its focus ring"
     )
   quiet = css.index(".set-input:focus {")
   visible = css.index(".set-input:focus-visible")
   assert quiet < visible, "the quiet rule must come first, so the ring wins"
+
+
+def test_scrollbar_buttons_are_hidden(app):
+  """Nuu scrollbar recipe hides arrow buttons and styles corner."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  assert "::-webkit-scrollbar-button { display: none;" in css
+  assert "::-webkit-scrollbar-corner { background: var(--bg);" in css
 
 
 def test_settings_rail_carries_icon_rows_and_a_phone_list(app, db):
