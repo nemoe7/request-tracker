@@ -77,7 +77,7 @@
     <li class="record-row">
       <div class="record-row-main">
         <h2><a href="{{ record_path(record, "issue", slug=domain.slug) }}">{{ record.title }}</a></h2>
-        <p class="meta"><span class="id">#{{ record.id }}</span> · by {{ names.get(record.requester_id, "—") }}</p>
+        <p class="meta"><span class="id">#{{ record.id }}</span> · {% if record.requester_id in names %}by {{ names[record.requester_id] }}{% else %}{{ names.get(record.assignee_id, "Unassigned") }}{% endif %}</p>
       </div>
       <div class="record-row-side">{{ pill(record.status) }}</div>
     </li>

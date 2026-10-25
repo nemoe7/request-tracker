@@ -343,7 +343,7 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .issue-row:first-child a { border-top-left-radius: 9px; border-top-right-radius: 9px; }
 .issue-row:last-child a { border-bottom-left-radius: 9px; border-bottom-right-radius: 9px; }
 .issue-row a:hover { background: var(--surface-2); }
-.issue-row-title { font-weight: 600; }
+.issue-row-title { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
 .issue-row-meta { color: var(--muted); font-size: calc(12px * var(--font-scale)); white-space: nowrap; }
 .form { display: grid; gap: 14px; }
 .field-label { display: block; font-size: calc(13px * var(--font-scale)); font-weight: 600; margin-bottom: 6px; }
@@ -542,7 +542,8 @@ body.is-share .wrap { padding-top: 40px; padding-bottom: 40px; }
 .settings-nav .set-chip .icon { width: 15px; height: 15px; }
 .settings-nav .chev { display: none; width: 18px; height: 18px; margin-left: auto; }
 .settings-main h1 { margin: 4px 0 18px; }
-.set-group { margin-bottom: 26px; scroll-margin-top: 68px; }
+.set-group { margin-bottom: 26px; scroll-margin-top: 132px; }
+.section-title[id] { scroll-margin-top: 72px; }
 /* The phone keeps the small label; a wide screen shows the whole head. */
 .pane-head { display: grid; grid-template-columns: minmax(0, 1fr); row-gap: 2px; align-items: center; margin: 0 0 14px; }
 .pane-head > p { margin: 0; color: var(--muted); font-size: calc(13px * var(--font-scale)); }
