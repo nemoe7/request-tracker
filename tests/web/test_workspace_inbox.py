@@ -5,8 +5,9 @@ from datetime import UTC, datetime
 import pytest
 
 from pwedepa.auth import Role, assign_role, sessions, users
-from pwedepa.core import Request
+from pwedepa.core import Issue, IssueStatus, Priority, Request
 from pwedepa.data import db as data_db
+from pwedepa.data import issues as issues_data
 from pwedepa.data import requests as requests_data
 from pwedepa.web import SESSION_COOKIE, create_app
 
@@ -146,3 +147,68 @@ def test_the_empty_list_names_the_filter_and_clears_it(db, staff):
   plain = client.get("/").get_data(as_text=True)
   assert 'class="mail-row"' not in plain
   assert 'href="/?queue=triage"' not in plain
+
+
+def _issue(
+  db,
+  number,
+  requester_id,
+  assignee_id,
+  title,
+  *,
+  status=IssueStatus.OPEN,
+  source_id=None,
+):
+  record = Issue(
+    id=number,
+    title=title,
+    description="Fix the fan bearing.",
+    requester_id=requester_id,
+    assignee_id=assignee_id,
+    status=status,
+    priority=Priority.HIGH,
+    source_request_id=source_id,
+    created_at=AT,
+    updated_at=AT,
+    domains=("Gym",),
+  )
+  return issues_data.save(db, record)
+
+
+def test_assigned_issue_opens_in_center_card_with_staff_controls(db, staff):
+  client, person = staff
+  source = _request(db, 1, person.id, "Fan rattle")
+  _issue(db, 1, person.id, person.id, "Replace fan bearing", source_id=source.id)
+  _issue(db, 2, person.id, person.id, "Check belt tension")
+
+  default_body = client.get("/?queue=assigned").get_data(as_text=True)
+  assert 'class="workspace-grid is-open"' in default_body
+  assert 'aria-label="Issue"' in default_body
+  assert "is-unread" in _row(default_body, "Replace fan bearing")
+
+  picked = client.get("/?queue=assigned&selected=2").get_data(as_text=True)
+  assert 'class="workspace-grid is-open is-picked"' in picked
+  pane = picked[picked.index('class="panel inspector"') :]
+  assert "Check belt tension" in pane
+  assert 'aria-label="Issue facts"' in pane
+  assert 'action="/issues/2/transition"' in pane
+  assert 'action="/issues/2/priority"' in pane
+  assert 'action="/issues/2/comment"' in pane
+  assert 'class="share-panel"' in pane
+
+  after_open = client.get("/?queue=assigned").get_data(as_text=True)
+  assert "is-unread" not in _row(after_open, "Check belt tension")
+
+  back_target = "/?queue=assigned&selected=2"
+  for path, payload in (
+    ("/issues/2/priority", {"priority": Priority.LOW.value, "next": back_target}),
+    ("/issues/2/comment", {"text": "Bearing ordered.", "next": back_target}),
+    (
+      "/issues/2/transition",
+      {"target": IssueStatus.BLOCKED.value, "next": back_target},
+    ),
+  ):
+    resp = client.post(path, data=payload, follow_redirects=False)
+    assert resp.headers["Location"] == back_target
+  assert issues_data.get(db, 2).status is IssueStatus.BLOCKED
+  assert issues_data.get(db, 2).priority is Priority.LOW
