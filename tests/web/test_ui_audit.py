@@ -2113,3 +2113,51 @@ def test_appearance_settings_name_themes_and_meet_target_floors(app, db):
   assert '.set-row:has([aria-label="Theme"])' in phone
   assert ".issue-row a:focus-visible" in css
   assert "outline-offset: -2px" in css
+
+
+SINGLE_PRIMARY_COUNT = 1
+TOPBAR_AND_HEADING_CLEARANCE_PX = 120
+TOPBAR_CLEARANCE_PX = 68
+
+
+def test_live_boards_close_wrappers_dedupe_primary_actions_and_clear_topbar(app, db):
+  """Boards close div.narrow, render one primary button, and clear fixed headers."""
+  client = _client(app, db, "Mara", "Mara Reyes", roles=(Role.REQUESTER,))
+  empty_requests = client.get("/requests").data.decode()
+  assert 'class="narrow"' in empty_requests
+  assert 'class="list-page"' not in empty_requests
+  assert empty_requests.count('class="btn primary"') == SINGLE_PRIMARY_COUNT
+
+  empty_issues = client.get("/issues").data.decode()
+  assert empty_issues.count("<div") == empty_issues.count("</div>")
+  assert empty_issues.count('class="btn primary"') == SINGLE_PRIMARY_COUNT
+
+  admin = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  issues_data.save(
+    db,
+    Issue(
+      id=0,
+      title="Seeded workshop issue",
+      description="System created.",
+      requester_id=0,
+      domains=("3D Print/Model",),
+      created_at=AT,
+      updated_at=AT,
+    ),
+  )
+  populated_issues = admin.get("/issues").data.decode()
+  assert populated_issues.count("<div") == populated_issues.count("</div>")
+
+  domain_page = admin.get("/3d-print-model").data.decode()
+  assert "by —" not in domain_page
+  assert "Unassigned" in domain_page
+
+  css = admin.get("/static/app.css").data.decode()
+  group_rule = css[css.index(".set-group {") :].split("}", 1)[0]
+  group_margin = re.search(r"scroll-margin-top:\s*(\d+)px", group_rule)
+  assert group_margin and int(group_margin.group(1)) >= TOPBAR_AND_HEADING_CLEARANCE_PX
+  section_rule = css[css.index(".section-title[id] {") :].split("}", 1)[0]
+  section_margin = re.search(r"scroll-margin-top:\s*(\d+)px", section_rule)
+  assert section_margin and int(section_margin.group(1)) >= TOPBAR_CLEARANCE_PX
+  title_rule = css[css.index(".issue-row-title {") :].split("}", 1)[0]
+  assert "min-width: 0" in title_rule

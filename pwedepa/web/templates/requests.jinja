@@ -2,10 +2,12 @@
 {% from "_parts.jinja" import pill %}
 {% block title %}PwedePa | Requests{% endblock %}
 {% block content %}
-<div class="{% if selected %}wide{% else %}list-page{% endif %}">
+<div class="{% if selected %}wide{% else %}narrow{% endif %}">
   <div class="page-head">
     <h1>Requests</h1>
+    {% if mine or selected %}
     <a class="btn primary" href="{{ url_for('records.request_new') }}">New request</a>
+    {% endif %}
   </div>
 
   {% if selected %}
