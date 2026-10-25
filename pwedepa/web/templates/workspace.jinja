@@ -75,7 +75,7 @@
     {% else %}
     <p class="muted">
       {% if filters %}
-      No {{ row_kind }}s match the filters: {{ filters | join("; ") }}. <a href="{{ url_for('records.workspace', queue=queue) }}">Clear filters</a>
+      No {{ row_kind }}s match the filters: {{ filters | join(", ") }}. <a href="{{ url_for('records.workspace', queue=queue) }}">Clear filters</a>
       {% else %}
       No {{ row_kind }}s in this queue yet.
       {% endif %}

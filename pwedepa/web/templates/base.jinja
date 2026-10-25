@@ -71,7 +71,7 @@
   {% endif %}
   <main class="wrap">
     {% if view_as_client %}
-    <div class="flash" role="status"><p>Client view · you can only read requests and issues · <a href="{{ url_for('pages.view_as', mode='staff') }}">Exit</a></p></div>
+    <div class="flash" role="status"><p>Client view · read-only requests and issues · <a href="{{ url_for('pages.view_as', mode='staff') }}">Exit</a></p></div>
     {% endif %}
     {% with messages = get_flashed_messages() %}
     {% if messages %}

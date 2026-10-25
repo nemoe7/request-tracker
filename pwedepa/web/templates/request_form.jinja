@@ -51,7 +51,7 @@
         <option value="{{ value }}"{% if record and record.priority_suggestion and record.priority_suggestion.value == value %} selected{% endif %}>{{ value | capitalize }}</option>
         {% endfor %}
       </select>
-      <label class="check"><input type="checkbox" name="priority_unsure"{% if record and record.priority_unsure %} checked{% endif %}> I am not sure about the priority</label>
+      <label class="check"><input type="checkbox" name="priority_unsure"{% if record and record.priority_unsure %} checked{% endif %}> Not sure about priority</label>
     </div>
     <div class="form-actions">
       {% if record %}<button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg>Save changes</button>{% else %}<button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Create request</button>{% endif %}
