@@ -1934,3 +1934,35 @@ def test_a_typed_token_url_lands_on_the_users_page(app, db):
   answer = admin.get("/admin/tokens")
   assert answer.status_code == 302
   assert answer.headers["Location"].endswith("/admin/users")
+
+
+def test_nuu_recipes_are_integrated(app):
+  """Verify adopted nuu recipes in stylesheets and client scripts."""
+  client = app.test_client()
+  css = client.get("/static/app.css").data.decode()
+  js = client.get("/static/app.js").data.decode()
+
+  # Live dot recipe
+  assert ".dot { width: 6px; height: 6px;" in css
+  assert "animation: pulse 1.4s" in css
+
+  # Scroll-edge fade recipe
+  assert "--edge-fade: 12px;" in css
+  assert "--edge-ramp: 192px;" in css
+  assert "animation-timeline: scroll(self)" in css
+
+  # Table to cards recipe
+  assert "@media (max-width: 75em)" in css
+  assert ".table-cards { display: block;" in css
+
+  # Loading bar recipe
+  assert "animation: nuu-edge-loading" in css
+
+  # Anti-clipping recipe
+  assert '[role="tooltip"]' in css
+
+  # Client-side relative timestamps recipe
+  assert "window.relativeTime = function relativeTime" in js
+
+  # Page memory recipe
+  assert "pageMemory = new Map()" in js
