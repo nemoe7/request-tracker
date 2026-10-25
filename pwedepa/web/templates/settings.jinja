@@ -32,7 +32,7 @@
     <section class="set-group" id="profile" aria-label="Profile">
       <header class="pane-head">
         <h2>Profile</h2>
-        <p>Your name, username, and account status.</p>
+        <p>Name, username, and account status.</p>
       </header>
       <dl class="set-list set-facts">
         <div class="set-row"><dt class="set-label">Member since</dt><dd class="set-value">{{ user.created_at.strftime("%b %Y") if user.created_at else "—" }}</dd></div>
@@ -62,7 +62,7 @@
       <form class="modal-form" method="post" action="{{ url_for('settings.username') }}">
         <label for="change-username-field">New username</label>
         <input id="change-username-field" type="text" name="username" value="{{ username_value or user.username }}" required autofocus>
-        <p class="help">If another account has that username, pick another.</p>
+        <p class="help">Must be unique across accounts.</p>
         {% if username_error %}<p class="modal-error" role="alert">{{ username_error }}</p>{% endif %}
         <div class="modal-actions">
           <button class="btn" type="button" data-modal-close>Cancel</button>
@@ -75,7 +75,7 @@
     <section class="set-group" id="appearance" aria-label="Appearance">
       <header class="pane-head">
         <h2>Appearance</h2>
-        <p>The theme and the time format for this account.</p>
+        <p>Theme, time format, and text size.</p>
       </header>
       <div class="set-list">
         <div class="set-row">
@@ -102,7 +102,7 @@
       <form class="set-list" method="post" action="{{ url_for('settings.font_size') }}" data-font-size-form>
         <div class="set-row set-row-stack">
           <span class="set-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#type"/></svg></span>
-          <span class="set-label">Text size<span class="set-sub">A percentage of the base size</span></span>
+          <span class="set-label">Text size<span class="set-sub">Percentage of base size</span></span>
           <span class="font-size-control">
             <input class="slider" type="range" min="85" max="130" step="1" value="{{ font_size }}" aria-label="Text size" data-font-size-range>
             <input class="number" type="number" name="font_size" min="85" max="130" step="1" value="{{ font_size }}" aria-label="Text size percentage" data-font-size-number>
@@ -116,7 +116,7 @@
     <section class="set-group" id="notifications" aria-label="Notifications">
       <header class="pane-head">
         <h2>Notifications</h2>
-        <p>What reaches your inbox, and when the pip appears.</p>
+        <p>Inbox delivery and unread pip rules.</p>
       </header>
       <p class="set-note" role="status" data-autosave-status></p>
       <form class="set-list" method="post"{% if not demo_mode %} data-autosave{% endif %} action="{{ url_for('settings.notification_preferences') }}">
@@ -145,7 +145,7 @@
     <section class="set-group" id="passkeys" aria-label="Passkeys">
       <header class="pane-head">
         <h2>Passkeys</h2>
-        <p>The passkeys that sign you in on this device.</p>
+        <p>Passkeys registered for this account.</p>
       </header>
       <div class="set-list">
         {% for key in passkeys %}
@@ -153,7 +153,7 @@
           <span class="set-chip chip-indigo"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#key-round"/></svg></span>
           <span class="set-label">Passkey<span class="set-sub">Added {{ key.created_at.strftime("%b %d, %Y") if key.created_at else "" }}</span></span>
           <button class="btn danger-quiet icon-only" type="button" data-modal-open="revoke-passkey-{{ key.id }}" aria-label="Revoke passkey" title="Revoke passkey"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#trash"/></svg></button>
-          {{ reason_modal("revoke-passkey-" ~ key.id, url_for('auth.passkey_revoke', passkey_id=key.id), {}, None, title="Revoke this passkey?", submit="Revoke", hint="Why this passkey is revoked") }}
+          {{ reason_modal("revoke-passkey-" ~ key.id, url_for('auth.passkey_revoke', passkey_id=key.id), {}, None, title="Revoke this passkey?", submit="Revoke", hint="Reason for revoking") }}
         </div>
         {% endfor %}
         <div class="set-row set-action"><button class="btn" id="add-passkey" type="button"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#plus"/></svg>Add a passkey</button></div>
@@ -166,7 +166,7 @@
     <section class="set-group" id="admin" aria-label="Admin">
       <header class="pane-head">
         <h2>Admin</h2>
-        <p>Users, share links, the audit log, domain config, and the client view.</p>
+        <p>Users, audit log, share links, domains, and site settings.</p>
       </header>
       <div class="set-drill" data-admin-drill hidden></div>
       <div class="set-list" data-admin-list>

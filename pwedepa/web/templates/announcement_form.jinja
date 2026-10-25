@@ -12,7 +12,7 @@
     <div class="field">
       <label for="a-body">Body</label>
       <textarea id="a-body" name="body" rows="6" required>{{ values.body }}</textarea>
-      <p class="help">{{ domain.name }} sees this announcement on its Domain page.</p>
+      <p class="help">Shown on the {{ domain.name }} page.</p>
     </div>
     <div class="form-actions">
       {% if announcement %}<button class="btn primary icon-only" type="submit" aria-label="Save announcement" title="Save announcement"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#check"/></svg></button>{% else %}<button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#megaphone"/></svg>Publish announcement</button>{% endif %}

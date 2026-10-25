@@ -17,7 +17,7 @@
 
 <section class="panel admin-section">
   <h2>Sign-up token</h2>
-  <p class="muted">The person who enrols picks their own username and profile name.</p>
+  <p class="muted">Enrolling users select their username and profile name.</p>
   <form class="form inline-form create-token" method="post" action="{{ url_for('admin.issue_token') }}">
     <div class="field"><label for="new-role">Role</label><select id="new-role" name="role">{% for role in roles %}<option value="{{ role }}">{{ role | capitalize }}</option>{% endfor %}</select></div>
     <button class="btn primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#key-round"/></svg>Create token</button>
@@ -42,7 +42,7 @@
         <div class="admin-user-actions">
           {% if person.status.value == "ACTIVE" %}
           <button class="btn danger" type="button" data-modal-open="archive-user-{{ person.id }}">Archive</button>
-          {{ reason_modal("archive-user-" ~ person.id, url_for('admin.archive', user_id=person.id), {}, None, title="Archive this person?", submit="Archive", hint="Why this person is archived") }}
+          {{ reason_modal("archive-user-" ~ person.id, url_for('admin.archive', user_id=person.id), {}, None, title="Archive this person?", submit="Archive", hint="Reason for archiving") }}
           {% else %}
           <form method="post" action="{{ url_for('admin.reactivate', user_id=person.id) }}"><button class="btn" type="submit">Reactivate</button></form>
           {% endif %}

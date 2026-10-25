@@ -100,3 +100,4 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - The audit log names each event in words, and the Admin save buttons carry their
   words.
 - A local run reads the Markdown linter from `package-lock.json`.
+- Form, modal, share, settings, and admin hints use shorter copy with plain verbs.
