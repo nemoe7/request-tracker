@@ -76,7 +76,7 @@ class Event:
 
 @dataclass(frozen=True)
 class Change:
-  """The new object state plus the activity events the change produced."""
+  """Updated object state plus activity events produced by this change."""
 
   object: object
   events: tuple[Event, ...] = ()

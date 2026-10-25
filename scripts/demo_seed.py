@@ -1,6 +1,6 @@
 """Seed a demo database with people, items, activity, and notices.
 
-The demo seats keep the usernames the demo seat module already uses.
+Demo seats reuse usernames defined in `pwedepa.web.demo`.
 """
 
 from datetime import UTC, datetime, timedelta

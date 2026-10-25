@@ -10,5 +10,5 @@ extend-select = ["E501"]
 max-line-length = 120
 
 [lint.per-file-ignores]
-# The Gemini release file comes from another repository, so its lines stay.
+# That Gemini release file comes from another repo, so its lines stay.
 ".github/workflows/gemini_release.py" = ["E501"]

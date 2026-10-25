@@ -7,8 +7,8 @@ from demo_seed import seed
 from pwedepa.data import db
 from pwedepa.data.reset import CLEAR, reset
 
-# Everything the pick keeps: people, their roles and grants, their keys, their
-# settings, their sign-up tokens, and the audit trail of account changes.
+# Tables preserved on reset: people, roles and grants, passkeys,
+# settings, sign-up tokens, and account-change audit events.
 KEPT = (
   "users",
   "user_roles",

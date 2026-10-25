@@ -168,7 +168,7 @@ def rewrite(
 
 
 def missing_scripts(source: Path, static: Path) -> list[str]:
-  """Return the scripts the copy left behind, the top worker file aside."""
+  """Return static scripts missed during copy, excluding root `sw.js`."""
   expected = {
     path.relative_to(source)
     for path in source.rglob("*.js")

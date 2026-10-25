@@ -1,4 +1,4 @@
-"""The schema page is drawn from docs/schema.dbml, so it cannot drift."""
+"""`render_schema.py` generates `docs/schema.md` from `docs/schema.dbml` without drift."""
 
 import re
 

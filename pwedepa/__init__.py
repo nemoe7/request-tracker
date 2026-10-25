@@ -12,11 +12,11 @@ STAMP = Path(__file__).with_name("_version.txt")
 
 @lru_cache(maxsize=1)
 def build_label() -> str:
-  """Name the build: the short hash, the release tag, or the version."""
+  """Name each build by short hash, release tag, or package version."""
   if STAMP.is_file():
     stamped = STAMP.read_text(encoding="utf-8").strip()
     if stamped:
-      # CI stamps the image `dev-<hash>`. The header shows the hash alone.
+      # CI stamps images `dev-<hash>`. Headers show only that hash.
       return stamped.removeprefix("dev-")
   root = Path(__file__).resolve().parent.parent
   if (root / ".git").exists():

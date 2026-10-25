@@ -362,8 +362,8 @@ def workspace() -> str | Response:
     and not current_app.config.get("DEMO_MODE")
   ):
     # A wide screen keeps the pane open, so a load with no choice fills it.
-    # The default read stays unread until someone picks the row. The frozen
-    # demo opens one record per page instead, so a static file holds no form.
+    # Default loads stay unread until someone selects that row. Frozen
+    # demos open one record per page instead, so static files hold no form.
     selected = rows[0]
   domains = sorted({d for r in all_requests + all_issues for d in r.domains})
   # Each value keeps its own quotes, so a domain with a comma stays one item.
@@ -473,7 +473,7 @@ def requests() -> str | Response:
 
 @bp.get("/requests/new")
 def request_new() -> str | Response:
-  """A request lives in a Domain, so the create step starts by picking one."""
+  """Each request lives in a Domain, so creation starts by selecting one."""
   user = _user()
   if user is None:
     return redirect(url_for("pages.login"))

@@ -1,4 +1,4 @@
-"""Clear the requests, the issues, and the work around them. Keep the accounts."""
+"""Clear requests, issues, and related activity while keeping user accounts."""
 
 from sqlalchemy.engine import Connection
 

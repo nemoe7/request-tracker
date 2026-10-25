@@ -1,4 +1,4 @@
-"""The image set: one workflow builds the dev image, the release tag, and both."""
+"""Container image checks covering dev builds, release tags, and multi-arch manifests."""
 
 import json
 from pathlib import Path
@@ -48,7 +48,7 @@ def test_the_release_build_checks_the_approved_commit():
 
 
 def test_each_build_leg_smoke_tests_the_image_it_pushes():
-  """A start that cannot find the package must fail the build, not the deploy."""
+  """Broken package imports must fail image builds before deployment."""
   jobs = _docker()["jobs"]
   for name in ("dev", "release-build"):
     steps = jobs[name]["steps"]
@@ -107,7 +107,7 @@ def test_the_container_scan_watches_the_dependency_inputs():
 
 
 def test_the_dev_commit_tag_comes_from_the_metadata_action():
-  """The action makes the commit tag, so the tag and the build arg agree."""
+  """Metadata actions emit commit tags matching build version arguments."""
   text = _docker_text()
   assert text.count("type=sha,prefix=dev-") == 2, "both dev jobs tag the commit"
   assert "type=raw,value=${{ steps.dev.outputs.version }}" not in text
@@ -150,7 +150,7 @@ def test_the_changes_job_reads_from_the_last_dev_image_build():
 
 
 def test_the_change_check_names_the_dev_job_its_workflow_runs():
-  """The check finds the last build by job name, so the two names must agree."""
+  """Change checks locate prior builds by job name, so both names must match."""
   text = _docker_text()
   dev = _docker()["jobs"]["dev"]
   assert f'DEV_JOB: "{dev["name"]}"' in text, (

@@ -211,7 +211,7 @@ def test_the_demo_seat_swaps_in_code(tmp_path):
 
 
 def test_the_demo_switch_shows_only_when_the_build_asks(tmp_path):
-  """The live preview holds one seat, so only the frozen build shows the switch."""
+  """Live previews hold one seat, so only frozen builds render seat switches."""
   live = _demo_app(tmp_path, "demo-live.db").test_client()
   home = live.get("/").get_data(as_text=True)
   assert "demo-switch" not in home, "one seat needs no switch"

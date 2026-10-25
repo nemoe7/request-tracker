@@ -79,7 +79,7 @@ def list_audit_events(
   if limit is None:
     query += " ORDER BY id"
   else:
-    # The tail must come from the far end of the table, so read it backwards.
+    # Tail rows live at high IDs, so read descending first.
     query += " ORDER BY id DESC LIMIT ?"
     params.append(limit)
   rows = list(db.exec_driver_sql(query, tuple(params)))

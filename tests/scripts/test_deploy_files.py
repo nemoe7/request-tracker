@@ -22,7 +22,7 @@ def test_dockerfile_runs_the_web_app_as_one_service():
 
 
 def test_the_image_carries_the_package_it_starts():
-  """A venv alone cannot import the app: the editable install points at the source."""
+  """A bare venv cannot import `pwedepa` when editable installs point at missing source."""
   stages = (ROOT / "Dockerfile").read_text(encoding="utf-8").split("\nFROM ")
   runtime = stages[-1]
   sync = next(line for line in stages if "uv sync" in line)
@@ -34,7 +34,7 @@ def test_the_image_carries_the_package_it_starts():
 
 
 def test_the_image_names_its_build():
-  """The header reads a stamp the build writes. The image context has no git."""
+  """Headers read a build-written version stamp because image contexts exclude `.git`."""
   text = (ROOT / "Dockerfile").read_text(encoding="utf-8")
   assert "ARG VERSION=" in text
   assert "pwedepa/_version.txt" in text

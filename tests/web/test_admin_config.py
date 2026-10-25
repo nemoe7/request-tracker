@@ -1,4 +1,4 @@
-"""The domain config page imports a YAML file from the mount or a picked file."""
+"""Domain config pages import YAML files from mounted paths or uploaded files."""
 
 import io
 from datetime import UTC, datetime

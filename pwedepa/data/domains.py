@@ -145,7 +145,7 @@ def render(found: tuple[Domain, ...]) -> str:
 
 
 def import_bytes(raw: bytes, db_path: str | Path | None = None) -> tuple[Domain, ...]:
-  """Validate the bytes, then write the copy the app reads on the next call."""
+  """Validate raw bytes, then write a copy read on subsequent calls."""
   try:
     text = raw.decode("utf-8")
   except UnicodeDecodeError as error:

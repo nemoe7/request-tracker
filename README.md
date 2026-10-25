@@ -45,7 +45,7 @@ The end to end checks drive a real Chromium, so a local run needs
 - `docs/schema.dbml`: the database shape. `scripts/render_schema.py` writes
   `docs/schema.md` from it.
 - `CHANGELOG.md`: what changed, per version.
-- `AGENTS.md`: the rules this repository follows.
+- `AGENTS.md`: the rules this repo follows.
 
 ## License
 

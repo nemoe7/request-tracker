@@ -1,4 +1,4 @@
-"""Domains as rows the app owns. The config file fills the table once."""
+"""Domains stored as app-owned rows. Config files seed this table once."""
 
 import json
 from pathlib import Path
@@ -11,7 +11,7 @@ from .domains import Domain, DomainConfigError, parse
 
 
 def read_all(db_path: str | Path | None = None) -> tuple[Domain, ...]:
-  """Return the Domains in the order they joined the list."""
+  """Return Domains in insertion order."""
   connection = data_db.connect(db_path)
   try:
     rows = connection.exec_driver_sql(

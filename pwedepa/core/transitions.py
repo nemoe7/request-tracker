@@ -146,7 +146,7 @@ def raise_request(
   *,
   at: datetime,
 ) -> tuple[Issue, Change]:
-  """The new Issue has no id yet. The caller writes the event that names it."""
+  """New Issues start without an id. Callers write an event naming each id."""
   change = transition_request(request, RequestStatus.RAISED, actor, at=at)
   issue = Issue(
     id=0,

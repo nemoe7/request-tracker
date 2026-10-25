@@ -66,8 +66,8 @@ def seed_first_start(app: Flask) -> int:
 def create_app(config: dict | None = None) -> Flask:
   app = Flask(__name__)
   app.secret_key = os.environ.get("PWEDEPA_SECRET_KEY", DEVELOPMENT_SECRET)
-  # The public origin names the passkey, so the ID follows it unless the deploy
-  # asks for a different one.
+  # Public origins name passkeys, so RP IDs follow origins unless deployments
+  # specify another value.
   from pwedepa.data import config as config_data
 
   settings = config_data.read()
@@ -127,8 +127,8 @@ def create_app(config: dict | None = None) -> Flask:
     target = domain_store.redirect_for(app.config["DATABASE"], parts[0])
     if target is None:
       return None
-    # The target comes from the stored list, and the id is an int, so the
-    # browser never leaves this site.
+    # Targets come from stored domain rows and numeric IDs, so redirects
+    # stay on this site.
     tail = "/" + "/".join(parts[1:])
     match = _RECORD_TAIL.match(tail)
     if match and match["kind"] == "requests":

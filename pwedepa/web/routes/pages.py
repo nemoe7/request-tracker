@@ -47,7 +47,7 @@ def old_workspace() -> Response:
 
 @bp.get("/home")
 def home() -> Response:
-  """The account page became Settings. The base URL holds the work."""
+  """Account pages moved to Settings, while `/` serves workspace views."""
   return redirect(url_for("records.workspace"))
 
 
@@ -83,7 +83,7 @@ def view_as(mode: str) -> Response:
 
 @bp.get("/sw.js")
 def service_worker() -> Response:
-  """Serve the worker from the root so its scope covers the whole app."""
+  """Serve `sw.js` from `/` so worker scope covers every route."""
   if current_app.config.get("DEMO_MODE"):
     response = Response(RETIRING_WORKER, mimetype="text/javascript")
   else:

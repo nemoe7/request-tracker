@@ -60,7 +60,7 @@ def list_for(
   query = "SELECT * FROM events WHERE object_type = ? AND object_id = ? ORDER BY id"
   params: tuple = (object_type, object_id)
   if limit is not None:
-    # The tail must come from the far end of the table, so read it backwards.
+    # Tail rows live at high IDs, so read descending first.
     query = "SELECT * FROM events WHERE object_type = ? AND object_id = ? ORDER BY id DESC LIMIT ?"
     params = (object_type, object_id, limit)
   rows = list(db.exec_driver_sql(query, params))

@@ -198,7 +198,7 @@ def _setup_python_versions(document: dict) -> set[str]:
 
 
 def test_ci_tests_the_image_runtime_and_the_python_floor():
-  """The image runs one version, and the metadata claims a range from the floor."""
+  """Docker runs one Python version while metadata declares a floor range."""
   import re
   import tomllib
 

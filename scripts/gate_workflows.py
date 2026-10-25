@@ -1,12 +1,12 @@
 """Gate for the workflow set: required files, least-privilege permissions, and job-scoped secrets.
 
-actionlint checks the syntax. zizmor audits the security. This gate holds the repository
-contract that both tools leave implicit. The contract is: the exact file set, a read-only
-top level, no `workflow_run` trigger outside the named file, and credentials
-inside their job.
+actionlint checks syntax. zizmor audits security. This gate enforces repo
+contracts left implicit by both tools: required workflow files, read-only
+top-level scopes, no unapproved `workflow_run` triggers, and job-scoped
+credentials.
 
-`gemini-release.yml` is exempt. It is a trusted, manual-only release workflow. It needs
-a write token at the top level, and it never runs pull request code.
+`gemini-release.yml` is exempt. That manual release workflow needs a top-level
+write token and never executes PR code.
 """
 
 from __future__ import annotations
@@ -39,17 +39,17 @@ EXEMPT_FILES = ("gemini-release.yml",)
 # out `main`, never a ref from the event, and compares the commit CI tested.
 WORKFLOW_RUN_FILES = ("docker.yml",)
 
-# A pull request can run untrusted code, so these scopes stay out of its workflows.
+# A PR can run untrusted code, so these scopes stay out of its workflows.
 FORBIDDEN_PR_PERMISSIONS = ("contents", "actions", "packages", "id-token")
 READ_ONLY_VALUES = ("read", "none")
 
-# A job whose `if` names a non-pull-request event never runs pull request code.
-# That job alone may carry a forbidden scope inside a pull request workflow.
+# Jobs whose `if` names a non-PR event never execute PR code.
+# Only those jobs may carry forbidden scopes inside a PR workflow.
 NON_PULL_REQUEST_EVENT_RE = re.compile(
   r"github\.event_name\s*(?:!=\s*'pull_request'"
   r"|==\s*'(?:push|workflow_dispatch|schedule|release|repository_dispatch)')"
 )
-# A condition that admits the pull request event guards nothing, an `||` branch included.
+# Conditions that admit `pull_request` events guard nothing, `||` branches included.
 PULL_REQUEST_EVENT_RE = re.compile(r"github\.event_name\s*==\s*'pull_request'")
 
 SECRET_RE = re.compile(r"secrets\.([A-Za-z0-9_]+)")

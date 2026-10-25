@@ -294,7 +294,7 @@ def test_a_nested_worker_file_reaches_the_check(tmp_path):
 
 
 def test_a_lost_script_stops_the_copy(tmp_path):
-  """A file the copy leaves behind must be named, not dropped."""
+  """Missing static scripts fail builds with explicit file names."""
   sys.path.insert(0, str(ROOT / "scripts"))
   import build_pages_demo
 

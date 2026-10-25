@@ -1,8 +1,8 @@
 # Deploy PwedePa
 
-`compose.yml` runs two containers. `pwedepa-app` serves the app, and
-`pwedepa-tailscale` is the Tailscale node in front of it. SQLite lives on the
-`pwedepa-data` volume, so a restart keeps the data.
+`compose.yml` runs two containers. `pwedepa-app` serves web requests, while
+`pwedepa-tailscale` runs Tailscale in front of it. SQLite lives on the
+`pwedepa-data` volume, so restarts keep data intact.
 
 ## Run it
 
@@ -30,10 +30,10 @@
      --database /data/pwedepa.db
    ```
 
-   The person who enrols picks their own username and profile name.
+   The person who enrols selects their own username and profile name.
 
-The app listens on `127.0.0.1:5000` and reports health at `/health`. The sidecar
-reaches the app at `http://pwedepa:5000` on the compose network.
+Flask listens on `127.0.0.1:5000` and reports health at `/health`. Tailscale
+reaches it at `http://pwedepa:5000` on the compose network.
 
 ## Local build
 
@@ -63,7 +63,7 @@ build passes nothing, so its header line reads `dev`.
    docker compose exec tailscale tailscale funnel status
    ```
 
-3. Turn on HTTPS and Funnel for the node in the admin console when it asks.
+3. Enable HTTPS and Funnel for that node in your admin console when prompted.
 
 If Tailscale runs on the host instead, change the Proxy value in
 `tailscale/serve.json` to `http://127.0.0.1:5000`, then run
@@ -73,14 +73,14 @@ If Tailscale runs on the host instead, change the Proxy value in
 
 The `pages.yml` workflow freezes a demo to GitHub Pages on each push to `main`
 that touches the web app, and on demand from the Actions tab. Pages serves files
-only, so forms and passkey buttons stay inert there. The repository needs one
+only, so forms and passkey buttons stay inert there. This repo needs one
 setting: Settings, Pages, source: GitHub Actions. The build writes the site to
 `PWEDEPA_PAGES_OUT` when that variable has a value, and to `_site` otherwise.
 
 ## Notes
 
-- Back up the `pwedepa-data` volume. It holds the only database copy.
-- The `tailscale-state` volume holds the node identity. Restart the sidecar
+- Copy `pwedepa-data` regularly. That volume holds your only database file.
+- `tailscale-state` holds node identity. Restart that sidecar
   after you edit `tailscale/serve.json`.
 - `config.yml` at the project root is a template: every key waits, commented out.
   Uncomment the keys a deploy needs, or mount a real file read-only at

@@ -286,7 +286,7 @@ def test_the_stylesheet_holds_one_phone_block(app):
 
 
 def test_the_phone_list_reads_as_three_line_rows(app):
-  """A phone row keeps the Gmail lines: who and when, the title, the preview."""
+  """Phone rows stack three Gmail lines: sender and timestamp, title, and snippet."""
   css = app.test_client().get("/static/app.css").data.decode()
   phone = css[css.index("@media (max-width: 639px)") :]
   assert ".mail-table tr.mail-row {" in phone, "a phone row is its own grid"
@@ -300,7 +300,7 @@ def test_the_phone_list_reads_as_three_line_rows(app):
 
 
 def test_the_brand_tile_holds_the_bare_face(app):
-  """The owner dropped the chip, so the face fills its tile on the bar."""
+  """Without a background chip, brand icons fill their header tile."""
   css = app.test_client().get("/static/app.css").data.decode()
   tile = re.search(r"\.app-icon \{(.*?)\}", css, re.DOTALL)
   assert tile is not None, "the brand tile has a rule"
@@ -484,7 +484,7 @@ def test_page_switches_do_not_animate_the_whole_page(app):
 
 
 def test_a_page_switch_swaps_the_shell_in_place(app):
-  """The top bar stays put, and the content area takes the new page."""
+  """Top bars stay mounted while `main.wrap` swaps page content in place."""
   client = app.test_client()
   js = client.get("/static/app.js").data.decode()
   assert "window.pwedepaBoot" in js, "the script boots again after a swap"
@@ -722,7 +722,7 @@ def test_workspace_puts_the_reading_pane_right_of_the_list(app, db):
 
 
 def test_the_workspace_list_carries_one_toolbar(app, db):
-  """One row over the list holds the title and the status filter."""
+  """One toolbar row above workspace lists holds its title and status filter."""
   client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   requests_data.save(
     db,
@@ -751,7 +751,7 @@ def test_the_workspace_list_carries_one_toolbar(app, db):
 
 
 def test_the_status_filter_applies_on_the_pick(app, db):
-  """A picked status sends at once, and the field reads as a select."""
+  """Selected statuses submit immediately through a native `<select>` control."""
   client = _client(app, db, "sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
 
   page = client.get("/").get_data(as_text=True)
@@ -879,7 +879,7 @@ def test_the_admin_saves_read_as_words(app, db):
 
 
 def test_the_admin_config_file_field_looks_like_the_other_fields(app):
-  """The native picker keeps its button, styled to the form."""
+  """Native file inputs style their button to match surrounding form controls."""
   css = app.test_client().get("/static/app.css").data.decode()
 
   rule = re.search(r'\.field input\[type="file"\] \{[^}]*\}', css)
@@ -1310,7 +1310,7 @@ def test_each_settings_pane_carries_a_head(app, db):
 
 
 def test_the_settings_pane_takes_the_whole_width(app, db):
-  """The pane and its rail match the wide layout of the rest of the app."""
+  """Settings rails and content panes match wide layouts across other routes."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   css = client.get("/static/app.css").data.decode()
   shell = css[css.index(".settings-shell {") :].split("}", 1)[0]
@@ -1367,7 +1367,7 @@ def test_wide_screens_show_one_settings_pane(app, db):
 
 
 def test_a_wide_rail_holds_the_page_where_it_was(app):
-  """A rail row picks a pane in place, so the browser must not scroll to it."""
+  """Rail rows select panes in place without scrolling viewports."""
   script = app.test_client().get("/static/app.js").data.decode()
   assert 'document.querySelector(".settings-nav")' in script, (
     "the script finds the rail"
@@ -1407,7 +1407,7 @@ def test_a_new_request_opens_in_the_pane(app, db):
 
 
 def test_the_text_size_row_keeps_one_value(app):
-  """The saved note waits for a failure, so the row shows the value once."""
+  """Status notes stay empty unless saving fails, showing font size once."""
   script = app.test_client().get("/static/app.js").data.decode()
   saved = script[script.index("const fontForm") :]
   saved = saved[: saved.index('range.addEventListener("change", settle);')]
@@ -1416,7 +1416,7 @@ def test_the_text_size_row_keeps_one_value(app):
 
 
 def test_admin_row_buttons_match_their_fields(app):
-  """A row with a picker and a button shows one control height."""
+  """Inline admin rows align `<select>` controls and buttons at equal height."""
   css = app.test_client().get("/static/app.css").data.decode()
   field = css[css.index(".inline-form input") :].split("}", 1)[0]
   button = css[css.index(".inline-form .btn") :].split("}", 1)[0]
@@ -1679,7 +1679,7 @@ def test_a_phone_icon_button_reaches_a_tap_target(app):
 
 
 def test_a_phone_settings_list_keeps_its_title(app):
-  """The h1 was hidden below 640 px, so the list opened with no page name."""
+  """Hiding `h1` below 640 px left phone settings lists without a page heading."""
   css = app.test_client().get("/static/app.css").data.decode()
   phone = css[
     css.index("@media (max-width: 639px)", css.index("@media (min-width: 640px)")) :
@@ -1723,7 +1723,7 @@ def test_the_page_title_runs_at_six_hundred(app):
 
 
 def test_the_record_title_line_holds_the_state(app, db):
-  """GitHub puts the state beside the title, and the author under it."""
+  """GitHub places status badges beside record titles and authors underneath."""
   from datetime import timedelta
 
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
@@ -1829,7 +1829,7 @@ def test_a_row_side_cell_meets_the_row_edge(app):
 
 
 def test_the_settings_rail_marks_its_row_by_pane_name(app, db):
-  """The frozen demo rewrites a hash link, so the mark keys off the pane name."""
+  """Frozen demos rewrite hash links, so active state keys on `data-pane`."""
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   body = client.get("/settings").data.decode()
   rail = body[body.index('class="settings-nav"') : body.index("</nav>")]
@@ -1915,7 +1915,7 @@ def test_the_phone_settings_controls_take_the_floor(app):
 
 
 def test_the_chooser_can_fill_the_records_pane(app, db):
-  """The bar action opens the chooser in the pane, so it never comes up empty."""
+  """Header actions open domain choosers inside workspace panes without empty states."""
   client = _client(app, db, "Mara", "Mara Reyes", roles=(Role.REQUESTER,))
   page = client.get("/requests/new").get_data(as_text=True)
   assert 'class="list-page narrow"' in page, "the pane reads the chooser"
