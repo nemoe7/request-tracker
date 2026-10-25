@@ -1717,8 +1717,11 @@ def test_the_page_title_runs_at_six_hundred(app):
 
 def test_the_record_title_line_holds_the_state(app, db):
   """GitHub puts the state beside the title, and the author under it."""
+  from datetime import timedelta
+
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   person = users.get_user_by_username(db, "Ada")
+  created = datetime.now(UTC) - timedelta(days=2)
   requests_data.save(
     db,
     Request(
@@ -1726,8 +1729,8 @@ def test_the_record_title_line_holds_the_state(app, db):
       title="Broken projector",
       description="The projector in Room 4 is dead.",
       requester_id=person.id,
-      created_at=AT,
-      updated_at=AT,
+      created_at=created,
+      updated_at=created,
     ),
   )
 
