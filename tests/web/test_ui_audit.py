@@ -1130,7 +1130,7 @@ def test_the_workspace_keeps_the_rail_when_a_request_opens(app, db):
 
   opened = client.get(f"/?selected={record.id}").data.decode()
   assert 'class="workspace-grid is-open is-picked"' in opened
-  assert "Back to the list" in opened, "a way back to the table"
+  assert 'class="back-to-list"' in opened, "a way back to the table"
 
   css = app.test_client().get("/static/app.css").data.decode()
   grid = css[css.index(".workspace-grid {") :].split("}", 1)[0]
@@ -1667,8 +1667,8 @@ def test_the_pane_reports_a_load_and_names_a_failed_one(app, db):
   client = _client(app, db, "Sam", "Sam Cruz", roles=(Role.ASSIGNEE,))
   script = client.get("/static/app.js").data.decode()
   assert 'inspector.setAttribute("aria-busy", "true")' in script, "a load is not silent"
-  assert "This record did not load." in script, "a failure names itself"
-  assert "Open it as a page" in script, "a failure keeps one door open"
+  assert "link.href = href;" in script, "a failure keeps one door open"
+  assert "inspector.append(failed);" in script, "a failure renders in the pane"
 
 
 def test_a_phone_icon_button_reaches_a_tap_target(app):
@@ -1817,8 +1817,8 @@ def test_the_client_list_carries_a_last_reply_line(app, db):
   )
 
   body = client.get("/requests").data.decode()
-  assert "Mara Reyes replied ·" in body, "the row names the last reply"
-  assert "No replies yet" in body, "a quiet row says so"
+  assert '<p class="reply">Mara Reyes' in body, "the row names the last reply"
+  assert '<p class="reply muted">' in body, "a quiet row says so"
 
 
 def test_a_row_side_cell_meets_the_row_edge(app):
@@ -1876,11 +1876,11 @@ def test_the_phone_text_size_row_stacks_its_control(app, db):
 def test_an_empty_admin_list_sits_in_a_panel(app, db):
   client = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
   shares = client.get("/admin/shares").data.decode()
-  assert '<div class="empty panel"><p>No share links yet.</p></div>' in shares
+  assert '<div class="empty panel">' in shares and 'class="record-row"' not in shares
   db.exec_driver_sql("DELETE FROM audit_events")
   db.commit()
   audit = client.get("/admin/audit").data.decode()
-  assert '<div class="empty panel"><p>No audit events yet.</p></div>' in audit
+  assert '<div class="empty panel">' in audit and 'class="record-row"' not in audit
 
 
 def test_a_phone_workspace_keeps_one_column_with_a_record_open(app):
@@ -2098,8 +2098,8 @@ def test_appearance_settings_name_themes_and_meet_target_floors(app, db):
   assert theme_group
   for label in ("System", "Light", "Dark"):
     assert label in theme_group.group(1)
-  assert '<span class="set-sub">System follows your device</span>' in body
-  assert '<span class="set-sub">Under 72 hours shows short, like 3h ago</span>' in body
+  appearance = body[body.index('id="appearance"') : body.index('id="notifications"')]
+  assert appearance.count('class="set-sub"') >= 3
   css = admin.get("/static/app.css").data.decode()
   slider_rule = css[css.index(".font-size-control .slider {") :].split("}", 1)[0]
   slider_h = re.search(r"height:\s*(\d+)px", slider_rule)

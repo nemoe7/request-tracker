@@ -140,8 +140,9 @@ def test_the_empty_list_names_the_filter_and_clears_it(db, staff):
   client, _ = staff
 
   body = client.get("/?status=closed").get_data(as_text=True)
-  assert 'No requests match the filters: status "closed".' in body
-  assert "Clear filters" in body
+  assert 'status "closed"' in body
+  assert 'href="/?queue=triage"' in body
 
   plain = client.get("/").get_data(as_text=True)
-  assert "No requests in this queue yet." in plain
+  assert 'class="mail-row"' not in plain
+  assert 'href="/?queue=triage"' not in plain

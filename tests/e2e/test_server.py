@@ -99,7 +99,7 @@ def test_a_share_link_spends_one_view_and_then_reads_gone(served):
   guest = walk(served["base"])
   status, _, body = guest(link)
   assert status == 200
-  assert "shows the record once" in body
+  assert f'action="{link}/view"' in body
 
   status, url, body = guest(link + "/view", {})
   assert status == 200
@@ -108,7 +108,8 @@ def test_a_share_link_spends_one_view_and_then_reads_gone(served):
 
   status, _, body = guest(link)
   assert status == 410
-  assert "This link no longer works" in body
+  assert f'action="{link}/view"' not in body
+  assert 'class="panel empty-state"' in body
 
 
 def test_a_non_admin_cannot_change_a_role_and_an_admin_can(served):

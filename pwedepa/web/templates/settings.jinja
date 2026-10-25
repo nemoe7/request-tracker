@@ -91,7 +91,7 @@
       <form class="set-list" method="post"{% if not demo_mode %} data-clock-form{% endif %} action="{{ url_for('settings.clock') }}">
         <div class="set-row set-row-stack">
           <span class="set-chip chip-amber"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clock"/></svg></span>
-          <span class="set-label">Time format<span class="set-sub">Under 72 hours shows short, like 3h ago</span></span>
+          <span class="set-label">Time format<span class="set-sub">Relative under 72 hours (3h ago)</span></span>
           <span class="seg-control" role="group" aria-label="Time format">
             <button type="submit" name="clock" value="12"{% if clock != "24" %} class="is-active"{% endif %}><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clock"/></svg>12-hour</button>
             <button type="submit" name="clock" value="24"{% if clock == "24" %} class="is-active"{% endif %}><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons/lucide.svg') }}#clock"/></svg>24-hour</button>
