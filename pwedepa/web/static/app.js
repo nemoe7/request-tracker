@@ -570,7 +570,7 @@ document.addEventListener("change", (event) => {
   if (form) form.requestSubmit();
 }, listen);
 
-/* Modal: one manager for every custom dialog. An opener carries
+/* Modal: one manager for every native dialog. An opener carries
    data-modal-open="<id>", and a close control carries data-modal-close. */
 (() => {
   let active = null;
@@ -589,26 +589,30 @@ document.addEventListener("change", (event) => {
     if (!modal) return;
     active = modal;
     returnFocus = document.activeElement;
+    modal.dataset.suppressRing = "true";
     if (modal instanceof HTMLDialogElement && typeof modal.showModal === "function") {
       if (!modal.open) modal.showModal();
     } else {
       modal.hidden = false;
     }
     document.body.classList.add("has-modal");
-    const first = focusable(modal)[0];
-    if (first) first.focus();
+    const items = focusable(modal);
+    const target = items.find((node) => !node.classList.contains("modal-close")) || items[0];
+    if (target) target.focus();
   }
 
   function close() {
     if (!active) return;
-    if (active instanceof HTMLDialogElement && active.open) {
-      active.close();
+    const modal = active;
+    active = null;
+    delete modal.dataset.suppressRing;
+    if (modal instanceof HTMLDialogElement && modal.open) {
+      modal.close();
     } else {
-      active.hidden = true;
+      modal.hidden = true;
     }
     document.body.classList.remove("has-modal");
     const prev = returnFocus;
-    active = null;
     returnFocus = null;
     if (prev && prev.isConnected) prev.focus();
   }
@@ -623,11 +627,25 @@ document.addEventListener("change", (event) => {
     if (event.target.closest("[data-modal-close]")) {
       event.preventDefault();
       close();
+      return;
+    }
+    if (active instanceof HTMLDialogElement && event.target === active) {
+      close();
     }
   }, listen);
 
+  document.addEventListener("cancel", (event) => {
+    if (active && event.target === active) {
+      event.preventDefault();
+      close();
+    }
+  }, { ...listen, capture: true });
+
   document.addEventListener("keydown", (event) => {
     if (!active) return;
+    if (event.key === "Tab" || event.key.startsWith("Arrow")) {
+      delete active.dataset.suppressRing;
+    }
     if (event.key === "Escape") {
       event.preventDefault();
       close();
@@ -647,7 +665,9 @@ document.addEventListener("change", (event) => {
     }
   }, listen);
 
-  const openOnLoad = document.querySelector(".modal:not([hidden])");
+  const openOnLoad = document.querySelector(
+    "dialog.modal[data-modal-open-init], .modal:not(dialog):not([hidden])",
+  );
   if (openOnLoad) open(openOnLoad.id);
 
   window.PwedePaModal = { open, close };

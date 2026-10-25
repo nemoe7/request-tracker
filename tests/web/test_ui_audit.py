@@ -1966,3 +1966,104 @@ def test_nuu_recipes_are_integrated(app):
 
   # Page memory recipe
   assert "pageMemory = new Map()" in js
+
+
+MIN_TEXT_CONTRAST = 4.5
+MIN_DESKTOP_TARGET_PX = 24
+MIN_MOBILE_TARGET_PX = 44
+PANEL_RADIUS_PX = 10
+PAGE_GUTTER_PX = 16
+LEGACY_MAIL_FIXED_COLS_PX = 330
+
+
+def test_topbar_stays_fixed_and_matches_mobile_gutter(app):
+  """Keep the top bar fixed at y=0 and aligned with the 16 px mobile gutter."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  pairs = re.findall(r"([^{}]+)\{([^{}]*)\}", css)
+  bar_rules = [body for sel, body in pairs if sel.strip() == ".topbar"]
+  assert any("position: fixed" in body for body in bar_rules)
+  assert all("position: relative" not in body for body in bar_rules)
+  assert all("position: sticky" not in body for body in bar_rules)
+  compact = css[css.rindex("@media (max-width: 1199px)") :]
+  pad = re.search(r"\.topbar\s*\{[^}]*padding:\s*8px\s+(\d+)px", compact)
+  assert pad and int(pad.group(1)) == PAGE_GUTTER_PX
+
+
+def test_active_queue_and_segmented_controls_meet_contrast_floor(app):
+  """Active queue items and segmented buttons must clear 4.5:1 without raw #fff."""
+  client = app.test_client()
+  tokens = client.get("/static/tokens.css").data.decode()
+  css = client.get("/static/app.css").data.decode()
+  assert "#fff" not in css.lower()
+  queue_rule = css[css.index(".queue-item.is-active {") :].split("}", 1)[0]
+  assert "color: var(--st-open)" in queue_rule
+  seg_rule = css[css.index(".seg-control button.is-active {") :].split("}", 1)[0]
+  assert "background: var(--accent-fill)" in seg_rule
+  assert "color: var(--on-accent)" in seg_rule
+  for selector in THEMES:
+    block = _theme_block(tokens, selector)
+    surface = _rgb(_token(block, "surface"))
+    open_bg_raw = _token(block, "st-open-bg")
+    open_bg = _over(_rgb(open_bg_raw), _alpha(open_bg_raw), surface)
+    open_fg = _rgb(_token(block, "st-open"))
+    assert _contrast(open_fg, open_bg) >= MIN_TEXT_CONTRAST
+    accent_fill = _rgb(_token(block, "accent-fill"))
+    on_accent = _rgb(_token(block, "on-accent"))
+    assert _contrast(on_accent, accent_fill) >= MIN_TEXT_CONTRAST
+
+
+def test_wide_inspector_hides_back_link_and_widens_request_column(app):
+  """Align the 1280 px reading pane to one left edge and widen the Request column."""
+  css = app.test_client().get("/static/app.css").data.decode()
+  assert ".workspace-grid .inspector .back-to-list { display: none; }" in css
+  assert ".is-pane .issue-actions { margin-left: 0; }" in css
+  widths = [
+    int(
+      re.search(
+        rf"\.mail-table th:nth-child\({col}\)\s*\{{[^}}]*width:\s*(\d+)px", css
+      ).group(1)
+    )
+    for col in (1, 3, 4)
+  ]
+  assert sum(widths) < LEGACY_MAIL_FIXED_COLS_PX
+
+
+def test_modals_render_native_flat_dialogs_with_close_control(app, db):
+  """Modals use native dialog elements, a 10 px flat card, and a close icon."""
+  admin = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  body = admin.get("/settings").data.decode()
+  assert '<dialog class="modal modal-shell"' in body
+  assert 'class="icon-btn modal-close"' in body
+  css = admin.get("/static/app.css").data.decode()
+  card_rule = css[css.index(".modal-card {") :].split("}", 1)[0]
+  radius = re.search(r"border-radius:\s*(\d+)px", card_rule)
+  assert radius and int(radius.group(1)) == PANEL_RADIUS_PX
+  assert "box-shadow: none" in card_rule
+  js = admin.get("/static/app.js").data.decode()
+  assert "suppressRing" in js
+  assert "event.target === active" in js
+
+
+def test_appearance_settings_name_themes_and_meet_target_floors(app, db):
+  """Theme buttons show words, notes sit inline, and small targets meet floors."""
+  admin = _client(app, db, "Ada", "Ada Admin", roles=(Role.ADMIN,))
+  body = admin.get("/settings").data.decode()
+  theme_group = re.search(r'aria-label="Theme">(.*?)</span>', body, re.DOTALL)
+  assert theme_group
+  for label in ("System", "Light", "Dark"):
+    assert label in theme_group.group(1)
+  assert '<span class="set-sub">System follows your device</span>' in body
+  assert '<span class="set-sub">Under 72 hours shows short, like 3h ago</span>' in body
+  css = admin.get("/static/app.css").data.decode()
+  slider_rule = css[css.index(".font-size-control .slider {") :].split("}", 1)[0]
+  slider_h = re.search(r"height:\s*(\d+)px", slider_rule)
+  assert slider_h and int(slider_h.group(1)) >= MIN_DESKTOP_TARGET_PX
+  auth_link = css[css.index(".auth-card p a {") :].split("}", 1)[0]
+  desk_h = re.search(r"min-height:\s*(\d+)px", auth_link)
+  assert desk_h and int(desk_h.group(1)) >= MIN_DESKTOP_TARGET_PX
+  phone = css[css.index("@media (max-width: 899px)") :]
+  phone_auth = re.search(r"\.auth-card p a\s*\{\s*min-height:\s*(\d+)px", phone)
+  assert phone_auth and int(phone_auth.group(1)) >= MIN_MOBILE_TARGET_PX
+  assert '.set-row:has([aria-label="Theme"])' in phone
+  assert ".issue-row a:focus-visible" in css
+  assert "outline-offset: -2px" in css
