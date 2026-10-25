@@ -741,6 +741,8 @@ form.is-auto [data-save] { display: none; }
   .issue-actions { margin-left: 0; gap: 6px; }
   .issue-actions .actions { gap: 6px; }
   .issue-actions .btn { padding: 8px 10px; }
+  .section-head { gap: 8px; }
+  .section-head .btn { padding: 8px 10px; font-size: calc(14px * var(--font-scale)); }
   .list-actions { margin-left: 0; width: 100%; }
   .list-actions .filter-form { flex: 1 1 auto; }
   .wrap:has(.workspace-grid) { padding: 0; }

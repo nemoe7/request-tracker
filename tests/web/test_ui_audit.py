@@ -1850,12 +1850,25 @@ def test_a_phone_section_action_shares_the_heading_line(app, db):
   body = client.get("/3d-print-model").data.decode()
   heads = re.findall(r'<div class="section-head">.*?</div>', body, re.DOTALL)
   assert len(heads) == 3, "one head per section"
+  announcements_head = next(head for head in heads if ">Announcements<" in head)
+  assert "New announcement" in announcements_head
   requests_head = next(head for head in heads if ">Requests<" in head)
   assert "section-actions" in requests_head, "the action sits in the head"
   assert "New request" in requests_head, "the action shares the heading line"
   css = client.get("/static/app.css").data.decode()
   rule = css[css.index(".section-head {") :].split("}", 1)[0]
   assert "display: flex" in rule
+  desktop_gap = int(re.search(r"gap:\s*(\d+)px", rule).group(1))
+  btn_rule = css[css.index(".btn {") :].split("}", 1)[0]
+  desktop_pad_x = int(re.search(r"padding:\s*\d+px\s+(\d+)px", btn_rule).group(1))
+  phone = css[css.index("@media (max-width: 899px)") :]
+  phone_head = phone[phone.index(".section-head {") :].split("}", 1)[0]
+  phone_btn = phone[phone.index(".section-head .btn {") :].split("}", 1)[0]
+  phone_gap = int(re.search(r"gap:\s*(\d+)px", phone_head).group(1))
+  phone_pad_x = int(re.search(r"padding:\s*\d+px\s+(\d+)px", phone_btn).group(1))
+  assert phone_gap < desktop_gap
+  assert phone_pad_x < desktop_pad_x
+  assert "calc(14px * var(--font-scale))" in phone_btn
 
 
 def test_the_phone_pane_back_arrow_takes_the_floor(app):
