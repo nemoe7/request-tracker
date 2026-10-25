@@ -3,6 +3,45 @@
 /* A page swap reruns this whole script, so each boot first aborts the
    listeners the last one added. Nothing binds twice, and a plain page load
    without a swap works the same. */
+/* Recipe: nuu relative timestamps */
+window.relativeTime = function relativeTime(value, { compact = false, includeSeconds = false, now = Date.now() } = {}) {
+  const stamp = value instanceof Date ? value.getTime() : new Date(value).getTime();
+  const seconds = Math.max(0, Math.floor((now - stamp) / 1000));
+  if (includeSeconds) {
+    if (seconds < 1) return compact ? "now" : "just now";
+    if (seconds < 60) return compact ? `${seconds}s ago` : (seconds === 1 ? "a second ago" : `${seconds} seconds ago`);
+  }
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 1) return compact ? "now" : "just now";
+  if (minutes < 60) return compact ? `${minutes}min ago` : (minutes === 1 ? "a minute ago" : `${minutes} minutes ago`);
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return compact ? `${hours}h ago` : (hours === 1 ? "an hour ago" : `${hours} hours ago`);
+  const days = Math.floor(hours / 24);
+  if (days < 7) return compact ? `${days}d ago` : (days === 1 ? "yesterday" : `${days} days ago`);
+  if (days < 30) {
+    const weeks = Math.floor(days / 7);
+    return compact ? `${weeks}wk ago` : (weeks === 1 ? "last week" : `${weeks} weeks ago`);
+  }
+  if (days < 365) {
+    const months = Math.max(1, Math.floor(days / 30));
+    return compact ? `${months}mo ago` : (months === 1 ? "last month" : `${months} months ago`);
+  }
+  const years = Math.max(1, Math.floor(days / 365));
+  return compact ? `${years}yr ago` : (years === 1 ? "last year" : `${years} years ago`);
+};
+
+/* Recipe: nuu page memory cache */
+const PAGE_MEMORY_CAP = 30;
+const pageMemory = new Map();
+window.pageMemory = {
+  get: (key) => pageMemory.get(key),
+  set: (key, value) => {
+    if (pageMemory.size >= PAGE_MEMORY_CAP) pageMemory.delete(pageMemory.keys().next().value);
+    pageMemory.set(key, value);
+  },
+  has: (key) => pageMemory.has(key),
+};
+
 window.pwedepaBoot = function pwedepaBoot() {
   window.pwedepaLifecycle?.abort();
   const lifecycle = (window.pwedepaLifecycle = new AbortController());
@@ -550,7 +589,11 @@ document.addEventListener("change", (event) => {
     if (!modal) return;
     active = modal;
     returnFocus = document.activeElement;
-    modal.hidden = false;
+    if (modal instanceof HTMLDialogElement && typeof modal.showModal === "function") {
+      if (!modal.open) modal.showModal();
+    } else {
+      modal.hidden = false;
+    }
     document.body.classList.add("has-modal");
     const first = focusable(modal)[0];
     if (first) first.focus();
@@ -558,11 +601,16 @@ document.addEventListener("change", (event) => {
 
   function close() {
     if (!active) return;
-    active.hidden = true;
+    if (active instanceof HTMLDialogElement && active.open) {
+      active.close();
+    } else {
+      active.hidden = true;
+    }
     document.body.classList.remove("has-modal");
+    const prev = returnFocus;
     active = null;
-    if (returnFocus && returnFocus.isConnected) returnFocus.focus();
     returnFocus = null;
+    if (prev && prev.isConnected) prev.focus();
   }
 
   document.addEventListener("click", (event) => {
@@ -738,11 +786,19 @@ document.addEventListener("change", (event) => {
     const swap = async (href, remember) => {
       const token = ++run;
       try {
+        if (pageMemory.has(href)) {
+          const cached = pageMemory.get(href);
+          main.className = cached.className;
+          main.innerHTML = cached.html;
+          document.title = cached.title;
+        }
         const response = await fetch(href, { headers: { Accept: "text/html" } });
         if (!response.ok) throw new Error(`page ${response.status}`);
         const page = new DOMParser().parseFromString(await response.text(), "text/html");
         const nextMain = page.querySelector("main.wrap");
         if (!nextMain || token !== run) throw new Error("no page");
+        if (pageMemory.size >= PAGE_MEMORY_CAP) pageMemory.delete(pageMemory.keys().next().value);
+        pageMemory.set(href, { className: nextMain.className, html: nextMain.innerHTML, title: page.title });
         main.className = nextMain.className;
         main.replaceChildren(...nextMain.childNodes);
         // The bar carries its own state and controls, so the fresh one replaces
