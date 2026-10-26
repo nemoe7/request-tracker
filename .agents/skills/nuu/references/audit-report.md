@@ -28,9 +28,9 @@
 
 | Component, Property, or Recipe | Before | After | Reason | Marker (User-Approved Only) |
 | --- | --- | --- | --- | --- |
-| `<selector> (<property or recipe>)` | Before | After | Intentional product or layout reason | `nuu-deviation: <id>: <reason>` (agents MUST NEVER add without user approval) |
+| `<selector> (<property or recipe>)` | Before | After | Reason | `nuu-deviation: <reason>` (user approval required) |
 
 ## Captures (Dark Theme, Light on Request Only)
 
-- **Breakpoints (`1280` px, `960` px, `640` px):** dark-themed captures at each house breakpoint
-- **Mobile (`360` px):** dark-themed capture with `hasTouch` and `isMobile`
+- **Desktop and tablet (`1920x957`, `1080x2437`, `958x958`):** dark-themed captures at each house viewport.
+- **Mobile (`411x799` portrait, `855x325` landscape):** dark-themed captures with `hasTouch` and `isMobile`.

@@ -233,7 +233,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     browser = pw.chromium.launch(headless=True)
     try:
       if args.views:
-        context = browser.new_context(viewport={"width": 1280, "height": 800})
+        context = browser.new_context(
+          viewport={"width": 1280, "height": 800},
+          color_scheme="dark",
+        )
         page = context.new_page()
         walker = Walker(page, demo)
         custom_capture = getattr(module, "capture_views", None) if module else None
@@ -249,7 +252,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
       def make_page(viewport: tuple[int, int]) -> Any:
         ctx = browser.new_context(
-          viewport={"width": viewport[0], "height": viewport[1]}
+          viewport={"width": viewport[0], "height": viewport[1]},
+          color_scheme="dark",
         )
         return ctx.new_page()
 

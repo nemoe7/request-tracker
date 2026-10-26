@@ -1,6 +1,8 @@
-# Relative Timestamps Recipe
+# Recipe: Relative timestamps
 
-Format relative timestamps with the singular, plural, and abbreviated forms below. Omit seconds (`< 1` minute -> `just now` / `now`) unless second-level resolution is explicitly requested.
+Format relative timestamps in a tabular monospace face (`font-variant-numeric: tabular-nums`) with the singular, plural, and abbreviated forms below, and omit seconds (`< 1` minute -> `just now` / `now`) unless second-level resolution is explicitly requested.
+
+![Relative Timestamps Dark-Mode Example](../examples/relative-timestamps.png)
 
 | Unit | Singular (1) | Plural (2+) | Abbreviated |
 | --- | --- | --- | --- |

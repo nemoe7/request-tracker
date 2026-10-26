@@ -29,8 +29,10 @@ COLORS = {
 }
 
 DEFAULT_NUU_TOML = Path(__file__).resolve().parent.parent / "references" / "nuu.toml"
-DEFAULT_FONT_SANS = '"Basel Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif'
-DEFAULT_FONT_MONO = '"Basel Grotesk Mono", ui-monospace, "SFMono-Regular", monospace'
+DEFAULT_FONT_SANS = '"Inter", system-ui, -apple-system, "Segoe UI", sans-serif'
+DEFAULT_FONT_MONO = (
+  '"Monaspace Neon", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace'
+)
 SKIP_DIRS = {
   ".git",
   ".agents",
@@ -209,9 +211,14 @@ def resolve_project_typography(
     fonts_tbl.get("prefer_project_css", cfg.get("prefer_project_css", False))
   )
 
-  style_files = _iter_project_files(root, {".css", ".html"})
+  scan_root = (
+    cfg_dir
+    if (cfg_info["path"] and not prefer_project_css and cfg_dir.is_dir())
+    else root
+  )
+  style_files = _iter_project_files(scan_root, {".css", ".html"})
   font_Index: dict[str, Path] = {}
-  for font_path in _iter_project_files(root, set(FONT_MIMES)):
+  for font_path in _iter_project_files(scan_root, set(FONT_MIMES)):
     font_Index.setdefault(font_path.name, font_path)
 
   # Prefer product CSS and HTML with @font-face declarations over reference fallback sheets.
@@ -248,15 +255,21 @@ def resolve_project_typography(
       f"font-weight: {weight}; font-style: {fstyle}; font-display: block; }}"
     )
 
+  explicit_files_set = any(
+    k in fonts_tbl for k in ("files", "font_files", "faces", "path")
+  ) or any(k in cfg for k in ("font_files", "font_path"))
   raw_files = (
     fonts_tbl.get("files")
-    or fonts_tbl.get("font_files")
-    or fonts_tbl.get("faces")
-    or fonts_tbl.get("path")
-    or cfg.get("font_files")
-    or cfg.get("font_path")
+    if "files" in fonts_tbl
+    else (
+      fonts_tbl.get("font_files")
+      or fonts_tbl.get("faces")
+      or fonts_tbl.get("path")
+      or cfg.get("font_files")
+      or cfg.get("font_path")
+    )
   )
-  if raw_files is None and DEFAULT_NUU_TOML.is_file():
+  if not explicit_files_set and raw_files is None and DEFAULT_NUU_TOML.is_file():
     try:
       default_raw = tomllib.loads(DEFAULT_NUU_TOML.read_text(encoding="utf-8"))
       default_fonts = (
@@ -835,7 +848,8 @@ const payload = JSON.parse(fs.readFileSync(0, "utf8"));
     let vh = Math.max(900, payload.height + 64);
     const context = await browser.newContext({
       viewport: { width: vw, height: vh },
-      deviceScaleFactor: 1
+      deviceScaleFactor: 1,
+      colorScheme: "dark"
     });
     const page = await context.newPage();
     await page.setContent(payload.html, { waitUntil: "load" });
@@ -1580,7 +1594,7 @@ DESIGN_BOARD_CSS = """
 .board *, .board *::before, .board *::after {
   animation: none !important; transition: none !important; }
 .board { padding: 32px; background: var(--bg, #08090b); color: var(--text, #ece9e2);
-  font-family: var(--sans, var(--font-sans, var(--nuu-font-sans)));
+  font-family: var(--font, var(--sans, var(--font-sans, var(--nuu-font-sans))));
   width: max-content; max-width: 1536px; box-sizing: border-box; }
 .board.wide { width: 2816px; max-width: 2816px; }
 .board h1 { font-size: var(--fs-5, 20px); font-weight: 640; margin: 0 0 4px; }
@@ -1713,11 +1727,22 @@ def build_design_boards(
     raise TypeError("board spec must be a JSON object")
   spec_dir = spec_file.parent
   project_root = Path(project).resolve() if project else spec_dir
+  cfg_info = load_nuu_config(project_root)
+  cfg_dir = cfg_info["dir"]
+  cfg_board = (
+    cfg_info["config"].get("board")
+    if isinstance(cfg_info["config"].get("board"), dict)
+    else {}
+  )
 
   def resolve_rel(rel: str) -> Path:
     p = Path(rel)
     if p.is_absolute():
       return p
+    if cfg_dir is not None:
+      cand_cfg = (cfg_dir / p).resolve()
+      if cand_cfg.exists():
+        return cand_cfg
     cand_proj = (project_root / p).resolve()
     if cand_proj.exists():
       return cand_proj
@@ -1725,6 +1750,8 @@ def build_design_boards(
 
   app_css = ""
   sheet_rel = loaded.get("stylesheet")
+  if not sheet_rel:
+    sheet_rel = cfg_board.get("stylesheet") or cfg_info["config"].get("stylesheet")
   if sheet_rel:
     sheet_path = resolve_rel(str(sheet_rel))
     if not sheet_path.is_file():
@@ -1951,25 +1978,31 @@ def build_design_boards(
           bitmap_shots.append((str(f_lbl or shot_name), sw, sh, srgba))
         elif "html" in frame:
           h_val = str(frame["html"])
-          frag_path = resolve_rel(h_val)
-          if frag_path.is_file():
-            frag = frag_path.read_text(encoding="utf-8").strip()
-          elif "<" in h_val and ">" in h_val:
+          if "<" in h_val and ">" in h_val:
             frag = h_val
           else:
-            return {
-              "status": "failed",
-              "output": str(dst),
-              "boards": board_entries,
-              "findings": [
-                {
-                  "id": "NUB104",
-                  "severity": "error",
-                  "message": f"missing HTML fragment: {h_val}",
-                }
-              ],
-              "writes": writes,
-            }
+            try:
+              frag_path = resolve_rel(h_val)
+              is_frag_file = frag_path.is_file()
+            except OSError:
+              frag_path = None
+              is_frag_file = False
+            if is_frag_file and frag_path is not None:
+              frag = frag_path.read_text(encoding="utf-8").strip()
+            else:
+              return {
+                "status": "failed",
+                "output": str(dst),
+                "boards": board_entries,
+                "findings": [
+                  {
+                    "id": "NUB104",
+                    "severity": "error",
+                    "message": f"missing HTML fragment: {h_val}",
+                  }
+                ],
+                "writes": writes,
+              }
           if frame.get("bare") or re.match(
             r'^<div\b[^>]*\bclass=["\'][^"\']*\bframe\b', frag
           ):
@@ -2014,9 +2047,10 @@ def build_design_boards(
       style_attr = f' style="max-width:{max_frame_w + 64}px"'
 
     html_doc = (
-      "<!doctype html><html><head><meta charset='utf-8'><style>"
+      "<!doctype html><html data-theme='dark'><head><meta charset='utf-8'><style>"
       f"{typography['font_faces_css']}\n"
-      f":root {{ --nuu-font-sans: {typography['font_sans']}; --nuu-font-mono: {typography['font_mono']}; }}\n"
+      f":root {{ color-scheme: dark; --nuu-font-sans: {typography['font_sans']}; "
+      f"--nuu-font-mono: {typography['font_mono']}; }}\n"
       f"{app_css}\n"
       f"{DESIGN_BOARD_CSS}\n"
       "html, body { margin: 0; padding: 0; background: var(--bg, #08090b); }"
