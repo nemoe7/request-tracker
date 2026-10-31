@@ -1,4 +1,4 @@
-<!-- nonemo: NMO100; nonemo: NMO901; nonemo: NMO902; nonemo: NMO003; nonemo: STE001; nonemo: STE100; nonemo: STE200; nonemo: STE300; nonemo: STE400; nonemo: STE401; nonemo: STE901; nonemo: STE902; nonemo: STE903; nonemo: STE904; nonemo: STE905; nonemo: STE906; nonemo: STE908; nonemo: STE909; nonemo: STE910; nonemo: HMN100; nonemo: HMN200; nonemo: HMN300; nonemo: HMN400; nonemo: HMN500; nonemo: HMN600; nonemo: HMN901; nonemo: HMN902; nonemo: HMN903; nonemo: HMN904; nonemo: HMN905; nonemo: HMN906; nonemo: HMN907; nonemo: HMN908; nonemo: HMN909; nonemo: HMN910; nonemo: NMP100; nonemo: NMP101; nonemo: NMT100; nonemo: NMT200 -->
+<!-- nonemo: NMO100; nonemo: NMO901; nonemo: NMO902; nonemo: NMO003; nonemo: STE001; nonemo: STE100; nonemo: STE200; nonemo: STE300; nonemo: STE400; nonemo: STE401; nonemo: STE901; nonemo: STE902; nonemo: STE903; nonemo: STE904; nonemo: STE905; nonemo: STE906; nonemo: STE908; nonemo: STE909; nonemo: STE910; nonemo: HMN100; nonemo: HMN200; nonemo: HMN300; nonemo: HMN400; nonemo: HMN500; nonemo: HMN600; nonemo: HMN901; nonemo: HMN902; nonemo: HMN903; nonemo: HMN904; nonemo: HMN905; nonemo: HMN906; nonemo: HMN907; nonemo: HMN908; nonemo: HMN909; nonemo: HMN910; nonemo: NMP100; nonemo: NMP101; nonemo: NMU100; nonemo: NMT100; nonemo: NMT200 -->
 # Rules
 
 This document describes the rules enforced by `nemoizer`. Each rule also has a standalone reference file (`<id>.md`) in this directory.
@@ -42,19 +42,19 @@ Aliases: `soft-rotation`
 
 Fixable: Some violations can be fixed by tooling
 
-This rule triggers for manual review when text uses `pick` (`select`, or `picker` -> `selector`), `repository` (`repo`, `repositories` -> `repos`), or `pull request` (`PR`, `pull requests` -> `PRs`).
+This rule triggers for manual review when text uses `pick` (`select`, or `picker` -> `selector`), `repository` (`repo`, `repositories` -> `repos`), `pull request` (`PR`, `pull requests` -> `PRs`), or `name` as a verb (`specify`, `names` -> `specify`).
 
 ```text
-Pick a file from the repository and open a pull request.
+Pick a file from the repository, name each field, and open a pull request.
 ```
 
 To fix this issue, rewrite the text as follows:
 
 ```text
-Select a file from the repo and open a PR.
+Select a file from the repo, specify each field, and open a PR.
 ```
 
-Note: Default checks report `NMO901` as `(manual review)` with exit code `0`; `nemoizer format` rewrites unsuppressed matches in place.
+Note: Default checks report `NMO901` as `(manual review)` with exit code `0`; `nemoizer format` rewrites unsuppressed matches in place. Only a verb `name` rotates, so a noun `name` stays.
 
 Rationale: Consistent terms reduce variation while keeping manual review for false friends such as `pickle`.
 
@@ -786,6 +786,56 @@ To fix this issue, rewrite the text as follows:
 
 Rationale: Capping code comment blocks at two lines keeps comments concise and discourages narrative blocks in source files.
 
+## `NMU100` - Padded UI label
+
+Tags: `ui`, `blocking`
+
+Aliases: `padded-ui-label`
+
+Parameters:
+
+- `nmu100_max_words`: maximum words in a checked UI label (`6` by default)
+
+This rule triggers when a short UI label on `title`, `aria-label`, `placeholder`, or `label` in HTML or JavaScript contains an article or filler word (`the`, `this`, `these`, `those`, `a`, `an`, `please`, `here`, `just`) and does not end with sentence punctuation (`.`, `!`, or `?`).
+
+```html
+<button title="Open the repo">Open</button>
+```
+
+To fix this issue, rewrite the label as follows:
+
+```html
+<button title="Open repo">Open</button>
+```
+
+Note: Labels longer than `nmu100_max_words`, template literals containing `$`, and explanatory sentences ending on `.`, `!`, or `?` stay skipped. Configure `nmu100_max_words` under `[lint]` in `nemoizer.toml` or `[tool.nemoizer.lint]` in `pyproject.toml`.
+
+Rationale: Terse UI labels and tooltips scan faster and omit filler words that add no meaning.
+
+## `NMU200` - Byte-unit divisor label mismatch
+
+Tags: `units`, `ui`, `blocking`
+
+Aliases: `byte-unit-mismatch`
+
+Flag 1024-based binary divisors paired with decimal byte labels (`KB`, `MB`, `GB`, `TB`) on the same line.
+
+Flag 1000-based decimal divisors paired with binary byte labels (`KiB`, `MiB`, `GiB`, `TiB`) on the same line.
+
+```python
+label = f"{size / 1024:.1f} KB"
+```
+
+```python
+label = f"{size / 1_000_000:.1f} MiB"
+```
+
+Matching pairs such as `size / 1024` with `KiB` and `size / 1_000_000` with `MB` pass. `Mbps` is a network rate, not a byte unit.
+
+Note: The rule checks literal divisor, shift, and power expressions on one line. It does not track named constants across files. Use `# nonemo: NMU200` for an intentional mismatch.
+
+Rationale: Decimal and binary byte labels describe different scales and must match their conversion factors.
+
 ## `NMT100` - Prose-literal output assertion in tests
 
 Tags: `tests`, `assertions`, `blocking`
@@ -796,7 +846,7 @@ Parameters:
 
 - `test_helper`: additional test helper paths to include in static discovery
 
-This rule triggers when a test compares a multi-word prose sentence literal against `stdout`, `stderr`, `output`, `out`, or `err`.
+This rule triggers when a test compares a multi-word prose sentence literal (`str` or `bytes`, including HTML-wrapped prose) against CLI streams (`stdout`, `stderr`, `output`, `out`, `err`), HTTP/DOM response channels (`body`, `html`, `text`, `data`, `content`, `get_data`, `decode`, `readouterr`, `inner_text`, `text_content`, `innerHTML`, `textContent`), or local variables tainted by `WEB_CHANNELS` or `CLIENT_CALLS` (`get`, `post`, `put`, `patch`, `delete`, `open`, `walk`, `guest`).
 
 ```text
 assert "The server started cleanly on port 8000" in result.stderr
@@ -808,9 +858,9 @@ To fix this issue, rewrite the text as follows:
 assert "8000" in result.stderr
 ```
 
-Note: Check exit codes, structured fields, or stable identifier tokens instead of prose wording.
+Note: Check exit codes, structured fields, or stable identifier tokens instead of prose wording. Wildcard `per-file-ignores` on test patterns (`test*` or `*test*`) cannot suppress `NMT100`. Use line-scoped `# nonemo: NMT100` on protocol contracts only.
 
-Rationale: Prose-wording assertions make tests brittle when log or help phrasing is edited.
+Rationale: Prose-wording assertions make tests brittle when log, UI, or help phrasing is edited.
 
 ## `NMT200` - Literal equality assertion on a measurement
 

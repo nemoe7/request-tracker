@@ -19,29 +19,37 @@
   --warn: #8a5a00;
   --ok: #1c7a3f;
   --focus: #2b53d6;
-  --scrollbar-thumb: #c8c8d0;
+  --scrollbar-thumb: #767682;
 
-  /* Type: one family, three weights, a short ramp */
+  /* Type: one family, four weights, a nine-step ramp */
   --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "Monaspace Neon", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  --size-10: 10px;
+  --size-11: 11px;
   --size-12: 12px;
-  --size-13: 13px;
   --size-14: 14px;
-  --size-15: 15px;
   --size-16: 16px;
-  --size-20: 20px;
+  --size-18: 18px;
+  --size-22: 22px;
+  --size-24: 24px;
   --size-28: 28px;
+  --size-32: 32px;
   --eyebrow: 11px;
+  --type-title: var(--size-32);
+  --type-body: var(--size-18);
+  --type-small: var(--size-14);
   --weight-regular: 400;
-  --weight-medium: 600;
-  --weight-strong: 800;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-strong: 700;
 
   /* Space: one 4 px default scale (8 px when opted in), and the sizes built on it */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
   --row: 32px;
   --radius: 6px;
   --shadow: none;
@@ -49,11 +57,29 @@
   --gutter: var(--space-4);
   --touch: 44px;
   --focus-ring: 2px;
+  --indent: 2ch;
 
   /* Motion: one curve, one band */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --fast: 160ms;
+  --fast: 150ms;
   --slow: 220ms;
+}
+
+ul,
+ol {
+  --indent: 2ch;
+  padding-inline-start: 2ch;
+  list-style-position: outside;
+}
+
+ul {
+  list-style-type: disc;
+}
+
+:root[data-density="dashboard"] {
+  --type-title: var(--size-24);
+  --type-body: var(--size-16);
+  --type-small: var(--size-12);
 }
 
 :root[data-scale="8"] {
@@ -81,7 +107,7 @@
     --warn: #f0bb4a;
     --ok: #6fd08c;
     --focus: #8fa8ff;
-    --scrollbar-thumb: #302e2c;
+    --scrollbar-thumb: #62626e;
   }
 }
 
@@ -102,7 +128,7 @@
   --warn: #8a5a00;
   --ok: #1c7a3f;
   --focus: #2b53d6;
-  --scrollbar-thumb: #c8c8d0;
+  --scrollbar-thumb: #767682;
 }
 
 :root[data-theme="dark"] {
@@ -121,7 +147,7 @@
   --warn: #f0bb4a;
   --ok: #6fd08c;
   --focus: #8fa8ff;
-  --scrollbar-thumb: #302e2c;
+  --scrollbar-thumb: #62626e;
 }
 
 *,
@@ -135,41 +161,85 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
-  font-size: var(--size-14);
+  font-size: var(--type-body);
   font-weight: var(--weight-regular);
   line-height: 1.5;
 }
 
 /* Type */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.title,
+.panel-title {
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+p,
+li,
+blockquote,
+dd {
+  text-align: start;
+  max-width: 65ch;
+}
+
+.prose,
+article {
+  width: min(100%, 65ch);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.field-group,
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
 .eyebrow {
   margin: 0;
   color: var(--muted);
   font-size: var(--eyebrow);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-semibold);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
+h1,
 .title {
   margin: 0;
-  font-size: var(--size-28);
+  font-size: var(--type-title);
   font-weight: var(--weight-strong);
   letter-spacing: -0.01em;
 }
 
+h2,
+h3,
+h4,
+h5,
+h6,
 .panel-title {
   margin: 0;
-  font-size: var(--size-20);
-  font-weight: var(--weight-medium);
+  font-size: var(--type-body);
+  font-weight: var(--weight-semibold);
 }
 
 .body {
-  font-size: var(--size-14);
+  font-size: var(--type-body);
 }
 
 .meta {
   color: var(--muted);
-  font-size: var(--size-13);
+  font-size: var(--type-small);
 }
 
 .id,
@@ -177,18 +247,18 @@ body {
 .age {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  font-size: var(--size-13);
+  font-size: var(--type-small);
 }
 
 /* Breakpoints: em, so layouts follow the reader's browser font size.
-   40em = 640px, 60em = 960px, 75em = 1200px width, and 30em = 480px max-height at a 16px initial size. */
+   30em = 480px, 60em = 960px, 68em = 1088px width, and 24em = 384px max-height at a 16px initial size. */
 .page {
   max-width: var(--column);
   margin: 0 auto;
   padding: 0 var(--gutter);
 }
 
-@media (max-width: 75em) {
+@media (max-width: 68em) {
   .page {
     padding: 0 var(--space-3);
   }
@@ -200,7 +270,7 @@ body {
   }
 }
 
-@media (max-width: 40em) {
+@media (max-width: 30em) {
   .page {
     padding: 0 var(--space-2);
   }
@@ -214,7 +284,7 @@ body {
   }
 }
 
-@media (max-height: 30em) {
+@media (max-height: 24em) {
   .page {
     padding: 0 var(--space-2);
   }
@@ -222,8 +292,8 @@ body {
 
 /* Controls */
 .button {
-  min-height: var(--touch);
-  min-width: var(--touch);
+  min-height: var(--row);
+  min-width: var(--row);
   padding: 0 var(--space-2);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -238,10 +308,10 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--touch);
-  height: var(--touch);
-  min-width: var(--touch);
-  min-height: var(--touch);
+  width: var(--row);
+  height: var(--row);
+  min-width: var(--row);
+  min-height: var(--row);
   aspect-ratio: 1;
   padding: 0;
   border: 1px solid var(--line);
@@ -305,11 +375,11 @@ body {
 
 :focus-visible {
   outline: var(--focus-ring) solid var(--focus);
-  outline-offset: 0;
+  outline-offset: 2px;
 }
 
 :root:not([data-keyboard-nav="true"]) :focus-visible {
-  outline: 0; /* nonuu: NUL003 */
+  outline: 0; /* nonuu: ACC201 */
 }
 
 /* Rows and panels */
@@ -322,8 +392,23 @@ body {
   border-bottom: 1px solid var(--line);
 }
 
-.row:hover {
-  background: var(--surface);
+@media (pointer: coarse) {
+  .row {
+    min-height: var(--touch);
+  }
+
+  .icon-button {
+    width: var(--touch);
+    height: var(--touch);
+    min-width: var(--touch);
+    min-height: var(--touch);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .row:hover {
+    background: var(--surface);
+  }
 }
 
 .panel {
@@ -363,14 +448,14 @@ body {
   border-radius: var(--radius);
   background: var(--surface-2);
   color: var(--text);
-  font-size: var(--size-13);
+  font-size: var(--size-12);
 }
 
 .pill::before {
   content: "";
   width: var(--space-1);
   height: var(--space-1);
-  border-radius: 50%;
+  border-radius: 9999px;
   background: currentColor;
 }
 
@@ -444,7 +529,14 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
-  border-radius: var(--space-1);
+  border: 2px solid var(--bg);
+  background-clip: padding-box;
+  border-radius: var(--space-2);
+}
+
+:root[data-keyboard-nav="true"] ::-webkit-scrollbar-thumb:hover,
+:root[data-keyboard-nav="true"] ::-webkit-scrollbar-thumb:active {
+  background: var(--focus);
 }
 
 ::-webkit-scrollbar-button {

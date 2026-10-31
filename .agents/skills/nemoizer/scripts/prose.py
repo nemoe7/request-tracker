@@ -58,12 +58,18 @@ def is_env_file(path: Path) -> bool:
   return name == ".env" or name.startswith(".env.") or path.suffix.lower() == ".env"
 
 
+def is_jinja_file(path: Path) -> bool:
+  """Return whether path is a Jinja template such as .jinja, .j2, or .jinja2."""
+  return any(suffix.lower() in JINJA_SUFFIXES for suffix in path.suffixes)
+
+
 def is_code_file(path: Path) -> bool:
   """Return whether path uses comment extraction rather than full-file prose scanning."""
   return (
     path.suffix.lower() in COMMENT_SUFFIXES
     or path.name in SPECIAL_CODE_NAMES
     or is_env_file(path)
+    or is_jinja_file(path)
   )
 
 
@@ -143,6 +149,24 @@ def javascript_comments(
     elif not in_metadata:
       comments.append((clean, first, last))
   return tuple(comments)
+
+
+@lru_cache(maxsize=128)
+def javascript_comment_spans(
+  source: str,
+) -> tuple[tuple[tuple[int, int], tuple[int, int]], ...]:
+  """Collect exact JavaScript comment spans with the parser."""
+  result = subprocess.run(
+    ["node", str(Path(__file__).with_name("javascript-comments.cjs")), "--spans"],
+    input=source,
+    capture_output=True,
+    text=True,
+    check=True,
+  )
+  return tuple(
+    ((first_line, first_column), (last_line, last_column))
+    for first_line, first_column, last_line, last_column in json.loads(result.stdout)
+  )
 
 
 def clean_comment(text: str) -> str:
@@ -284,6 +308,7 @@ class _HTMLProseExtractor(HTMLParser):
   def __init__(self) -> None:
     super().__init__(convert_charrefs=True)
     self.spans: list[tuple[str, int, int]] = []
+    self.attr_spans: list[tuple[str, int, int]] = []
     self._skip_depth = 0
     self._buf: list[str] = []
     self._buf_start: int | None = None
@@ -318,6 +343,7 @@ class _HTMLProseExtractor(HTMLParser):
           if clean and clean not in seen and re.search(r"[A-Za-z]{2,}", clean):
             seen.add(clean)
             self.spans.append((clean, line, line))
+            self.attr_spans.append((clean, line, line))
 
   def handle_endtag(self, tag: str) -> None:
     lower = tag.lower()
@@ -348,6 +374,34 @@ def html_visible_prose(source: str) -> list[tuple[str, int, int]]:
   extractor.feed(source)
   extractor.flush()
   return extractor.spans
+
+
+def html_attr_spans(source: str) -> list[tuple[str, int, int]]:
+  """Collect only HTML prose attribute values (aria-label, title, placeholder) with line spans."""
+  extractor = _HTMLProseExtractor()
+  extractor.feed(source)
+  extractor.flush()
+  return extractor.attr_spans
+
+
+LABEL_KEYS = r'(?:"aria-label"|aria-label|title|placeholder|label)'
+LABEL_LITERAL = re.compile(
+  LABEL_KEYS
+  + r'\s*[:=]\s*(?:"([^"\n]{2,120})"|\'([^\'\n]{2,120})\'|`([^`\n$]{2,120})`)'
+)
+
+
+def ui_label_spans(path: Path, source: str) -> list[tuple[str, int, int]]:
+  """Collect short label literals that scripts hand to title, aria-label, placeholder, or label."""
+  if path.suffix.lower() not in {".js", ".mjs", ".cjs", ".html", ".htm"}:
+    return []
+  spans: list[tuple[str, int, int]] = []
+  for match in LABEL_LITERAL.finditer(source):
+    text = next(group for group in match.groups() if group is not None).strip()
+    if re.search(r"[A-Za-z]{2,}", text):
+      line = source.count("\n", 0, match.start()) + 1
+      spans.append((text, line, line))
+  return spans
 
 
 def sql_comments(source: str) -> list[tuple[str, int, int]]:
@@ -448,7 +502,7 @@ def span_comments(
     return slash_comments(source)
   if suffix in SQL_SUFFIXES:
     return sql_comments(source)
-  if suffix in JINJA_SUFFIXES:
+  if suffix in JINJA_SUFFIXES or is_jinja_file(path):
     return jinja_comments(source)
   if suffix in HTML_SUFFIXES:
     return html_comments(source)
@@ -660,6 +714,178 @@ def workflow_name_spans(source: str) -> list[tuple[str, int, int]]:
   return spans
 
 
+JS_TEST_SUFFIXES = (
+  ".test.js",
+  ".test.cjs",
+  ".test.mjs",
+  ".spec.js",
+  ".spec.cjs",
+  ".spec.mjs",
+)
+JS_UI_SINK_RE = re.compile(
+  r"(?:\.\s*(?:textContent|innerText|title|placeholder|label|statusText|connectionBase)\s*[+]?="
+  r"|[\"\']?(?:aria-label|title|placeholder|label)[\"\']?\s*:"
+  r"|\bsetAttribute\s*\(\s*[\"\'](?:aria-label|title|placeholder)[\"\']\s*,"
+  r"|\b(?:setConnection|reportStatusLine|copyFrom|label|setStatus|showStatus|toast|alert|confirm)\s*\()"
+)
+JS_UI_HELPER_VAR_RE = re.compile(
+  r"\b(?:const|let|var)\s+(?:blocked|message|status|hint|summary|warning|reason)\s*="
+)
+JS_STRING_LITERAL_RE = re.compile(
+  r'"([^"\\\n]*(?:\\.[^"\\\n]*)*)"'
+  r"|'([^'\\\n]*(?:\\.[^'\\\n]*)*)'"
+  r"|`([^`\\]*(?:\\.[^`\\]*)*)`"
+)
+JS_HTML_PROSE_TAG_RE = re.compile(
+  r"<(?:p|div|span|button|a|h[1-6]|label|li|td|th|strong|em|time|article|section|header|footer|aside|main)\b",
+  re.IGNORECASE,
+)
+
+
+def _iter_js_masked_templates(source: str) -> list[tuple[str, int]]:
+  """Extract JS template literals with `${...}` replaced by `item` and line breaks preserved."""
+  results: list[tuple[str, int]] = []
+  length = len(source)
+
+  def scan_code(idx: int, stop_brace: bool = False) -> int:
+    depth = 1 if stop_brace else 0
+    while idx < length:
+      ch = source[idx]
+      nxt = source[idx + 1] if idx + 1 < length else ""
+      if ch == "/" and nxt == "/":
+        nl = source.find("\n", idx + 2)
+        idx = length if nl < 0 else nl + 1
+        continue
+      if ch == "/" and nxt == "*":
+        end = source.find("*/", idx + 2)
+        idx = length if end < 0 else end + 2
+        continue
+      if ch in {"'", '"'}:
+        quote = ch
+        idx += 1
+        while idx < length:
+          if source[idx] == "\\":
+            idx += 2
+          elif source[idx] == quote:
+            idx += 1
+            break
+          else:
+            idx += 1
+        continue
+      if ch == "`":
+        idx = scan_template(idx + 1)
+        continue
+      if stop_brace:
+        if ch == "{":
+          depth += 1
+        elif ch == "}":
+          depth -= 1
+          if depth == 0:
+            return idx + 1
+      idx += 1
+    return idx
+
+  def scan_template(start_idx: int) -> int:
+    base_line = source.count("\n", 0, start_idx - 1) + 1
+    buf: list[str] = []
+    idx = start_idx
+    while idx < length:
+      ch = source[idx]
+      nxt = source[idx + 1] if idx + 1 < length else ""
+      if ch == "\\":
+        buf.append(source[idx : idx + 2])
+        idx += 2
+        continue
+      if ch == "$" and nxt == "{":
+        expr_start = idx
+        idx = scan_code(idx + 2, stop_brace=True)
+        newlines = source.count("\n", expr_start, idx)
+        buf.append("item" + ("\n" * newlines))
+        continue
+      if ch == "`":
+        results.append(("".join(buf), base_line))
+        return idx + 1
+      buf.append(ch)
+      idx += 1
+    return idx
+
+  scan_code(0, stop_brace=False)
+  return results
+
+
+def js_ui_prose_spans(path: Path, source: str) -> list[tuple[str, int, int]]:
+  """Collect UI labels and DOM prose strings from JS files for full prose checks.
+
+  NMU100 keeps its <=6-word cap in ui_label_spans so filler-article checks apply
+  only to compact button/tab labels rather than full sentences, whereas this
+  extractor feeds all UI labels and longer UI messages into prose_review.
+  """
+  lower_name = path.name.lower()
+  if path.suffix.lower() not in JAVASCRIPT_SUFFIXES or lower_name.endswith(
+    JS_TEST_SUFFIXES
+  ):
+    return []
+  spans: list[tuple[str, int, int]] = []
+  seen: set[tuple[str, int]] = set()
+  for label_text, first, last in ui_label_spans(path, source):
+    if (label_text, first) not in seen and "{" not in label_text:
+      seen.add((label_text, first))
+      spans.append((label_text, first, last))
+  lines = source.splitlines()
+  for idx, raw_line in enumerate(lines):
+    if not (JS_UI_SINK_RE.search(raw_line) or JS_UI_HELPER_VAR_RE.search(raw_line)):
+      continue
+    chunk = raw_line
+    end_idx = idx
+    while (
+      end_idx + 1 < len(lines)
+      and end_idx - idx < 6
+      and not chunk.rstrip().endswith((";", "{", "}"))
+    ):
+      end_idx += 1
+      chunk += "\n" + lines[end_idx]
+    for match in JS_STRING_LITERAL_RE.finditer(chunk):
+      raw = next(group for group in match.groups() if group is not None)
+      clean = re.sub(r"\$\{[^}]*\}", "item", raw)
+      clean = re.sub(r"^[·•|\-\s:]+", "", clean).strip()
+      if (
+        len(clean) < 4
+        or "<" in clean
+        or "{" in clean
+        or "}" in clean
+        or "://" in clean
+        or re.match(r"^[a-z]+/[a-z0-9.+-]+;", clean)
+      ):
+        continue
+      if " " not in clean or len(re.findall(r"[A-Za-z]{2,}", val := clean)) < 2:
+        continue
+      line_no = idx + 1 + chunk[: match.start()].count("\n")
+      end_line = line_no + raw.count("\n")
+      if (val, line_no) not in seen:
+        seen.add((val, line_no))
+        spans.append((val, line_no, end_line))
+  for masked, base_line in _iter_js_masked_templates(source):
+    if not JS_HTML_PROSE_TAG_RE.search(masked):
+      continue
+    for text, local_first, local_last in html_visible_prose(masked):
+      clean = re.sub(r"^[·•|\-\s:]+", "", text).strip()
+      if (
+        len(clean) < 4
+        or "{" in clean
+        or "}" in clean
+        or "://" in clean
+        or " " not in clean
+        or len(re.findall(r"[A-Za-z]{2,}", clean)) < 2
+      ):
+        continue
+      line_no = base_line + local_first - 1
+      end_line = base_line + local_last - 1
+      if (clean, line_no) not in seen:
+        seen.add((clean, line_no))
+        spans.append((clean, line_no, end_line))
+  return sorted(spans, key=lambda row: row[1])
+
+
 def prose_spans(path: Path, source: str) -> list[tuple[str, int, int]]:
   """Extract prose with source lines, joining adjacent comment lines."""
   if path.suffix == ".py":
@@ -670,8 +896,10 @@ def prose_spans(path: Path, source: str) -> list[tuple[str, int, int]]:
       if not source.splitlines()[row[1] - 1].startswith("#!")
     ]
   else:
-    if path.suffix == ".html":
+    if path.suffix == ".html" and not is_jinja_file(path):
       docs = html_visible_prose(source)
+    elif path.suffix.lower() in JAVASCRIPT_SUFFIXES:
+      docs = js_ui_prose_spans(path, source)
     elif is_workflow_yaml(path, source):
       docs = workflow_name_spans(source)
     else:

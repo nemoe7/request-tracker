@@ -3,7 +3,12 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const VERSION = '0.1.4';
+const VERSION = '0.1.5';
+const INTERACTIVE_SELECTOR = [
+  'button', 'a[href]', 'input:not([type="hidden"])', 'select', 'textarea',
+  '[role="button"]', '[role="link"]', '[role="checkbox"]', '[role="radio"]',
+  '[role="switch"]', '[role="tab"]', '[role="menuitem"]', '[role="combobox"]', '[role="textbox"]',
+].join(',');
 const request = JSON.parse(fs.readFileSync(0, 'utf8'));
 
 function emit(value) {
@@ -114,16 +119,230 @@ async function overlaps(page, selector) {
 
 async function metrics(page, selector) {
   return page.evaluate(selector => {
-    const properties = ['height', 'width', 'padding-top', 'padding-right', 'padding-bottom',
-      'padding-left', 'margin-top', 'margin-bottom', 'gap', 'font-size', 'font-weight',
-      'line-height', 'border-radius', 'color', 'background-color', 'outline-style',
-      'outline-width', 'transition-duration', 'animation-duration'];
+    const properties = ['height', 'width', 'max-width', 'padding-top', 'padding-right', 'padding-bottom',
+      'padding-left', 'padding-inline-start', 'margin-top', 'margin-bottom', 'gap', 'font-size', 'font-weight',
+      'font-family', 'font-style', 'line-height', 'letter-spacing', 'text-align', 'text-transform', 'border-radius', 'color', 'background-color', 'outline-style',
+      'outline-width', 'transition-duration', 'animation-duration', '--indent',
+      'list-style-position', 'list-style-type', 'overflow', 'overflow-x', 'overflow-y',
+      'text-overflow', 'white-space'];
+    const measureCanvas = document.createElement('canvas');
+    const measureCtx = measureCanvas.getContext('2d');
+    function chPxFor(style) {
+      if (!measureCtx) return null;
+      measureCtx.font = style.font;
+      const width = measureCtx.measureText('0').width;
+      return Number.isFinite(width) && width > 0 ? Number(width.toFixed(2)) : null;
+    }
+    function lineCountFor(element) {
+      const proseTags = new Set(['P', 'LI', 'BLOCKQUOTE', 'DD', 'FIGCAPTION', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6']);
+      if (!proseTags.has(element.tagName)) return undefined;
+      const tops = [];
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+      let node;
+      while ((node = walker.nextNode())) {
+        if (!node.nodeValue?.trim()) continue;
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        for (const rect of range.getClientRects()) {
+          if (rect.width <= 0 || rect.height <= 0) continue;
+          if (!tops.some(y => Math.abs(y - rect.y) < 3)) tops.push(rect.y);
+        }
+      }
+      return tops.length || undefined;
+    }
+    function cardFontSizesFor(element) {
+      const role = (element.getAttribute('role') || '').toLowerCase();
+      const isCardOrDialog = element.tagName === 'DIALOG' ||
+        role === 'dialog' || role === 'alertdialog' ||
+        Boolean(element.classList?.contains('card'));
+      if (!isCardOrDialog) return undefined;
+      const sizes = new Set();
+      for (const child of element.querySelectorAll('*')) {
+        if (child.closest('.card, dialog, [role="dialog"], [role="alertdialog"]') !== element) continue;
+        const hasDirectText = [...child.childNodes].some(n => n.nodeType === Node.TEXT_NODE && n.nodeValue?.trim());
+        if (!hasDirectText) continue;
+        const cs = getComputedStyle(child);
+        if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+        const fs = cs.getPropertyValue('font-size').trim();
+        if (fs) sizes.add(fs);
+      }
+      return [...sizes];
+    }
+    function headingBodyAlignFor(element, style) {
+      if (!/^H[1-6]$/.test(element.tagName) || !element.parentElement) return undefined;
+      const norm = v => {
+        const s = (v || '').trim().toLowerCase();
+        if (s === 'left' || s === 'start') return 'start';
+        if (s === 'right' || s === 'end') return 'end';
+        return s;
+      };
+      const hAlign = norm(style.getPropertyValue('text-align'));
+      const sib = [...element.parentElement.children].find(
+        c => c !== element && c.tagName === 'P' && getComputedStyle(c).display !== 'none'
+      );
+      if (!sib) return undefined;
+      const bAlign = norm(getComputedStyle(sib).getPropertyValue('text-align'));
+      if (hAlign && bAlign && hAlign !== bAlign) {
+        return {heading_align: hAlign, body_align: bAlign};
+      }
+      return undefined;
+    }
+    function headingHierarchyFor(element) {
+      const role = (element.getAttribute('role') || '').toLowerCase();
+      const isCardOrDialog = element.tagName === 'DIALOG' ||
+        role === 'dialog' || role === 'alertdialog' ||
+        Boolean(element.classList?.contains('card'));
+      if (!isCardOrDialog) return undefined;
+      const heading = [...element.querySelectorAll('h1, h2, h3, h4, h5, h6')].find(
+        h => h.closest('.card, dialog, [role="dialog"], [role="alertdialog"]') === element
+      );
+      const body = [...element.querySelectorAll('p')].find(
+        p => p.closest('.card, dialog, [role="dialog"], [role="alertdialog"]') === element
+      );
+      if (!heading || !body) return undefined;
+      const hCs = getComputedStyle(heading), bCs = getComputedStyle(body);
+      const hSize = Number.parseFloat(hCs.getPropertyValue('font-size'));
+      const bSize = Number.parseFloat(bCs.getPropertyValue('font-size'));
+      const hWeight = Number.parseFloat(hCs.getPropertyValue('font-weight')) || 400;
+      const bWeight = Number.parseFloat(bCs.getPropertyValue('font-weight')) || 400;
+      if (!Number.isFinite(hSize) || !Number.isFinite(bSize)) return undefined;
+      if (hSize < bSize - 0.1 || (Math.abs(hSize - bSize) <= 0.1 && hWeight <= bWeight)) {
+        return {heading_size: hSize, heading_weight: hWeight, sub_size: bSize, sub_weight: bWeight};
+      }
+      return undefined;
+    }
+    function buttonFillColorsFor(element) {
+      const role = (element.getAttribute('role') || '').toLowerCase();
+      const classAndId = `${element.id || ''} ${typeof element.className === 'string' ? element.className : ''}`;
+      const isContainer = element.tagName === 'DIALOG' ||
+        role === 'dialog' || role === 'alertdialog' ||
+        Boolean(element.classList?.contains('card')) ||
+        /(?:^|[-_\s])(btn-group|button-group|modal-actions)(?:$|[-_\s])/i.test(classAndId);
+      if (!isContainer) return undefined;
+      const fills = new Set();
+      for (const btn of element.querySelectorAll('button, [role="button"]')) {
+        const bg = getComputedStyle(btn).getPropertyValue('background-color').trim();
+        const m = bg.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)$/i);
+        if (!m) continue;
+        const r = Number(m[1]), g = Number(m[2]), b = Number(m[3]);
+        const a = m[4] === undefined ? 1 : Number(m[4]);
+        if (a > 0.1 && Math.max(r, g, b) - Math.min(r, g, b) > 30) {
+          fills.add(`rgb(${r}, ${g}, ${b})`);
+        }
+      }
+      return fills.size >= 2 ? [...fills] : undefined;
+    }
+    function groupProximityFor(element, style) {
+      const role = (element.getAttribute('role') || '').toLowerCase();
+      const isCardOrDialog = element.tagName === 'DIALOG' ||
+        role === 'dialog' || role === 'alertdialog' ||
+        Boolean(element.classList?.contains('card'));
+      if (isCardOrDialog) {
+        const heading = [...element.children].find(c => /^H[1-6]$/.test(c.tagName));
+        const body = [...element.children].find(c => c.tagName === 'P');
+        const action = [...element.children].find(c =>
+          c.tagName === 'BUTTON' || /(?:^|[-_\s])(btn-group|button-group|modal-actions)(?:$|[-_\s])/i.test(c.className || '')
+        );
+        if (heading && body && action) {
+          const hRect = heading.getBoundingClientRect();
+          const bRect = body.getBoundingClientRect();
+          const aRect = action.getBoundingClientRect();
+          const intra = Math.max(0, Number((bRect.top - hRect.bottom).toFixed(2)));
+          const inter = Math.max(0, Number((aRect.top - bRect.bottom).toFixed(2)));
+          if (intra > 0 || inter === 0) return {inter_px: inter, intra_px: intra};
+        }
+      }
+      const inter = Number.parseFloat(style.getPropertyValue('gap')) ||
+        Number.parseFloat(style.getPropertyValue('row-gap')) ||
+        Number.parseFloat(style.getPropertyValue('column-gap'));
+      if (!Number.isFinite(inter) || inter <= 0) return undefined;
+      const groupChildren = [...element.children].filter(child =>
+        child.tagName === 'FIELDSET' || child.tagName === 'LABEL' ||
+        (child.getAttribute('role') || '').toLowerCase() === 'group' ||
+        Boolean(child.classList?.contains('field'))
+      );
+      if (groupChildren.length < 2) return undefined;
+      let maxIntra = 0;
+      for (const child of groupChildren) {
+        const cs = getComputedStyle(child);
+        const intra = Number.parseFloat(cs.getPropertyValue('gap')) ||
+          Number.parseFloat(cs.getPropertyValue('row-gap')) ||
+          Number.parseFloat(cs.getPropertyValue('column-gap')) || 0;
+        if (Number.isFinite(intra) && intra > maxIntra) maxIntra = intra;
+      }
+      if (maxIntra <= 0) return undefined;
+      return {inter_px: Number(inter.toFixed(2)), intra_px: Number(maxIntra.toFixed(2))};
+    }
+    function cardInlineInsetsFor(element) {
+      const role = (element.getAttribute('role') || '').toLowerCase();
+      const isCardOrDialog = element.tagName === 'DIALOG' ||
+        role === 'dialog' || role === 'alertdialog' ||
+        Boolean(element.classList?.contains('card'));
+      if (!isCardOrDialog) return undefined;
+      const cardRect = element.getBoundingClientRect();
+      if (cardRect.width <= 0 || cardRect.height <= 0) return undefined;
+      const children = [...element.children].filter(child => {
+        const cs = getComputedStyle(child);
+        if (cs.display === 'none' || cs.visibility === 'hidden' || cs.position === 'absolute' || cs.position === 'fixed') return false;
+        if (cs.justifyContent === 'flex-end' || cs.alignSelf === 'flex-end') return false;
+        const r = child.getBoundingClientRect();
+        return r.width > 0 && r.height > 0;
+      });
+      if (children.length < 2) return undefined;
+      const rects = children.map(child => child.getBoundingClientRect());
+      for (let i = 1; i < rects.length; i++) {
+        if (rects[i].top < rects[i - 1].bottom - 2) return undefined;
+      }
+      return rects.map(r => Number((r.left - cardRect.left).toFixed(2)));
+    }
     function selectorFor(element) {
       if (element.id) return `#${CSS.escape(element.id)}`;
       const parent = element.parentElement;
       if (!parent) return element.tagName.toLowerCase();
       const siblings = [...parent.children].filter(node => node.tagName === element.tagName);
       return `${selectorFor(parent)} > ${element.tagName.toLowerCase()}:nth-of-type(${siblings.indexOf(element) + 1})`;
+    }
+    function listLineStarts(item) {
+      const direction = getComputedStyle(item).direction;
+      const positions = new Map();
+      const walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT);
+      let node;
+      while ((node = walker.nextNode())) {
+        if (!node.nodeValue?.trim() || node.parentElement?.closest('li') !== item) continue;
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        for (const rect of range.getClientRects()) {
+          if (rect.width <= 0 || rect.height <= 0) continue;
+          const line = Number(rect.y.toFixed(2));
+          const start = direction === 'rtl' ? rect.right : rect.left;
+          const previous = positions.get(line);
+          positions.set(line, previous === undefined
+            ? start : direction === 'rtl' ? Math.max(previous, start) : Math.min(previous, start));
+        }
+      }
+      return [...positions.entries()].sort((a, b) => a[0] - b[0])
+        .map(([, start]) => Number(start.toFixed(2)));
+    }
+    function listIndentFor(element, style) {
+      if (!['OL', 'UL'].includes(element.tagName)) return undefined;
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      let chPx = null;
+      if (context) {
+        context.font = style.font;
+        const width = context.measureText('0').width;
+        if (Number.isFinite(width) && width > 0) chPx = Number(width.toFixed(2));
+      }
+      return {
+        indent: style.getPropertyValue('--indent').trim(),
+        ch_px: chPx,
+        padding_inline_start: Number.parseFloat(style.getPropertyValue('padding-inline-start')),
+        list_style_position: style.getPropertyValue('list-style-position'),
+        direction: style.direction,
+        items: [...element.children]
+          .filter(child => child.tagName === 'LI')
+          .map(item => ({selector: selectorFor(item), line_starts: listLineStarts(item)})),
+      };
     }
     const elements = [...document.querySelectorAll(selector)].map(element => {
       const style = getComputedStyle(element);
@@ -179,23 +398,73 @@ async function metrics(page, selector) {
       const tag = element.tagName.toLowerCase();
       const role = element.getAttribute('role');
       const inputType = tag === 'input' ? (element.getAttribute('type') || 'text').toLowerCase() : null;
+      let rowSlack = 0;
+      if ((tag === 'input' || tag === 'select') && element.parentElement && box.width > 0 && box.height > 0) {
+        const parent = element.parentElement;
+        const parentStyle = getComputedStyle(parent);
+        const parentBox = parent.getBoundingClientRect();
+        const padRight = parseFloat(parentStyle.getPropertyValue('padding-right')) || 0;
+        const rowRight = parentBox.x + parentBox.width - padRight;
+        const hasTrailingSibling = [...(parent.children || [])].some(sib => {
+          if (sib === element) return false;
+          const cs = getComputedStyle(sib);
+          if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+          const r = sib.getBoundingClientRect();
+          if (r.width <= 0 || r.height <= 0) return false;
+          const verticalOverlap = Math.min(box.y + box.height, r.y + r.height) - Math.max(box.y, r.y);
+          return verticalOverlap > 0 && r.x >= box.x + box.width - 2;
+        });
+        if (!hasTrailingSibling && rowRight > box.x + box.width) {
+          rowSlack = Number((rowRight - (box.x + box.width)).toFixed(2));
+        }
+      }
       const classAndId = `${element.id || ''} ${typeof element.className === 'string' ? element.className : ''}`;
       const toolbarExempt = ['header', 'nav', 'footer'].includes(tag) ||
         ['banner', 'toolbar', 'navigation', 'menubar', 'tablist'].includes((role || '').toLowerCase()) ||
         Boolean(element.closest && element.closest('header, nav, [role="banner"], [role="toolbar"], [role="navigation"]')) ||
         /(?:^|[-_\s])(topbar|toolbar|header|navbar|menubar|statusbar|action-bar|tab-bar)(?:$|[-_\s])/i.test(classAndId) ||
         (box.height > 0 && box.height <= 64 && style.getPropertyValue('justify-content') === 'space-between');
+      const isButtonGroup = (role || '').toLowerCase() === 'tablist' ||
+        /(?:^|[-_\s])(tab-nav|btn-group|button-group|modal-actions)(?:$|[-_\s])/i.test(classAndId);
+      const buttonGroupSizes = isButtonGroup
+        ? [...(element.children || [])]
+            .filter(child => child.tagName === 'BUTTON' || (child.getAttribute('role') || '').toLowerCase() === 'tab')
+            .map(child => {
+              const cs = getComputedStyle(child);
+              if (cs.display === 'none' || cs.visibility === 'hidden') return null;
+              const r = child.getBoundingClientRect();
+              return r.width > 0 && r.height > 0
+                ? {width: Number(r.width.toFixed(2)), height: Number(r.height.toFixed(2))}
+                : null;
+            })
+            .filter(Boolean)
+        : undefined;
       return {selector: selectorFor(element),
         tag, inputType, role,
         toolbarExempt,
+        ...(buttonGroupSizes && buttonGroupSizes.length >= 2 ? {button_group_sizes: buttonGroupSizes, buttonGroupSizes} : {}),
         label: element.getAttribute('aria-label'),
         labelledBy: element.getAttribute('aria-labelledby'),
         labels: element.labels ? [...element.labels].map(label => label.textContent) : [],
         text: ['INPUT', 'TEXTAREA'].includes(element.tagName) ? null : element.textContent.slice(0, 200),
         bounds: {x: box.x, y: box.y, width: box.width, height: box.height},
+        scroll_width: element.scrollWidth,
+        client_width: element.clientWidth,
         ...(inkRatio !== null ? {inkWidth: Number(inkWidth.toFixed(2)), inkRatio} : {}),
         maxSiblingGap,
-        values: Object.fromEntries(properties.map(name => [name, style.getPropertyValue(name)]))};
+        row_slack: rowSlack,
+        rowSlack,
+        line_count: lineCountFor(element),
+        ch_px: chPxFor(style),
+        in_card_or_dialog: Boolean(element.closest && element.closest('.card, dialog, [role="dialog"], [role="alertdialog"], aside, nav, table')),
+        card_font_sizes: cardFontSizesFor(element),
+        heading_body_alignment: headingBodyAlignFor(element, style),
+        heading_hierarchy: headingHierarchyFor(element),
+        button_fill_colors: buttonFillColorsFor(element),
+        group_proximity: groupProximityFor(element, style),
+        card_inline_insets: cardInlineInsetsFor(element),
+        values: Object.fromEntries(properties.map(name => [name, style.getPropertyValue(name)])),
+        list_indent: listIndentFor(element, style)};
     });
     return {width: innerWidth, height: innerHeight, elements,
       overflow: document.documentElement.scrollWidth > innerWidth,
@@ -208,7 +477,7 @@ async function metrics(page, selector) {
 }
 
 async function a11yChecks(page) {
-  return page.evaluate(() => {
+  return page.evaluate(interactiveSelector => {
     function selectorFor(element) {
       if (element.id) return `#${CSS.escape(element.id)}`;
       const parent = element.parentElement;
@@ -304,17 +573,12 @@ async function a11yChecks(page) {
     }
 
     const findings = [];
-    const interactiveSelector = [
-      'button', 'a[href]', 'input:not([type="hidden"])', 'select', 'textarea',
-      '[role="button"]', '[role="link"]', '[role="checkbox"]', '[role="radio"]',
-      '[role="switch"]', '[role="tab"]', '[role="menuitem"]', '[role="combobox"]', '[role="textbox"]',
-    ].join(',');
 
     for (const control of document.querySelectorAll(interactiveSelector)) {
       if (!isVisible(control)) continue;
       if (!accessibleName(control)) {
         findings.push({
-          rule: 'NUA301',
+          rule: 'ACC003',
           severity: 'review',
           criterion: '4.1.2',
           selector: selectorFor(control),
@@ -327,7 +591,7 @@ async function a11yChecks(page) {
         const box = control.getBoundingClientRect();
         if (box.width > 0 && box.height > 0 && Math.abs(box.width - box.height) > 1) {
           findings.push({
-            rule: 'NUM208',
+            rule: 'HRC102',
             severity: 'review',
             criterion: '2.5.8',
             selector: selectorFor(control),
@@ -338,7 +602,7 @@ async function a11yChecks(page) {
       const nested = control.querySelector(interactiveSelector);
       if (nested && isVisible(nested)) {
         findings.push({
-          rule: 'NUA303',
+          rule: 'ACC005',
           severity: 'review',
           criterion: '4.1.2',
           selector: selectorFor(control),
@@ -355,7 +619,7 @@ async function a11yChecks(page) {
         const missing = raw.split(/\s+/).filter(id => id && !document.getElementById(id));
         if (missing.length) {
           findings.push({
-            rule: 'NUA302',
+            rule: 'ACC004',
             severity: 'review',
             criterion: '1.3.1',
             selector: selectorFor(element),
@@ -374,7 +638,7 @@ async function a11yChecks(page) {
     for (const [id, count] of idCounts.entries()) {
       if (count > 1) {
         findings.push({
-          rule: 'NUA304',
+          rule: 'ACC006',
           severity: 'review',
           criterion: '4.1.1',
           selector: `#${CSS.escape(id)}`,
@@ -392,7 +656,7 @@ async function a11yChecks(page) {
       if (!Number.isInteger(level) || level < 1) continue;
       if (previousLevel > 0 && level > previousLevel + 1) {
         findings.push({
-          rule: 'NUA305',
+          rule: 'ACC007',
           severity: 'review',
           criterion: '1.3.1',
           selector: selectorFor(heading),
@@ -404,13 +668,29 @@ async function a11yChecks(page) {
 
     const walker = document.createTreeWalker(document.body || document.documentElement, NodeFilter.SHOW_TEXT);
     const checkedElements = new Set();
+    const checkedTimestampElements = new Set();
+    const rawUiTimestampRe = /\b\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?|\s+\d{2}:\d{2}(?::\d{2})?(?:\s*(?:UTC|GMT|[+-]\d{2}:?\d{2}))?)\b|\b\d{2}:\d{2}(?::\d{2})?\s*(?:UTC|GMT)\b/;
     let textNode;
     while ((textNode = walker.nextNode())) {
       if (!textNode.nodeValue || !textNode.nodeValue.trim()) continue;
       const parent = textNode.parentElement;
-      if (!parent || checkedElements.has(parent) || ['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(parent.tagName)) continue;
-      checkedElements.add(parent);
+      if (!parent || ['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(parent.tagName)) continue;
       if (!isVisible(parent)) continue;
+      if (!checkedTimestampElements.has(parent) && !parent.closest('code, pre, textarea')) {
+        const tsMatch = rawUiTimestampRe.exec(textNode.nodeValue);
+        if (tsMatch) {
+          checkedTimestampElements.add(parent);
+          findings.push({
+            rule: 'HRC202',
+            severity: 'review',
+            criterion: 'relative-timestamps',
+            selector: selectorFor(parent),
+            evidence: `Visible raw or unadjusted timestamp in UI text: ${tsMatch[0]}`,
+          });
+        }
+      }
+      if (checkedElements.has(parent)) continue;
+      checkedElements.add(parent);
       const style = getComputedStyle(parent);
       const fgRaw = parseRgba(style.color);
       if (!fgRaw || fgRaw[3] <= 0) continue;
@@ -423,7 +703,7 @@ async function a11yChecks(page) {
       const threshold = large ? 3.0 : 4.5;
       if (ratio + 1e-4 < threshold) {
         findings.push({
-          rule: 'NUA306',
+          rule: 'ACC101',
           severity: 'review',
           criterion: '1.4.3',
           selector: selectorFor(parent),
@@ -462,7 +742,7 @@ async function a11yChecks(page) {
           const outlineW = parseFloat(fStyle.outlineWidth) || 0;
           if (outlineW > 0 && fStyle.outlineStyle !== 'none') {
             findings.push({
-              rule: 'NUA307',
+              rule: 'ACC202',
               severity: 'review',
               criterion: '2.4.7',
               selector: selectorFor(control),
@@ -522,7 +802,7 @@ async function a11yChecks(page) {
             rect.bottom + halo > aRect.bottom + 0.5
           ) {
             findings.push({
-              rule: 'NUA308',
+              rule: 'ACC203',
               severity: 'review',
               criterion: '2.4.11',
               selector: selectorFor(node),
@@ -548,7 +828,7 @@ async function a11yChecks(page) {
         const nextRect = control.getBoundingClientRect();
         if (Math.abs(nextRect.width - baseRect.width) > 0.5 || Math.abs(nextRect.height - baseRect.height) > 0.5) {
           findings.push({
-            rule: 'NUA309',
+            rule: 'ACC205',
             severity: 'review',
             criterion: 'clause-9',
             selector: selectorFor(control),
@@ -580,7 +860,7 @@ async function a11yChecks(page) {
     } catch {}
 
     return {status: 'checked', findings};
-  });
+  }, INTERACTIVE_SELECTOR);
 }
 
 function validateFlow(steps) {
@@ -611,14 +891,37 @@ function validateFlow(steps) {
   }
 }
 
-async function flow(page, context, steps, output, timeout) {
+async function interactiveBounds(locator) {
+  if (!locator) return null;
+  try {
+    return await locator.evaluate((element, selector) => {
+      if (!element.matches(selector)) return null;
+      const rect = element.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0
+        ? {x: rect.x, y: rect.y, width: rect.width, height: rect.height}
+        : null;
+    }, INTERACTIVE_SELECTOR);
+  } catch {
+    return null;
+  }
+}
+
+async function flow(page, context, steps, output, timeout, viewportMeta = {}) {
   const results = [];
   let assertions = 0;
   for (const [index, step] of steps.entries()) {
-    const row = {index, action: step.action, selector: step.selector, status: 'not_run'};
+    const row = {
+      index,
+      action: step.action,
+      selector: step.selector,
+      ...(viewportMeta.width ? {width: viewportMeta.width} : {}),
+      ...(viewportMeta.scheme ? {scheme: viewportMeta.scheme} : {}),
+      status: 'not_run',
+    };
     results.push(row);
     try {
       const target = step.selector ? page.locator(step.selector) : null;
+      const beforeDimensions = await interactiveBounds(target);
       if (step.action === 'goto') await page.goto(url(step.url), {timeout});
       if (step.action === 'click') await target.click({timeout});
       if (step.action === 'fill') await target.fill(String(step.value), {timeout});
@@ -659,12 +962,53 @@ async function flow(page, context, steps, output, timeout) {
         row.path = path.join(output, `flow-${index}.png`);
         await page.screenshot({path: row.path, fullPage: true, timeout});
       }
+      if (beforeDimensions) {
+        const afterDimensions = await interactiveBounds(target);
+        if (afterDimensions && (
+          Math.abs(afterDimensions.width - beforeDimensions.width) > 0.5 ||
+          Math.abs(afterDimensions.height - beforeDimensions.height) > 0.5
+        )) {
+          row.dimensionShift = {before: beforeDimensions, after: afterDimensions};
+        }
+      }
       row.status = 'passed';
     } catch (error) {
       row.status = 'failed';
       row.error = String(error.message);
-      return {status: 'failed', assertions, steps: results,
-        remaining: steps.length - results.length};
+      if (step.selector) {
+        try {
+          const state = await page.evaluate(sel => {
+            const el = document.querySelector(sel);
+            if (!el) return {matched: 0, visible: false};
+            const cs = getComputedStyle(el);
+            const r = el.getBoundingClientRect();
+            const vis =
+              cs.display !== 'none' &&
+              cs.visibility !== 'hidden' &&
+              Number(cs.opacity) !== 0 &&
+              r.width > 0 &&
+              r.height > 0;
+            return {
+              matched: document.querySelectorAll(sel).length,
+              visible: vis,
+              hiddenAttr: Boolean(el.hidden),
+              display: cs.display,
+              visibility: cs.visibility,
+            };
+          }, step.selector);
+          row.visible = state.visible;
+          row.selectorState = state;
+        } catch {}
+      }
+      return {
+        status: 'failed',
+        ...(viewportMeta.width ? {width: viewportMeta.width} : {}),
+        ...(viewportMeta.scheme ? {scheme: viewportMeta.scheme} : {}),
+        failedStep: row,
+        assertions,
+        steps: results,
+        remaining: steps.length - results.length,
+      };
     }
   }
   return {status: assertions ? 'passed' : steps.length ? 'actions_run' : 'not_run',
@@ -806,11 +1150,23 @@ async function run() {
   const output = fs.mkdtempSync(path.join(artifactRoot, 'capture-'));
   const captures = [];
   const timeout = request.timeout * 1000;
+  const HOUSE_HEIGHTS = {
+    1920: 957,
+    1372: 883,
+    1080: 2437,
+    958: 958,
+    411: 799,
+    855: 325,
+    ...(request.heights || {}),
+  };
+  const REPORT_WIDTHS = Array.isArray(request.report_widths) && request.report_widths.length
+    ? request.report_widths
+    : [1920, 411];
   try {
     for (const width of request.widths) {
-      const height = Number(request.height || 900);
+      const height = Number(request.height || HOUSE_HEIGHTS[width] || 900);
       const touch = width <= 768 || height <= 480;
-      for (const scheme of ['light', 'dark']) {
+      for (const scheme of ['dark', 'light']) {
         for (const motion of ['no-preference', 'reduce']) {
           const context = await browser.newContext({viewport: {width, height},
             hasTouch: touch, isMobile: touch,
@@ -821,7 +1177,9 @@ async function run() {
           page.on('console', message => {
             if (message.type() === 'error') errors.push({type: 'console', message: message.text()});
           });
-          const row = {width, touch, scheme, motion, status: 'not_checked', errors,
+          const row = {width, height, touch, scheme, motion,
+            report_shot: REPORT_WIDTHS.includes(width) && scheme === 'dark' && motion === 'no-preference',
+            status: 'not_checked', errors,
             flow: {status: 'not_run'}, edit: {status: 'not_run'}};
           captures.push(row);
           try {
@@ -833,7 +1191,7 @@ async function run() {
             }
             row.measurements = await metrics(page, request.selector);
             if (captures.length === 1) {
-              row.flow = await flow(page, context, request.flow || [], output, timeout);
+              row.flow = await flow(page, context, request.flow || [], output, timeout, {width, scheme, motion});
               if (request.edit) {
                 const edit = request.edit;
                 const node = page.locator(edit.selector);
@@ -880,13 +1238,13 @@ async function run() {
   const findings = [];
   for (const row of captures) {
     const location = {url: target, width: row.width, scheme: row.scheme, motion: row.motion};
-    if (row.status === 'failed') findings.push({rule: 'NUB104', severity: 'error', location, evidence: row.error});
-    if (row.flow.status === 'failed') findings.push({rule: 'NUB103', severity: 'error', location, evidence: row.flow});
+    if (row.status === 'failed') findings.push({rule: 'RUN102', severity: 'error', location, evidence: row.error});
+    if (row.flow.status === 'failed') findings.push({rule: 'RUN101', severity: 'error', location, evidence: row.flow});
     if (Array.isArray(row.flow?.steps)) {
       for (const stepRow of row.flow.steps) {
         if (stepRow.dimensionShift) {
           findings.push({
-            rule: 'NUA309',
+            rule: 'ACC205',
             severity: 'review',
             criterion: 'clause-9',
             selector: stepRow.selector,
@@ -896,8 +1254,8 @@ async function run() {
         }
       }
     }
-    if (row.errors.length) findings.push({rule: 'NUB102', severity: 'review', location, evidence: row.errors});
-    if (row.measurements?.overflow) findings.push({rule: 'NUB101', severity: 'review', location, evidence: 'Horizontal overflow'});
+    if (row.errors.length) findings.push({rule: 'RUN001', severity: 'review', location, evidence: row.errors});
+    if (row.measurements?.overflow) findings.push({rule: 'SPC206', severity: 'review', location, evidence: 'Horizontal overflow'});
     if (row.a11y?.findings?.length) {
       for (const item of row.a11y.findings) {
         findings.push({...item, location});
@@ -905,7 +1263,9 @@ async function run() {
     }
   }
   return {status: findings.length ? 'findings' : 'captured', findings,
-    engine: chosen[0], captures, automated_flow: 'first capture only',
+    engine: chosen[0], captures,
+    report_shots: captures.filter(row => row.report_shot && row.screenshot).map(row => row.screenshot),
+    automated_flow: 'first capture only',
     synthesized_input: 'Playwright actions', visual_judgment: 'not_run', participant_research: 'not_run', real_device: 'not_run'};
 }
 

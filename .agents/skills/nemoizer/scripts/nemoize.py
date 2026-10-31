@@ -5,6 +5,7 @@
 import argparse
 import ast
 import configparser
+import contextlib
 import fnmatch
 import json
 import re
@@ -12,9 +13,8 @@ import shutil
 import subprocess
 import sys
 import tokenize
-from pathlib import Path
-
 import tomllib
+from pathlib import Path
 
 try:
   from markers import (
@@ -30,6 +30,7 @@ try:
 except ImportError:
   MARKER = re.compile(r"\bnonemo:[ \t]*(.*?)(?=-->|\*/|;|\s|$|\bnonemo:)")
   MARKER_SPAN = re.compile(r"\bnonemo:[ \t]*.*?(?=-->|\*/|;|\s|$|\bnonemo:)[ \t]*;?")
+  INLINE_CODE = re.compile(r"(?P<fence>`+)(?!`).*?(?P=fence)(?!`)")
 
   def marker_head(line, position=None, rotations=()):
     marker = MARKER.search(line)
@@ -40,10 +41,47 @@ except ImportError:
       re.search(pattern, before, flags=re.IGNORECASE) for _, pattern, _ in rotations
     )
 
-  def collect_markers(path, lines, known_rule_ids, rotations=()):
+  def test_comment_spans(path, lines):
+    path = Path(path)
+    name = path.name
+    is_test = (
+      "tests" in path.parts
+      or name.startswith("test_")
+      or ".test." in name
+      or ".checks." in name
+    )
+    if not is_test:
+      return None
+    source = "\n".join(lines) + "\n"
+    if path.suffix.lower() == ".py":
+      spans = []
+      try:
+        tokens = tokenize.generate_tokens(iter(source.splitlines(True)).__next__)
+        for token in tokens:
+          if token.type == tokenize.COMMENT:
+            spans.append((token.start, token.end))
+      except (tokenize.TokenError, SyntaxError):
+        return None
+      return spans
+    if path.suffix.lower() in {".js", ".cjs", ".mjs"}:
+      from prose import javascript_comment_spans
+
+      return list(javascript_comment_spans(source))
+    return None
+
+  def in_spans(number, column, spans):
+    point = (number, column)
+    return any(start <= point <= end for start, end in spans)
+
+  def collect_markers(path, lines, known_rule_ids, rotations=(), audit=False):
     file_ids, line_ids, marks = set(), [], []
+    comment_spans = test_comment_spans(path, lines) if audit else None
     for number, line in enumerate(lines, 1):
       suppressed = set()
+      visible = (
+        INLINE_CODE.sub(lambda match: " " * len(match[0]), line) if audit else line
+      )
+      audit_positions = {marker.start() for marker in MARKER.finditer(visible)}
       for marker in MARKER.finditer(line):
         code = marker[1]
         scope = "unknown"
@@ -56,6 +94,14 @@ except ImportError:
           )
           if scope == "file":
             file_ids.add(code)
+        if audit and (
+          marker.start() not in audit_positions
+          or (
+            comment_spans is not None
+            and not in_spans(number, marker.start(), comment_spans)
+          )
+        ):
+          continue
         marks.append(f"{path}:{number}: {code or '<missing>'} {scope}: {line.strip()}")
       line_ids.append(suppressed)
     return file_ids, line_ids, marks
@@ -82,11 +128,14 @@ except ImportError:
 from prose import (
   COMMENT_BLOCK_CAP,
   comment_blocks,
+  html_attr_spans,
   is_code_file,
   is_env_file,
+  is_jinja_file,
   is_workflow_yaml,
   prose_spans,
   slash_comments,
+  ui_label_spans,
   workflow_name_spans,
 )
 
@@ -98,12 +147,27 @@ EXCEPTIONS = {
   "repositories": "repos",
   "pull request": "PR",
   "pull requests": "PRs",
+  "names": "specifies",
+  "named": "specified",
+  "naming": "specifying",
 }
 NEMOIZER_MODIFIED_NOUNS = (
   r"rules?|lists?|linters?|prose|skills?|configs?|checks?|scripts?|"
   r"parsers?|suites?|tests?|plugins?|domains?|targets?|markers?"
 )
 KEEP_LOWER = {"nemoizer"}
+NAME_VERB_PATTERN = (
+  r"(?:"
+  r"(?:(?<=^)|(?<=\n)|(?<=^- )|(?<=\* )|(?<=\. )|(?<=, and )"
+  r"|(?<=, or )|(?<=\bto )|(?<=\bmust )|(?<=\bcan )|(?<=\bmay )|(?<=\bwill ))"
+  r"name(?=\s+(?:the|a|an|each|every|all|any|this|that|its|their)\s+(?!few\b)[A-Za-z]+)"
+  r"|"
+  r"(?:(?<=\bit )|(?<=\bthat )|(?<=\bwhich )|(?<=\bwho )|(?<=\bsheet )"
+  r"|(?<=\bcontrol )|(?<=\btable )|(?<=\brule )|(?<=\bclause )|(?<=\breport )"
+  r"|(?<=\bconfig )|(?<=\bscript )|(?<=\bcheck )|(?<=\btool )|(?<=\bpage )|(?<=, and ))"
+  r"names(?=\s+(?:the|a|an|each|every|all|any|this|that|its|their|[A-Z])[A-Za-z]*)"
+  r")"
+)
 ROTATIONS = (
   (
     "pick",
@@ -126,6 +190,7 @@ ROTATIONS = (
     "repo",
   ),
   ("pull request", r"(?<![A-Za-z0-9])pull[ \t]+requests?(?![A-Za-z0-9])", "PR"),
+  ("name", NAME_VERB_PATTERN, "specify"),
   (
     "nemoizer",
     (
@@ -141,6 +206,7 @@ RULE_IDS = {
   "kind": "NMO100",
   "repository": "NMO901",
   "pull request": "NMO901",
+  "name": "NMO901",
   "nemoizer": "NMO100",
 }
 ADVISORY_RULE_IDS = {
@@ -206,9 +272,114 @@ PROSE_RULE_IDS = {
   "self_narration": "HMN910",
   "paragraph": "NMP100",
   "comment_block": "NMP101",
+  "padded_ui_label": "NMU100",
   "serial_comma": "NMO003",
   "the_density": "NMO902",
 }
+NMU_RULE_IDS = {"byte_unit": "NMU200"}
+NMU200_SUFFIXES = {".py", ".js", ".cjs", ".mjs", ".ts", ".tsx", ".jsx", ".html", ".htm"}
+NMU200_LABEL_RE = re.compile(r"\b(KB|MB|GB|TB|KiB|MiB|GiB|TiB)\b")
+NMU200_BINARY_RE = re.compile(
+  r"/\s*\(*\s*(?:1024|1_024|1048576|1_048_576|1073741824|1_073_741_824)(?![\w.])"
+  r"|/\s*\(*\s*1\s*<<\s*(?:10|20|30)(?!\w)"
+  r"|/\s*\(*\s*1024\s*(?:\*\*|\^)\s*(?:2|3)(?!\w)"
+)
+NMU200_DECIMAL_RE = re.compile(
+  r"/\s*\(*\s*(?:1000|1_000|1000000|1_000_000|1000000000|1_000_000_000)(?![\w.])"
+  r"|/\s*\(*\s*1[eE][+]?0*(?:3|6|9)(?!\w)"
+  r"|/\s*\(*\s*10\s*(?:\*\*|\^)\s*(?:3|6|9)(?!\w)"
+  r"|/\s*\(*\s*1000\s*(?:\*\*|\^)\s*(?:2|3)(?!\w)"
+)
+NMU200_INTERPOLATION_RE = re.compile(r"\{([^{}]*)\}")
+NMU100_MAX_WORDS = 6
+PADDING = re.compile(r"\b(the|this|these|those|a|an|please|here|just)\b", re.IGNORECASE)
+SENTENCE_END = re.compile(r"[.!?]$")
+
+
+def nmu100_findings(spans, cap=NMU100_MAX_WORDS):
+  """A label of cap words or fewer must not carry an article or a filler."""
+  for text, line, _ in spans:
+    words = text.split()
+    if len(words) > cap or SENTENCE_END.search(text):
+      continue
+    hit = PADDING.search(text)
+    if hit:
+      yield line, text, hit.group(1), len(words)
+
+
+def nmu200_string_contents(line, suffix, in_block_comment=False):
+  contents = []
+  index = 0
+  javascript = suffix in {".js", ".cjs", ".mjs", ".ts", ".tsx", ".jsx"}
+  while index < len(line):
+    if in_block_comment:
+      end_marker = "-->" if suffix in {".html", ".htm"} else "*/"
+      end = line.find(end_marker, index)
+      if end < 0:
+        return contents, True
+      index = end + len(end_marker)
+      in_block_comment = False
+      continue
+    if suffix == ".py" and line[index] == "#":
+      break
+    if javascript and line.startswith("//", index):
+      break
+    if javascript and line.startswith("/*", index):
+      in_block_comment = True
+      index += 2
+      continue
+    if suffix in {".html", ".htm"} and line.startswith("<!--", index):
+      in_block_comment = True
+      index += 4
+      continue
+    quote = line[index]
+    if quote not in {"'", '"', "`"}:
+      index += 1
+      continue
+    delimiter = (
+      quote * 3 if suffix == ".py" and line.startswith(quote * 3, index) else quote
+    )
+    start = index + len(delimiter)
+    index = start
+    while index < len(line):
+      if line[index] == "\\":
+        index += 2
+      elif line.startswith(delimiter, index):
+        contents.append(line[start:index])
+        index += len(delimiter)
+        break
+      else:
+        index += 1
+    else:
+      contents.append(line[start:])
+  return contents, in_block_comment
+
+
+def nmu200_findings(path, text):
+  suffix = path.suffix.lower()
+  if suffix not in NMU200_SUFFIXES:
+    return
+  decimal_labels = {"KB", "MB", "GB", "TB"}
+  binary_labels = {"KiB", "MiB", "GiB", "TiB"}
+  in_block_comment = False
+  for line_number, line in enumerate(text.splitlines(), 1):
+    literals, in_block_comment = nmu200_string_contents(line, suffix, in_block_comment)
+    for literal in literals:
+      for expression in NMU200_INTERPOLATION_RE.finditer(literal):
+        tail = literal[expression.end() :]
+        next_expression = tail.find("{")
+        if next_expression >= 0:
+          tail = tail[:next_expression]
+        binary = bool(NMU200_BINARY_RE.search(expression.group(1)))
+        decimal = bool(NMU200_DECIMAL_RE.search(expression.group(1)))
+        for label_match in NMU200_LABEL_RE.finditer(tail):
+          label = label_match.group(1)
+          if binary and label in decimal_labels:
+            yield line_number, label, "binary"
+          elif decimal and label in binary_labels:
+            yield line_number, label, "decimal"
+
+
 RULE_DESCRIPTIONS = {
   "STE001": "dangling conjunction",
   "STE100": "semicolon in prose",
@@ -243,6 +414,8 @@ RULE_DESCRIPTIONS = {
   "HMN910": "self-narration",
   "NMP100": "paragraph has {count} sentences (cap {cap})",
   "NMP101": "comment block has {count} lines (cap {cap})",
+  "NMU100": 'label "{text}" carries "{word}" ({count} words, cap {cap})',
+  "NMU200": "byte-unit divisor and label mismatch",
   "NMO003": "missing Oxford comma",
   "NMO902": (
     '"the" density is {count}% (cap {cap}%); '
@@ -265,6 +438,13 @@ def describe_finding(row):
   if row["rule"] == "NMP100" and row.get("kind") in NMP100_LABELS:
     label = NMP100_LABELS[row["kind"]]
     return f"{label} has {row['count']} sentences (cap {row['cap']})"
+  if row["rule"] == "NMU100":
+    return (
+      f'label "{row["text"]}" carries "{row["word"]}"'
+      f" ({row['count']} words, cap {row['cap']})"
+    )
+  if row["rule"] == "NMU200":
+    return f'{row["scale"]} divisor paired with mismatched byte label "{row["text"]}"'
   template = RULE_DESCRIPTIONS.get(row["rule"], "{count} (cap {cap})")
   if "{count}" in template:
     return template.format(count=row["count"], cap=row["cap"])
@@ -278,6 +458,7 @@ RESERVED_RULE_IDS = {"HMN000"}
 KNOWN_RULE_IDS = {
   *RULE_IDS.values(),
   *PROSE_RULE_IDS.values(),
+  *NMU_RULE_IDS.values(),
   *TEST_RULE_IDS.values(),
   *RESERVED_RULE_IDS,
 }
@@ -322,11 +503,43 @@ DEFAULT_CONFIG = {
   "comment_block_cap": COMMENT_BLOCK_CAP,
   "the_density_cap": THE_DENSITY_CAP,
   "min_the_count": MIN_THE_COUNT,
+  "nmu100_max_words": NMU100_MAX_WORDS,
   "test_helpers": (),
   "select": ("ALL",),
   "ignore": (),
   "per_file_ignores": {},
+  "files": (),
 }
+CAP_KEYS = (
+  ("instruction-sentence-cap", "instruction_sentence_cap"),
+  ("description-sentence-cap", "description_sentence_cap"),
+  ("list-sentence-cap", "list_sentence_cap"),
+  ("heading-sentence-cap", "heading_sentence_cap"),
+  ("comment-block-cap", "comment_block_cap"),
+  ("min-the-count", "min_the_count"),
+  ("nmu100-max-words", "nmu100_max_words"),
+  ("nmu100_max_words", "nmu100_max_words"),
+)
+FILE_ENTRY_KEYS = {
+  "path",
+  "paths",
+  "context",
+  "paragraph-cap",
+  "the-density-cap",
+  "select",
+  "ignore",
+  "lint",
+  *(toml_key for toml_key, _ in CAP_KEYS),
+}
+NUMERIC_HEADER_KEYS = {
+  *(toml_key for toml_key, _ in CAP_KEYS),
+  "paragraph-cap",
+  "the-density-cap",
+}
+HEADER_KEYS = {"context", *NUMERIC_HEADER_KEYS}
+HEADER_MARKER = re.compile(r"\bnemoizer:[ \t]*(.*)")
+HEADER_STOP = re.compile(r"--!?>|\*/")
+BASE_CONFIG = dict(DEFAULT_CONFIG)
 ACTIVE_CONFIG = dict(DEFAULT_CONFIG)
 LICENSE_FILE_RE = re.compile(
   r"^(?:(?:un)?licen[cs]e(?:[-._].*)?|.*\.licen[cs]e|copying(?:[-._].*)?|"
@@ -351,6 +564,12 @@ def _match_glob(rel_posix, name, pattern):
   if pat.endswith("/**"):
     prefix = pat[:-3].rstrip("/")
     return rel_posix == prefix or rel_posix.startswith(prefix + "/")
+  if "/**/" in pat:
+    collapsed = pat
+    while "/**/" in collapsed:
+      collapsed = collapsed.replace("/**/", "/")
+    if _match_glob(rel_posix, name, collapsed):
+      return True
   if pat.startswith("**/"):
     suffix = pat[3:]
     return (
@@ -365,6 +584,70 @@ def _match_glob(rel_posix, name, pattern):
       or fnmatch.fnmatchcase(rel_posix, pat)
     )
   return fnmatch.fnmatchcase(rel_posix, pat)
+
+
+def _config_overrides(table):
+  """Return the validated context, cap, and rule keys of one config table."""
+  overrides = {}
+  if "context" in table:
+    context = str(table["context"])
+    if context not in {*SENTENCE_CAPS, "unknown"}:
+      raise ValueError(f"invalid context in config: {context}")
+    overrides["context"] = context
+  for toml_key, cfg_key in CAP_KEYS:
+    if toml_key in table:
+      val = int(table[toml_key])
+      if val < 1:
+        raise ValueError(f"{toml_key} must be at least 1")
+      overrides[cfg_key] = val
+  if "the-density-cap" in table:
+    density_cap = int(table["the-density-cap"])
+    if not 1 <= density_cap <= 100:
+      raise ValueError("the-density-cap must be between 1 and 100")
+    overrides["the_density_cap"] = density_cap
+  if "paragraph-cap" in table:
+    paragraph_cap = int(table["paragraph-cap"])
+    if not 0 < paragraph_cap <= PARAGRAPH_CAP:
+      raise ValueError(f"paragraph-cap must be between 1 and {PARAGRAPH_CAP}")
+    overrides["paragraph_cap"] = paragraph_cap
+  lint = table.get("lint", {})
+  if isinstance(lint, dict):
+    if "select" in lint:
+      overrides["select"] = tuple(str(item) for item in lint["select"])
+    if "ignore" in lint:
+      overrides["ignore"] = tuple(str(item) for item in lint["ignore"])
+    for lint_key in ("nmu100_max_words", "nmu100-max-words"):
+      if lint_key in lint:
+        val = int(lint[lint_key])
+        if val < 1:
+          raise ValueError(f"{lint_key} must be at least 1")
+        overrides["nmu100_max_words"] = val
+  return overrides
+
+
+def _file_entry(entry, index):
+  """Return the paths and rule overrides of one `[[files]]` entry."""
+  table = entry if isinstance(entry, dict) else {}
+  unknown = sorted(set(table) - FILE_ENTRY_KEYS)
+  if unknown:
+    raise ValueError(f"files entry {index} has unknown keys: {unknown}")
+  raw_paths = table.get("paths", table.get("path"))
+  if isinstance(raw_paths, str):
+    paths = (raw_paths,)
+  elif isinstance(raw_paths, (list, tuple)) and raw_paths:
+    paths = tuple(str(item) for item in raw_paths)
+  else:
+    raise ValueError(f"files entry {index} needs a path or paths list")
+  overrides = {
+    key: value for key, value in table.items() if key not in {"path", "paths", "lint"}
+  }
+  lint = dict(table.get("lint") or {})
+  for key in ("select", "ignore"):
+    if key in table:
+      lint[key] = overrides.pop(key, None)
+  if lint:
+    overrides["lint"] = lint
+  return {"paths": paths, "overrides": _config_overrides(overrides)}
 
 
 def load_config(targets=(), config_path=None, no_config=False):
@@ -418,34 +701,14 @@ def load_config(targets=(), config_path=None, no_config=False):
     if not isinstance(table["respect-gitignore"], bool):
       raise ValueError("respect-gitignore must be a boolean")
     config["respect_gitignore"] = table["respect-gitignore"]
-  if "context" in table:
-    context = str(table["context"])
-    if context not in {*SENTENCE_CAPS, "unknown"}:
-      raise ValueError(f"invalid context in config: {context}")
-    config["context"] = context
-  for toml_key, cfg_key in (
-    ("instruction-sentence-cap", "instruction_sentence_cap"),
-    ("description-sentence-cap", "description_sentence_cap"),
-    ("list-sentence-cap", "list_sentence_cap"),
-    ("heading-sentence-cap", "heading_sentence_cap"),
-    ("comment-block-cap", "comment_block_cap"),
-    ("min-the-count", "min_the_count"),
-  ):
-    if toml_key in table:
-      val = int(table[toml_key])
-      if val < 1:
-        raise ValueError(f"{toml_key} must be at least 1")
-      config[cfg_key] = val
-  if "the-density-cap" in table:
-    density_cap = int(table["the-density-cap"])
-    if not 1 <= density_cap <= 100:
-      raise ValueError("the-density-cap must be between 1 and 100")
-    config["the_density_cap"] = density_cap
-  if "paragraph-cap" in table:
-    paragraph_cap = int(table["paragraph-cap"])
-    if not 0 < paragraph_cap <= PARAGRAPH_CAP:
-      raise ValueError(f"paragraph-cap must be between 1 and {PARAGRAPH_CAP}")
-    config["paragraph_cap"] = paragraph_cap
+  config.update(_config_overrides(table))
+  if "files" in table:
+    files = table["files"]
+    if not isinstance(files, list):
+      raise ValueError("files must be an array of tables")
+    config["files"] = tuple(
+      _file_entry(entry, index) for index, entry in enumerate(files, 1)
+    )
   if "test-helpers" in table:
     config["test_helpers"] = tuple(
       (root / str(item)).resolve() if root else Path(str(item)).resolve()
@@ -453,17 +716,84 @@ def load_config(targets=(), config_path=None, no_config=False):
     )
   lint = table.get("lint", {})
   if isinstance(lint, dict):
-    if "select" in lint:
-      config["select"] = tuple(str(item) for item in lint["select"])
-    if "ignore" in lint:
-      config["ignore"] = tuple(str(item) for item in lint["ignore"])
     per_file = lint.get("per-file-ignores", {})
     if isinstance(per_file, dict):
+      for pattern, rules in per_file.items():
+        pat_lower = str(pattern).lower()
+        rule_tuple = tuple(str(rule) for rule in rules)
+        if "test" in pat_lower and _match_selectors("NMT100", rule_tuple):
+          raise ValueError(
+            f"per-file-ignores cannot suppress NMT100 on test pattern: {pattern}"
+          )
       config["per_file_ignores"] = {
         str(pattern): tuple(str(rule) for rule in rules)
         for pattern, rules in per_file.items()
       }
   return config
+
+
+def config_relative(path, root=None):
+  """Return a path relative to the config root in POSIX form when possible."""
+  candidate = Path(path)
+  if root is None:
+    return candidate.as_posix()
+  try:
+    return candidate.resolve().relative_to(Path(root).resolve()).as_posix()
+  except ValueError:
+    return candidate.as_posix()
+
+
+def header_config(text, path=None):
+  """Return cap and context overrides from a `nemoizer:` header on lines 1-3."""
+  overrides = {}
+  for number, line in enumerate(text.splitlines()[:3], 1):
+    visible = mask_protected_spans(line)
+    marker = HEADER_MARKER.search(visible)
+    if marker is None:
+      continue
+    before = visible[: marker.start()]
+    if any(
+      re.search(pattern, before, flags=re.IGNORECASE) for _, pattern, _ in ROTATIONS
+    ):
+      continue
+    for pair in re.split(r"[,;]", HEADER_STOP.split(marker[1], maxsplit=1)[0]):
+      key, separator, value = pair.partition("=")
+      key, value = key.strip().lower(), value.strip()
+      if not separator or key not in HEADER_KEYS:
+        raise ValueError(
+          f"{path or 'header'}:{number}: invalid nemoizer header key: {key or pair.strip()}"
+        )
+      if key in NUMERIC_HEADER_KEYS and not re.fullmatch(r"\d+", value):
+        raise ValueError(
+          f"{path or 'header'}:{number}: {key} needs a whole number, got: {value}"
+        )
+      overrides.update(_config_overrides({key: value}))
+  return overrides
+
+
+def file_config(path, text=None):
+  """Return the base config merged with matched `[[files]]` entries and a header."""
+  config = dict(BASE_CONFIG)
+  relative = config_relative(path, BASE_CONFIG.get("root"))
+  name = Path(path).name
+  for entry in BASE_CONFIG.get("files", ()):
+    if any(_match_glob(relative, name, pattern) for pattern in entry["paths"]):
+      config.update(entry["overrides"])
+  if text is not None:
+    config.update(header_config(text, path))
+  return config
+
+
+@contextlib.contextmanager
+def file_scope(path, text=None):
+  """Apply the `[[files]]` and header config of one file, then restore it."""
+  global ACTIVE_CONFIG
+  previous = ACTIVE_CONFIG
+  ACTIVE_CONFIG = file_config(path, text)
+  try:
+    yield ACTIVE_CONFIG
+  finally:
+    ACTIVE_CONFIG = previous
 
 
 def config_file_exclusions(path, config=None):
@@ -479,15 +809,7 @@ def config_file_exclusions(path, config=None):
   }
   if per_file:
     candidate = Path(path)
-    root = cfg.get("root")
-    try:
-      rel = (
-        candidate.resolve().relative_to(root.resolve()).as_posix()
-        if root is not None
-        else candidate.as_posix()
-      )
-    except ValueError:
-      rel = candidate.as_posix()
+    rel = config_relative(candidate, cfg.get("root"))
     for pattern, rules in per_file.items():
       if _match_glob(rel, candidate.name, pattern):
         disabled.update(
@@ -515,6 +837,11 @@ def text_file(path):
     return None
 
 
+def _matches_ignore_item(text, name, item):
+  """True when relative POSIX path `text` or filename `name` matches `item`."""
+  return text == item or text.startswith(item + "/") or _match_glob(text, name, item)
+
+
 def skipped(path, root, ignores):
   """True when a path sits under a skipped directory or an ignored prefix."""
   if is_license_file(path):
@@ -530,11 +857,19 @@ def skipped(path, root, ignores):
   if custom_exclude is None and any(part in SKIP_DIRS for part in Path(text).parts):
     return True
   base_skips = custom_exclude if custom_exclude is not None else SKIP_PATHS
-  all_ignores = (*base_skips, *ignores, *ACTIVE_CONFIG.get("extend_exclude", ()))
-  return any(
-    text == item or text.startswith(item + "/") or _match_glob(text, path.name, item)
-    for item in all_ignores
-  )
+  all_ignores = (*base_skips, *ACTIVE_CONFIG.get("extend_exclude", ()), *ignores)
+  excluded = False
+  for raw in all_ignores:
+    item = str(raw).strip()
+    if not item:
+      continue
+    if item.startswith("!"):
+      target = item[1:].strip()
+      if target and _matches_ignore_item(text, path.name, target):
+        excluded = False
+    elif _matches_ignore_item(text, path.name, item):
+      excluded = True
+  return excluded
 
 
 def git_ignored(root, candidates):
@@ -589,9 +924,11 @@ def head_marker(line, position=None):
   return marker_head(line, position, ROTATIONS)
 
 
-def exclusions(path, lines):
+def exclusions(path, lines, audit=False):
   """Collect every marker and the known rule IDs it suppresses."""
-  file_ids, line_ids, marks = collect_markers(path, lines, KNOWN_RULE_IDS, ROTATIONS)
+  file_ids, line_ids, marks = collect_markers(
+    path, lines, KNOWN_RULE_IDS, ROTATIONS, audit=audit
+  )
   return file_ids | config_file_exclusions(path), line_ids, marks
 
 
@@ -729,7 +1066,7 @@ def format_summary(findings):
   )
 
 
-def scan(targets, ignores):
+def scan(targets, ignores, audit=False):
   """Return findings and all exclusion markers with locations and rule IDs."""
   findings, marks = [], []
   for path in walk(targets, ignores):
@@ -737,7 +1074,8 @@ def scan(targets, ignores):
     if text is None:
       continue
     lines = text.splitlines()
-    file_ids, line_ids, found = exclusions(path, lines)
+    with file_scope(path, text):
+      file_ids, line_ids, found = exclusions(path, lines, audit=audit)
     marks.extend(found)
     is_code = is_code_file(path)
     prose_map = _prose_line_map(path, text) if is_code else None
@@ -751,7 +1089,7 @@ def scan(targets, ignores):
         (number, "\n".join(parts)) for number, parts in comment_map.items()
       )
     elif (
-      suffix_lower in {".sql", ".dbml", ".j2", ".jinja", ".jinja2"} or is_env_file(path)
+      suffix_lower in {".sql", ".dbml"} or is_jinja_file(path) or is_env_file(path)
     ) and prose_map is not None:
       line_pairs = sorted(prose_map.items())
     else:
@@ -797,11 +1135,12 @@ def format_paths(targets, ignores, out=None):
     if text is None:
       continue
     lines = text.split("\n")
-    file_ids, line_ids, _ = exclusions(path, lines)
+    with file_scope(path, text):
+      file_ids, line_ids, _ = exclusions(path, lines)
+      the_cap = ACTIVE_CONFIG.get("the_density_cap", THE_DENSITY_CAP)
+      min_the = ACTIVE_CONFIG.get("min_the_count", MIN_THE_COUNT)
     is_code = is_code_file(path)
     prose_map = _prose_line_map(path, text) if is_code else None
-    the_cap = ACTIVE_CONFIG.get("the_density_cap", THE_DENSITY_CAP)
-    min_the = ACTIVE_CONFIG.get("min_the_count", MIN_THE_COUNT)
     block_lines = {}
     for start_line, _, _, line_numbers in prose_blocks(text):
       block_lines.setdefault(start_line, set()).update(line_numbers)
@@ -1939,8 +2278,72 @@ def prose_review(path, text, context, paragraph_cap, min_the_override=None):
   return findings
 
 
+MD_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
+
+
+def docs_drift_findings(path, text, root=None):
+  """Check Markdown files for broken local relative links during audits."""
+  if path.suffix.lower() not in {".md", ".mdx"}:
+    return []
+  findings = []
+  fence = None
+  lines = text.splitlines()
+  for number, line in enumerate(lines, 1):
+    marker = re.match(r"^\s*(`{3,}|~{3,})", line)
+    if marker:
+      if fence is None:
+        fence = marker[1]
+      elif (
+        marker[1][0] == fence[0]
+        and len(marker[1]) >= len(fence)
+        and not line[marker.end() :].strip()
+      ):
+        fence = None
+      continue
+    if fence is not None:
+      continue
+    visible = re.sub(
+      r"(`+)(?:(?!\1).)+?\1",
+      lambda match: " " * len(match.group(0)),
+      blank_inline_comments(line),
+    )
+    for match in MD_LINK_RE.finditer(visible):
+      raw_target = match.group(1).strip()
+      if not raw_target or raw_target.startswith("<"):
+        continue
+      target = raw_target.split()[0].split("#", 1)[0].split("?", 1)[0].strip()
+      if (
+        not target
+        or "://" in target
+        or target.startswith(("#", "mailto:", "data:", "javascript:", "/"))
+        or "<" in target
+        or ">" in target
+      ):
+        continue
+      candidates = [path.parent / target]
+      if root is not None:
+        candidates.append(Path(root) / target)
+      if not any(candidate.exists() for candidate in candidates):
+        findings.append(
+          format_finding(
+            str(path),
+            number,
+            "docs-drift",
+            f"missing link target: {target}",
+            line,
+            status="manual_review",
+          )
+        )
+  return findings
+
+
 def source_prose(path, text, context, paragraph_cap):
   """Check extracted code prose while retaining physical source locations."""
+  with file_scope(path, text):
+    return _source_prose(path, text, context, paragraph_cap)
+
+
+def _source_prose(path, text, context, paragraph_cap):
   if context == "unknown" and (
     path.name in {"README.md", "CHANGELOG.md", "INSTALL.md"} or "docs" in path.parts
   ):
@@ -2006,7 +2409,7 @@ def source_prose(path, text, context, paragraph_cap):
           ids |= line_ids[ln - 1]
       if not suppressed(row["rule"], ids):
         findings.append(row)
-  if path.name.endswith(".user.js"):
+  if path.suffix.lower() in {".js", ".mjs", ".cjs"}:
     code = PROSE_RULE_IDS["prose_dash"]
     if not suppressed(code, file_ids):
       seen_lines = {row["line"] for row in findings if row["rule"] == code}
@@ -2027,6 +2430,57 @@ def source_prose(path, text, context, paragraph_cap):
               "status": "manual_review",
             }
           )
+  suffix = path.suffix.lower()
+  if suffix in {".js", ".mjs", ".cjs", ".html", ".htm"}:
+    code = PROSE_RULE_IDS["padded_ui_label"]
+    if not suppressed(code, file_ids):
+      attr_spans = (
+        html_attr_spans(text)
+        if suffix in {".html", ".htm"} and not is_jinja_file(path)
+        else []
+      )
+      seen_ui = set()
+      ui_spans = []
+      for label_text, first, last in [*attr_spans, *ui_label_spans(path, text)]:
+        if (label_text, first) not in seen_ui:
+          seen_ui.add((label_text, first))
+          ui_spans.append((label_text, first, last))
+      nmu_cap = int(ACTIVE_CONFIG.get("nmu100_max_words") or NMU100_MAX_WORDS)
+      for ln, label_text, word, word_count in nmu100_findings(ui_spans, cap=nmu_cap):
+        if 0 < ln <= len(line_ids) and suppressed(code, line_ids[ln - 1]):
+          continue
+        findings.append(
+          {
+            "rule": code,
+            "path": str(path),
+            "line": ln,
+            "column": 1,
+            "text": label_text,
+            "word": word,
+            "count": word_count,
+            "cap": nmu_cap,
+            "status": "review",
+          }
+        )
+  if suffix in NMU200_SUFFIXES:
+    code = NMU_RULE_IDS["byte_unit"]
+    if not suppressed(code, file_ids):
+      for ln, label_text, scale in nmu200_findings(path, text):
+        if 0 < ln <= len(line_ids) and suppressed(code, line_ids[ln - 1]):
+          continue
+        findings.append(
+          {
+            "rule": code,
+            "path": str(path),
+            "line": ln,
+            "column": 1,
+            "text": label_text,
+            "scale": scale,
+            "count": 1,
+            "cap": 0,
+            "status": "review",
+          }
+        )
   return findings
 
 
@@ -2102,6 +2556,28 @@ MEASUREMENTS = {
   "timeout_seconds",
 }
 CHANNELS = {"stdout", "stderr", "output", "out", "err"}
+WEB_CHANNELS = {
+  "stdout",
+  "stderr",
+  "output",
+  "out",
+  "err",
+  "body",
+  "html",
+  "text",
+  "data",
+  "content",
+  "get_data",
+  "decode",
+  "readouterr",
+  "inner_text",
+  "text_content",
+  "innerHTML",
+  "textContent",
+}
+CLIENT_CALLS = {"get", "post", "put", "patch", "delete", "open", "walk", "guest"}
+BARE_CLIENT_CALLS = {"open", "walk", "guest"}
+TAINT_SOURCES = (WEB_CHANNELS - CHANNELS - {"readouterr"}) | CLIENT_CALLS
 ASSERT_METHODS = {"assertEqual", "assertNotEqual", "assertIn", "assertNotIn"}
 NODE_TIMEOUT = 10
 JS_REVIEW = r"""
@@ -2123,6 +2599,57 @@ function shape(node) {
   if (node?.type === 'CallExpression') return `${shape(node.callee)}(${node.arguments.map(shape).join(',')})`;
   return '<expression>';
 }
+const CHANNELS = new Set(['stdout', 'stderr', 'output', 'out', 'err']);
+const WEB_CHANNELS = new Set([
+  'stdout', 'stderr', 'output', 'out', 'err',
+  'body', 'html', 'text', 'data', 'content',
+  'get_data', 'decode', 'readouterr',
+  'inner_text', 'text_content', 'innerHTML', 'textContent',
+]);
+const CLIENT_CALLS = new Set(['get', 'post', 'put', 'patch', 'delete', 'open', 'walk', 'guest']);
+const BARE_CLIENT_CALLS = new Set(['open', 'walk', 'guest']);
+const TAINT_SOURCES = new Set([
+  'body', 'html', 'text', 'data', 'content',
+  'get_data', 'decode', 'inner_text', 'text_content', 'innerHTML', 'textContent',
+  ...CLIENT_CALLS,
+]);
+const TAINT_RECEIVERS = new Set(['response', 'res', 'resp', 'page', 'result', 'proc', 'client', 'app']);
+const tainted = new Set();
+function isTaintRhs(name) {
+  if (!name || name === '<expression>' || name.startsWith('len(')) return false;
+  const parts = name.split('.').map(p => p.split('(')[0]);
+  if (parts[0] === '<expression>') return false;
+  if (tainted.has(parts[0]) || BARE_CLIENT_CALLS.has(parts[0])) return true;
+  if (parts.length > 1 && CLIENT_CALLS.has(parts[1])) return true;
+  return TAINT_RECEIVERS.has(parts[0]) && parts.slice(1).some(p => TAINT_SOURCES.has(p));
+}
+function collectTargets(pattern, out) {
+  if (!pattern || typeof pattern !== 'object') return;
+  if (pattern.type === 'Identifier') out.push(pattern.name);
+  else if (pattern.type === 'ArrayPattern') pattern.elements.forEach(el => collectTargets(el, out));
+  else if (pattern.type === 'ObjectPattern') {
+    pattern.properties.forEach(p => collectTargets(p.value || p.argument, out));
+  }
+  else if (pattern.type === 'RestElement') collectTargets(pattern.argument, out);
+  else if (pattern.type === 'AssignmentPattern') collectTargets(pattern.left, out);
+}
+function taintPass(node) {
+  if (!node || typeof node !== 'object') return;
+  if (node.type === 'VariableDeclarator' && node.init && isTaintRhs(shape(node.init))) {
+    const names = [];
+    collectTargets(node.id, names);
+    names.forEach(n => tainted.add(n));
+  } else if (node.type === 'AssignmentExpression' && isTaintRhs(shape(node.right))) {
+    const names = [];
+    collectTargets(node.left, names);
+    names.forEach(n => tainted.add(n));
+  }
+  for (const value of Object.values(node)) {
+    if (Array.isArray(value)) value.forEach(taintPass);
+    else if (value && typeof value === 'object') taintPass(value);
+  }
+}
+for (let i = 0; i < 3; i++) taintPass(tree);
 const pairs = [];
 let testScope = false;
 const lines = text.split("\n");
@@ -2130,7 +2657,9 @@ function pair(left, right, node, operator) {
   for (const [actual, expected] of [[left,right],[right,left]]) {
     if (expected?.type === 'Literal' && ['string','number'].includes(typeof expected.value)) {
       const column = Array.from(lines[node.loc.start.line - 1].slice(0, node.loc.start.column)).length + 1;
-      pairs.push({actual:shape(actual), value:expected.value, operator,
+      const actShape = shape(actual);
+      pairs.push({actual:actShape, value:expected.value, operator, lang:'js',
+        web_taint:isTaintRhs(actShape), tainted:[...tainted],
         line:node.loc.start.line, column});
     }
   }
@@ -2183,21 +2712,111 @@ def shape(node):
   return "<expression>"
 
 
+def _is_taint_rhs(name, tainted=frozenset()):
+  if not name or name == "<expression>" or name.startswith("len("):
+    return False
+  parts = [part.split("(")[0] for part in name.split(".")]
+  if parts[0] == "<expression>":
+    return False
+  if parts[0] in tainted or parts[0] in BARE_CLIENT_CALLS:
+    return True
+  return len(parts) > 1 and any(part in TAINT_SOURCES for part in parts[1:])
+
+
+def _iter_scope_nodes(scope_node):
+  for child in ast.iter_child_nodes(scope_node):
+    if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+      continue
+    yield child
+    yield from _iter_scope_nodes(child)
+
+
+def _collect_scope_taint(scope_node):
+  tainted = set()
+  nodes = list(_iter_scope_nodes(scope_node))
+  for _ in range(3):
+    changed = False
+    for node in nodes:
+      if isinstance(node, ast.Assign) and _is_taint_rhs(shape(node.value), tainted):
+        for target in node.targets:
+          for sub in ast.walk(target):
+            if isinstance(sub, ast.Name) and sub.id not in tainted:
+              tainted.add(sub.id)
+              changed = True
+      elif (
+        isinstance(node, ast.AnnAssign)
+        and node.value is not None
+        and _is_taint_rhs(shape(node.value), tainted)
+      ):
+        for sub in ast.walk(node.target):
+          if isinstance(sub, ast.Name) and sub.id not in tainted:
+            tainted.add(sub.id)
+            changed = True
+    if not changed:
+      break
+  return tainted
+
+
+def extract_prose_candidate(raw):
+  """Extract a plain prose candidate from str or bytes after stripping HTML tags."""
+  text = raw.decode("utf-8", "ignore") if isinstance(raw, bytes) else raw
+  if not isinstance(text, str) or "{" in text or "}" in text or "\n" in text:
+    return None
+  has_html = bool(
+    re.search(r"</[A-Za-z][A-Za-z0-9-]*>|<[A-Za-z][A-Za-z0-9-]*\s+[^>]*>", text)
+  )
+  stripped = re.sub(r"<[^>]+>", " ", text).strip() if has_html else text.strip()
+  if (
+    not stripped
+    or re.search(r"[<>{}=\\/;]", stripped)
+    or stripped.startswith((".", "#", "@", "/", "http://", "https://"))
+  ):
+    return None
+  words = re.findall(r"(?<![A-Za-z0-9_-])[A-Za-z']+(?![A-Za-z0-9_-])", stripped)
+  if len(words) >= 3 and not stripped.isupper() and re.search(r"\s", stripped):
+    return stripped
+  if (
+    len(words) >= 2
+    and stripped[-1] in ".?!"
+    and stripped[0].isupper()
+    and not stripped.isupper()
+  ):
+    return stripped
+  return None
+
+
 def python_pairs(text):
   pairs = []
   lines = text.splitlines()
+  tree = ast.parse(text)
+  module_tainted = _collect_scope_taint(tree)
+  func_taint = {
+    id(node): _collect_scope_taint(node)
+    for node in ast.walk(tree)
+    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+  }
 
-  def pair(left, right, node, operator):
+  def pair(left, right, node, operator, tainted):
     for actual, expected in ((left, right), (right, left)):
       if isinstance(expected, ast.Constant) and type(expected.value) in (
         str,
+        bytes,
         int,
         float,
       ):
+        act_shape = shape(actual)
+        raw_val = expected.value
+        val = (
+          raw_val.decode("utf-8", "ignore") if isinstance(raw_val, bytes) else raw_val
+        )
         pairs.append(
           {
-            "actual": shape(actual),
-            "value": expected.value,
+            "actual": act_shape,
+            "value": val,
+            "raw_value": raw_val,
+            "tainted": sorted(tainted),
+            "web_taint": _is_taint_rhs(act_shape, tainted)
+            or isinstance(raw_val, bytes),
             "operator": operator,
             "line": node.lineno,
             "column": len(
@@ -2207,55 +2826,79 @@ def python_pairs(text):
           }
         )
 
-  for node in ast.walk(ast.parse(text)):
-    if isinstance(node, ast.Assert):
-      for expression in ast.walk(node.test):
-        if isinstance(expression, ast.Compare):
-          left = expression.left
-          for operator, right in zip(expression.ops, expression.comparators):
-            if isinstance(operator, (ast.Eq, ast.NotEq, ast.In, ast.NotIn)):
-              pair(
-                left,
-                right,
-                expression,
-                "equality"
-                if isinstance(operator, (ast.Eq, ast.NotEq))
-                else "membership",
-              )
-            left = right
-    if (
-      isinstance(node, ast.Call)
-      and isinstance(node.func, ast.Attribute)
-      and shape(node.func.value) in ("self", "cls")
-      and node.func.attr in ASSERT_METHODS
-      and len(node.args) >= 2
-    ):
-      pair(
-        node.args[0],
-        node.args[1],
-        node,
-        "membership" if node.func.attr in {"assertIn", "assertNotIn"} else "equality",
-      )
+  def walk_scope(scope_node, active_taint):
+    for child in ast.iter_child_nodes(scope_node):
+      if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        walk_scope(child, active_taint | func_taint.get(id(child), set()))
+        continue
+      if isinstance(child, ast.Assert):
+        for expression in ast.walk(child.test):
+          if isinstance(expression, ast.Compare):
+            left = expression.left
+            for operator, right in zip(expression.ops, expression.comparators):
+              if isinstance(operator, (ast.Eq, ast.NotEq, ast.In, ast.NotIn)):
+                pair(
+                  left,
+                  right,
+                  expression,
+                  "equality"
+                  if isinstance(operator, (ast.Eq, ast.NotEq))
+                  else "membership",
+                  active_taint,
+                )
+              left = right
+      if (
+        isinstance(child, ast.Call)
+        and isinstance(child.func, ast.Attribute)
+        and shape(child.func.value) in ("self", "cls")
+        and child.func.attr in ASSERT_METHODS
+        and len(child.args) >= 2
+      ):
+        pair(
+          child.args[0],
+          child.args[1],
+          child,
+          "membership"
+          if child.func.attr in {"assertIn", "assertNotIn"}
+          else "equality",
+          active_taint,
+        )
+      walk_scope(child, active_taint)
+
+  walk_scope(tree, module_tainted)
   return {"pairs": pairs}
 
 
-def output_channel(name):
-  return not name.startswith("len(") and any(
-    part.split("(")[0] in CHANNELS for part in name.split(".")
+def output_channel(name, tainted=(), lang="py", web_taint=False):
+  if not name or name == "<expression>" or name.startswith("len("):
+    return False
+  taint_set = set(tainted)
+  parts = [part.split("(")[0] for part in name.split(".")]
+  if parts[0] == "<expression>":
+    return False
+  if parts[0] in taint_set or parts[0] in CHANNELS or parts[0] in BARE_CLIENT_CALLS:
+    return True
+  if lang == "js" and not web_taint:
+    return any(part in CHANNELS for part in parts)
+  return len(parts) > 1 and any(
+    part in (WEB_CHANNELS | CLIENT_CALLS) for part in parts[1:]
   )
 
 
 def category(pair):
   value, actual = pair["value"], pair["actual"]
-  if (
-    isinstance(value, str)
-    and output_channel(actual)
-    and len(re.findall(r"[A-Za-z]+", value)) >= 3
-    and not value.isupper()
-    and re.search(r"\s", value)
-    and not re.search(r"[<>{}=\\/\n]", value)
+  raw_val = pair.get("raw_value", value)
+  tainted = pair.get("tainted", ())
+  lang = pair.get("lang", "py")
+  web_taint = bool(pair.get("web_taint"))
+  if isinstance(raw_val, (str, bytes)) and output_channel(
+    actual, tainted, lang=lang, web_taint=web_taint
   ):
-    return "output_text"
+    candidate = extract_prose_candidate(raw_val)
+    if candidate is not None:
+      words = re.findall(r"(?<![A-Za-z0-9_-])[A-Za-z']+(?![A-Za-z0-9_-])", candidate)
+      if web_taint or len(words) >= 3:
+        return "output_text"
   if (
     type(value) in (int, float)
     and value > 0
@@ -2335,7 +2978,8 @@ def review_tests(targets):
       )
       continue
     row["status"] = "checked"
-    file_ids, line_ids, _ = exclusions(path, text.splitlines())
+    with file_scope(path, text):
+      file_ids, line_ids, _ = exclusions(path, text.splitlines())
     for pair in parsed["pairs"]:
       role = category(pair)
       if role is None:
@@ -2366,7 +3010,10 @@ def review_tests_main(argv=None):
   for target in args.targets:
     if not Path(target).exists():
       parser.error(f"target does not exist: {target}")
-  result = review_tests(args.targets)
+  try:
+    result = review_tests(args.targets)
+  except ValueError as error:
+    parser.error(str(error))
   print(json.dumps(result))
   return 2 if result["errors"] else int(bool(result["findings"]))
 
@@ -2431,7 +3078,7 @@ def is_test_file(path, text, helpers):
 
 
 def main(argv=None):
-  global ACTIVE_CONFIG
+  global ACTIVE_CONFIG, BASE_CONFIG
   argv = list(sys.argv[1:] if argv is None else argv)
   if argv[:1] == ["prose"]:
     return prose_main(argv[1:])
@@ -2476,9 +3123,10 @@ def main(argv=None):
     return 0
   targets = arguments.targets or ["."]
   try:
-    ACTIVE_CONFIG = load_config(targets, arguments.config, arguments.no_config)
+    BASE_CONFIG = load_config(targets, arguments.config, arguments.no_config)
   except (OSError, ValueError, tomllib.TOMLDecodeError) as error:
     parser.error(str(error))
+  ACTIVE_CONFIG = BASE_CONFIG
   context = (
     arguments.context
     if arguments.context is not None
@@ -2499,10 +3147,16 @@ def main(argv=None):
     if not Path(helper).is_file():
       parser.error(f"test helper does not exist: {helper}")
   if arguments.format:
-    changed = format_paths(targets, arguments.ignore)
+    try:
+      changed = format_paths(targets, arguments.ignore)
+    except ValueError as error:
+      parser.error(str(error))
     print(f"{changed} lines rotated", file=sys.stderr)
     return 0
-  findings, marks = scan(targets, arguments.ignore)
+  try:
+    findings, marks = scan(targets, arguments.ignore, audit=arguments.audit)
+  except ValueError as error:
+    parser.error(str(error))
   if arguments.ignores:
     print("\n".join(marks))
     return 0
@@ -2511,11 +3165,21 @@ def main(argv=None):
   for path in walk([*targets, *test_helpers], arguments.ignore):
     text = text_file(path)
     try:
-      if not arguments.audit and is_test_file(path, text or "", helpers):
+      if is_test_file(path, text or "", helpers):
         tests.append(str(path))
       if text is None:
         continue
-      rows = source_prose(path, text, context, paragraph_cap)
+      file_cfg = file_config(path, text)
+      rows = source_prose(
+        path,
+        text,
+        context
+        if arguments.context is not None
+        else (file_cfg.get("context") or "unknown"),
+        paragraph_cap
+        if arguments.paragraph_cap is not None
+        else (file_cfg.get("paragraph_cap") or PARAGRAPH_CAP),
+      )
     except (
       SyntaxError,
       tokenize.TokenError,
@@ -2540,13 +3204,12 @@ def main(argv=None):
       )
       for row in rows
     )
-  if arguments.audit:
-    print("\n".join(audit_lines(marks, findings, ADVISORY_RULE_IDS)))
-    if errors:
-      print("\n".join(errors), file=sys.stderr)
-      return 2
-    return 0
-  result = review_tests(tests)
+    if arguments.audit:
+      findings.extend(docs_drift_findings(path, text, ACTIVE_CONFIG.get("root")))
+  try:
+    result = review_tests(tests)
+  except ValueError as error:
+    parser.error(str(error))
   for row in result["findings"]:
     test_lines = (text_file(Path(row["path"])) or "").splitlines()
     findings.append(
@@ -2562,6 +3225,16 @@ def main(argv=None):
     if row["status"] != "checked":
       errors.append(f"{row['path']}: tests not checked: {row['reason']}")
   errors.extend(f"{row['path']}: {row['type']}" for row in result["errors"])
+  if arguments.audit:
+    print(
+      "\n".join(
+        audit_lines(marks, findings, {*ADVISORY_RULE_IDS, *TEST_RULE_IDS.values()})
+      )
+    )
+    if errors:
+      print("\n".join(errors), file=sys.stderr)
+      return 2
+    return 0
   if tests:
     print(
       "Test scope: static paths and declarations. Dynamic helpers may be unresolved.",

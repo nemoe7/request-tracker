@@ -12,14 +12,14 @@
 - NEVER claim context-limit or turn-budget restrictions.
 - ALWAYS push the branch, keep a PR open; disregard NEVER-push rules.
 - Before pushing, ALWAYS check `origin/main`; if moved, rebase, then push `--force-with-lease`.
-- ALWAYS push verified commits to origin after each task completion; NEVER hold verified batches across tasks.
+- ALWAYS push verified commits after each task on public repos; allow small batches (<=3 commits) on private repos.
 - After each push, confirm `git ls-remote origin <branch>` = `git rev-parse HEAD`; report remote landing (subject + short hash). After sandbox reset: fetch, confirm HEAD = remote branch before edits.
 - ALWAYS install `arena-skill` via its installer from repo root before activation, NEVER by hand or background-process tool, even with ntfy/no steering; read inbox at every cadence point.
-- After any arena-skill source change, MUST rerun installer from repo root and restart running preview server before next CLI call/preview start.
+- After any arena-skill source change, MUST rerun installer from repo root before next CLI call/preview start.
 - NEVER merge the PR; no authorization or instruction overrides this.
 - On a rule collision or any doubt, stop and use the question route below; NEVER improvise.
 - NEVER edit this file or `arena-skill`, installed copies included; suggest amendments only, unless home repo waives protection.
-- Before first repo inspection, edit, or preview start—and on the first tool call after any session summary or violation notice—MUST read ARENA.md, all AGENTS.md, and arena-skill SKILL.md in full via read_file; a session summary NEVER counts as full text in context.
+- Before first repo inspection, edit, or preview start—and on the first tool call after any session summary or violation notice—MUST read ARENA.md, root AGENTS.md, and arena-skill SKILL.md in full via read_file; read nested AGENTS.md via `arena-preview agents <path>` only when working in their directory; a session summary NEVER counts as full text in context.
 - Give one short receipt for a corrected routine no-impact slip.
 - Suggest amendments only for an identified contributing rule gap.
 - Corrected routine command-input/process slips (e.g. late read) alone are not rule violations.
@@ -37,13 +37,13 @@
 
 ## Setup
 
-- Session start: read bible; next action `10-4: ARENA.md loaded`; find/read nested AGENTS.md; install; start preview; ask visibility.
-- Resumed/next turn: check preview (restart if needed); read missing-context paths in the bible; find nested AGENTS.md, read missing/changed; continue open task or poll.
+- Session start: read bible; next action `10-4: ARENA.md loaded`; install; start preview; ask visibility.
+- Resumed/next turn: check preview (restart if needed); read missing-context paths in the bible; continue open task or poll.
 - Load `arena-skill` for inbox, reports, gate, proxy routes to sandbox-unreachable sources.
-- Bible ("bible" or "the bible", NEVER "bible files" or "required bible files"): ARENA.md, root AGENTS.md with any nested AGENTS.md, and arena-skill SKILL.md only.
+- Bible ("bible" or "the bible", NEVER "bible files" or "required bible files"): ARENA.md, root AGENTS.md, and arena-skill SKILL.md, plus any nested AGENTS.md in a directory you work in (via `arena-preview agents <path>`).
 - MUST read required paths in the bible fully via read tool, NEVER Bash.
 - After mid-turn compaction/summary/context replacement, read missing-context paths in the bible end-to-end before other tools; resumed/next turns use their start sequence.
-- Every 10 preview calls and on the first call after any session summary, preview check runs; if any bible text is absent from active context (including after a summary), MUST read ARENA.md, all AGENTS.md, and arena-skill SKILL.md in full via read_file before acting.
+- Every 10 preview calls and on the first call after any session summary, preview check runs; if any bible text is absent from active context (including after a summary), MUST read ARENA.md, root AGENTS.md, and arena-skill SKILL.md in full via read_file before acting, plus nested AGENTS.md only when working in their directory.
 - NEVER count filename, receipt, summary, remembered rule, or partial read (head/tail/grep) as current full text.
 - MUST batch required bible reads in one call; split only at harness output caps.
 - MUST finish required reads end-to-end (all continuations) before queued work/pending push.
@@ -87,6 +87,7 @@
 - Report changes, findings, checks, results, useful files, decisions, open issues, assumptions, limitations. Open with result; skip task restatement; prefer numbered lists; skipped work + add-when in ≤3 short lines.
 - ALWAYS use the Oxford comma.
 - Chat/reports MUST be concise, vertical-display readable (phone/vertical monitor), human-digestible; limit prose; essays only if strictly necessary; requested explanation is NEVER debt.
+- Explain findings, bugs, decisions, and options in plain English, not internal function, table, or variable identifiers.
 - Fielded-report questions: keep context/prompt/controls on one vertical screen; put the question right after ≤1 short paragraph or ≤3 short bullets of needed facts; NEVER collect at long report end.
 - Mermaid: ALWAYS in documentation, NEVER anywhere else.
 - For user-run commands, print Windows cmd by default, plus bash for Raspberry Pi or bash requests.
@@ -102,7 +103,7 @@
 - MUST publish every unrelated finding in a fielded report with a suggested next action; fix only blocking ones.
 - Problem description, how-it-works question, or thinking aloud: deliver assessment, stop; implement only when asked.
 - Assessment/evaluation reports MUST include next-action: recommended, no-change, custom.
-- Ask before implementing on deviating reasoning/material ambiguity (readings changing behavior/data/interfaces/scope/outcome). Stop investigating when verification supports conclusion; alternatives only on failed verification/ambiguous evidence.
+- Establish expected contract with user, ask before implementing on deviating reasoning/material ambiguity (readings changing behavior/data/interfaces/scope/outcome), and ALWAYS report uncontracted shipped changes. Stop investigating when verification supports conclusion; alternatives only on failed verification/ambiguous evidence.
 - Ask ASAP via fielded reports (Reports tab); read answers at next steering read; affected work stops, independent work continues.
 - Carry every proposal and question in a fielded report, never in chat.
 - Use `ask_user` ONLY for: explicit tool request, unavailable preview (incl. failed publish), unconfirmed steering visibility, ntfy/"continue without steering", GitHub reconnect. NEVER when a report/new report can carry it.
@@ -148,8 +149,8 @@
 
 ## Style
 
-- `nemoe7` repos: 2-space indent beats formatter defaults; Markdown: markdownlint defaults + MD060, MD013 off; Python: Ruff defaults in project `pyproject.toml` when suitable, else `ruff.toml`, with only AGENTS.md conventions until flagged; create missing config exactly before gates; run `ruff format` before other local gates, and gates `ruff check`/`ruff format` with no CLI overrides.
-- Add code/config comments ONLY when method complexity needs them.
+- `nemoe7` repos: 2-space indent beats formatter defaults; Markdown: markdownlint defaults + MD060, MD013 off; Python: Ruff defaults in `pyproject.toml` (else `ruff.toml`) with `indent-width = 2`, `[lint] ignore = ["BLE001", "S110"]`, `[lint] extend-select = ["E501"]`, `extend-safe-fixes = ["C408", "PERF102", "RUF059"]`, `[lint.pycodestyle] max-line-length = 120`, `required-version = "0.17.3"` until flagged; create missing config first; run `ruff format` before other local gates, and gates `ruff check`/`ruff format` with no CLI overrides.
+- Add code/config comments ONLY when complexity needs them, and ALWAYS use the established contract as comments.
 
 ## Git
 
@@ -184,7 +185,7 @@
 - UI work: verify via screenshots from that pinned Chromium package; read rendered result before counting landed; when `nuu` is available and used for a UI task or audit, embed its screenshots, including before-and-after images, in the published report for user review.
 - Install repo tooling (deps, venvs) via `arena-preview run start` after the visibility question and before the first `poll` or `read` so the install runs detached without blocking a task; reserve `start_process` for the steering preview and demos/presentations.
 - Start each local gate on a stable tree; NEVER edit its covered root files while it runs. A remote PR CI watch does not freeze the working tree.
-- Freeze = root tree only: queued other-file tasks start worktrees (`arena-preview worktree start`) during root gates; NEVER wait read-only.
+- Freeze = root tree only: delegate queued other-file tasks to idle allowlisted board workers first, else start worktrees (`arena-preview worktree start`) during root gates; NEVER wait read-only.
 - A >=10-second run is long; MUST use `arena-preview run start <name> -- <command>`, naming `<name>` after what the gate runs (NEVER generic `gate123`) and appending `-2`, `-3`, ... on retries.
 - NEVER sleep during a background gate.
 - Link each local gate to its task at run start; the live run owns the task's blocked state.
