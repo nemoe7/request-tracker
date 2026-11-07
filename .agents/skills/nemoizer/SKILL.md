@@ -13,9 +13,10 @@ compatibility: Python 3.11+, with Node.js and Acorn for JavaScript checks.
 | `transmit` | send |
 | `pick` | select |
 | `kind` | type |
+| `name` | specify |
 | `repository` | repo |
 
-Read references/rules.md for lint IDs and meanings.
+Read references/rules.md for lint IDs and meanings. `name` rotates only as a verb.
 
 ```bash
 python3 skills/nemoizer/scripts/nemoize.py .
@@ -24,8 +25,8 @@ python3 skills/nemoizer/scripts/nemoize.py --ignores .
 python skills/nemoizer/scripts/nemoizer collect .
 ```
 
-Print each finding as `path:line: [ID] (advisory-free|advisory) description` with its indented source line and `Summary` footer; exit 1 only for mandatory findings, and mark advisory findings for manual review by agent or user. Vendored and generated
-trees are skipped; `--ignore` or repo-root `nemoizer.toml` / `[tool.nemoizer]` in `pyproject.toml` ([references/nemoizer.toml](references/nemoizer.toml)) sets exclusions, rules, and caps.
+Print each finding as `path:line: [ID] (advisory-free|advisory) description` with its indented source line and `Summary` footer; exit 1 only for mandatory findings, and mark advisory findings for manual review by agent or user. Skip vendored and generated
+trees; repo-root `nemoizer.toml` or `[tool.nemoizer]` in `pyproject.toml` ([references/nemoizer.toml](references/nemoizer.toml)) sets `[[files]]` glob rules, exclusions, rules, and caps.
 
 `--format` rewrites the tree and prints each changed line as it was and as it
 becomes:
@@ -37,14 +38,15 @@ python3 skills/nemoizer/scripts/nemoize.py --format .
 Do not rewrite exclusion markers or the rotation table; apply only unsuppressed rotations and straight-quote replacements for curly quotation marks.
 
 - Use `nonemo: <id>` to suppress only that rule on the line.
-- For file scope, place `nonemo: <id>` in the first three lines with no avoided word before the marker.
+- For file scope, place `nonemo: <id>` or `nemoizer: key=value` in the first three lines with no avoided word before the marker.
 - Use any comment syntax for `nonemo: <id>`; scanning reads text, not syntax.
 - Apply an exclusion only to a known matching rule ID.
 - With `nemoizer collect` or `--ignores`, print every nonemo marker: path, line, rule ID, scope, and text; with `nemoizer audit` or `--audit`, print every `nonemo` marker and manual-review finding.
-- Review target prose manually against the Prose rules alongside `nemoizer audit`, and format audit reports with [references/audit-report.md](references/audit-report.md), one section per file (`Rule | Before | After | Verdict | Reason`), rule-applied `After` even when `Verdict` is `keep`, no empty sections, and 0 in Counts.
+- Review target prose manually against the Prose rules and check docs against code, CLI flags, configs, and paths for docs drift alongside `nemoizer audit`, and format audit reports with [references/audit-report.md](references/audit-report.md), one section per file (`Rule | Before | After | Verdict | Reason`), rule-applied `After` even when `Verdict` is `keep`, no empty sections, and 0 in Counts.
 
 
-Run rotations and serial-comma checks (`NMO`), semicolon/sentence/nominalization/manual-review style checks (`STE`), human-prose checks (`HMN`), paragraph checks (`NMP`), and test reviews (`NMT`) by default.
+Run rotations and serial-comma checks (`NMO`), semicolon/sentence/nominalization/manual-review style checks (`STE`), human-prose checks (`HMN`), paragraph checks (`NMP`), UI and byte-unit divisor checks (`NMU`), and test reviews (`NMT`) by default.
+Use decimal `KB`/`MB`/`GB`/`Mbps` for storage marketing, network rates, and SI data, and binary `KiB`/`MiB`/`GiB` for OS file sizes, RAM, caches, and buffers.
 Limit sentences to 20 words for unclassified prose, 25 for explicit description scope.
 
 ## Prose review
@@ -62,10 +64,10 @@ Limit sentences to 20 words for unclassified prose, 25 for explicit description 
 - Replace prose dashes unless the requested writing sample uses them, preserving each clause relation.
 - Remove redundant qualifiers only if confidence, scope, and every safety or legal condition survive.
 - Remove unsupported importance or future-success claims, retaining concrete facts and stated plans.
-- Name relationships only when the source states them, otherwise retain their uncertainty.
+- Specify relationships only when the source states them, otherwise retain their uncertainty.
 - Keep an attached explanatory phrase only when the source supports its claim.
 - Replace unsupported quality claims with supported measurements, or remove only unsupported claims.
-- Name the source and its claim when available, otherwise remove only unsupported appeals to authority.
+- Specify the source and its claim when available, otherwise remove only unsupported appeals to authority.
 - Use is, are, or has only if it preserves the longer verb phrase's relation.
 - Remove bold labels only if they add no information or necessary structure.
 - Use straight quotation marks (`"` and `'`) instead of curly quotation marks, and avoid `→` arrows and consecutive emojis in Markdown prose.
@@ -81,7 +83,7 @@ Limit sentences to 20 words for unclassified prose, 25 for explicit description 
 - List three or more steps or conditions, preserving their order and grouping.
 - Define uncommon technical terms when needed, and use them consistently.
 - Prefer simple tenses unless compound forms carry confidence or current relevance that must survive.
-- Add comments or docstrings only for non-obvious logic, omit them when names are self-explanatory, and cap blocks at two lines.
+- Add comments or docstrings only for non-obvious logic, use the established contract, and cap blocks at two lines.
 - Match length and structure to task complexity, omitting unrequested examples, sections, tables, background, and follow-ups.
 - Provide requested finished text without meta commentary.
 
@@ -91,3 +93,8 @@ Limit sentences to 20 words for unclassified prose, 25 for explicit description 
 - Prefer named constants for expected contract values.
 - Assert pixel/config/implementation measurements through growth/presence/absence.
 - Keep exact expected text only for executable/protocol/verbatim-data contracts.
+
+## Learn
+
+- On `/nemoizer learn`, survey repo prose patterns, cite target rules, and publish a maintainer handoff.
+

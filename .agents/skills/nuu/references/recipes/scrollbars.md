@@ -1,39 +1,31 @@
 # Recipe: Scrollbars
 
-Style scrollbars with a thin `10px` rounded thumb (`#302e2c` in dark mode or `var(--scrollbar-thumb)`) on the surface background track (`var(--bg)`), `8px` thumb radius, and no top or bottom arrow buttons (`::-webkit-scrollbar-button { display: none; }`). Scope `scrollbar-width: thin` and `scrollbar-color` inside `@supports not selector(::-webkit-scrollbar)` so Chromium keeps the rounded WebKit thumb and hidden buttons while Firefox receives a matching thin track and thumb.
+Style scrollbars with a pill thumb (`var(--scrollbar-thumb)`) inset in a `15px` track (`transparent`) with `margin: 8px 0`, `9999px` pill radius, no arrow buttons (`::-webkit-scrollbar-button { display: none; }`), and keyboard-nav hover highlights (`:root[data-keyboard-nav="true"]`). Global `*` rule sets `scrollbar-width: thin` and `scrollbar-color: var(--scrollbar-thumb) transparent` for Firefox.
+
+![Scrollbars Dark-Mode Example](../examples/scrollbars.png)
 
 ```css
-:root {
-  --scrollbar-thumb: #c8c8d0;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --scrollbar-thumb: #302e2c;
-  }
-}
-
-:root[data-theme="light"] {
-  --scrollbar-thumb: #c8c8d0;
-}
-
-:root[data-theme="dark"] {
-  --scrollbar-thumb: #302e2c;
-}
-
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 15px;
   height: 10px;
 }
 
 ::-webkit-scrollbar-track,
 ::-webkit-scrollbar-corner {
-  background: var(--bg);
+  background: transparent;
+  margin: 8px 0;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
-  border-radius: 8px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  border-radius: 9999px;
+}
+
+:root[data-keyboard-nav="true"] ::-webkit-scrollbar-thumb:hover,
+:root[data-keyboard-nav="true"] ::-webkit-scrollbar-thumb:active {
+  background: var(--focus);
 }
 
 ::-webkit-scrollbar-button {
@@ -42,10 +34,8 @@ Style scrollbars with a thin `10px` rounded thumb (`#302e2c` in dark mode or `va
   height: 0;
 }
 
-@supports not selector(::-webkit-scrollbar) {
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb) var(--bg);
-  }
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 ```
