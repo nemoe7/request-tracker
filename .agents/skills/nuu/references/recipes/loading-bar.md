@@ -1,11 +1,16 @@
-# Recipe: Loading bar — Render a subtle 2px edge loading bar after a 200ms delay with `aria-busy="true"` on the loading region, compositor-only `transform`/`opacity` motion, a fixed-slot spinner or pulsing dot for inline controls awaiting a fetch, and a static `prefers-reduced-motion` fallback; use a loud bar only when requested.
+# Recipe: Loading bar and fixed-slot control loading
+
+Render a `2px` edge loading bar after `200ms` with `aria-busy="true"` and compositor-only motion. Match text-paired `.ico-slot` and `.btn-spinner` to `1lh` (`ICN102`), or `16x16 px` solo, for `0 px` shift (`ACC205`, `ACC204`).
+
+![Loading Bar Dark-Mode Example](../examples/loading-bar.png)
 
 ## Rules
 
-- Default to a subtle `2px` edge loading bar anchored along the bottom of the top bar or panel toolbar; for a button or compact control awaiting a fetch, render either a `16px` compositor-rotated spinner or a `6px` pulsing dot inside the existing glyph slot with `aria-busy="true"` and locked dimensions (`NUA309`, `NUL005`); use an in-flow loud `<progress>` bar only when requested.
+- Match text-paired `.ico-slot` and `.btn-spinner` to `1lh` (`ICN102`), or `16x16 px` when icon-only, preventing shift (`SPC001`, `ACC205`).
+- Default to a subtle `2px` edge loading bar anchored along the bottom of the top bar or panel toolbar; use an in-flow loud `<progress>` bar only when requested.
 - Delay visual appearance by `200ms` (`150–300ms`) so fast operations complete without flashing a transient indicator.
 - Set `aria-busy="true"` on the region whose content is being updated (`section`, `article`, or `main`) while loading and reset to `aria-busy="false"` in `finally`; never put `role="progressbar"` on a decorative edge pseudo-element.
-- Grow the bar from left to right with `transform-origin: left center` and `transform: scaleX(...)` instead of a pulsing sweep. Animate only compositor properties (`transform` and `opacity`), never `width`, `left`, or `margin`, so layout never reflows during loading.
+- Grow the bar from left to right with `transform-origin: left center` and `transform: scaleX(...)` on `var(--accent)`. Snap to `scaleX(1)` and fade `opacity` to `0` over `220ms` (`data-loading="done"`) when finished. Animate only compositor properties (`transform` and `opacity`), never `width`, `left`, or `margin`, so layout never reflows during loading.
 - Under `@media (prefers-reduced-motion: reduce)`, replace growth animation with a static full-width subtle bar (`width: 100%`, `opacity: 0.45`, `animation: none`, `transform: none`).
 
 ## Subtle edge loading bar (default)
@@ -22,26 +27,58 @@
   bottom: -1px;
   width: 100%;
   height: 2px;
-  background: var(--focus);
+  background: var(--accent);
   opacity: 0;
   pointer-events: none;
   transform-origin: left center;
   transform: scaleX(0);
-  animation: nuu-edge-loading 1.6s 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: nuu-edge-loading 2.4s 200ms var(--ease) forwards;
+}
+
+.topbar:has(~ main [data-loading="done"]:not([hidden]))::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 100%;
+  height: 2px;
+  background: var(--accent);
+  pointer-events: none;
+  transform-origin: left center;
+  animation: nuu-edge-loading-done 220ms var(--ease) forwards;
 }
 
 @keyframes nuu-edge-loading {
   0% {
-    opacity: 0.85;
+    opacity: 0.92;
     transform: scaleX(0.05);
   }
-  40% {
-    opacity: 0.85;
-    transform: scaleX(0.55);
+  15% {
+    opacity: 0.92;
+    transform: scaleX(0.35);
+  }
+  45% {
+    opacity: 0.92;
+    transform: scaleX(0.65);
   }
   100% {
-    opacity: 0.85;
+    opacity: 0.92;
     transform: scaleX(0.92);
+  }
+}
+
+@keyframes nuu-edge-loading-done {
+  0% {
+    opacity: 0.92;
+    transform: scaleX(0.92);
+  }
+  45% {
+    opacity: 0.92;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
   }
 }
 
@@ -62,35 +99,56 @@ async function loadPanel(panel, task) {
   try {
     return await task();
   } finally {
-    delete panel.dataset.loading;
+    panel.dataset.loading = 'done';
     panel.setAttribute('aria-busy', 'false');
+    setTimeout(() => {
+      if (panel.dataset.loading === 'done') {
+        delete panel.dataset.loading;
+      }
+    }, 220);
   }
 }
 ```
 
-## Inline button or compact control loading (spinner or pulsing dot)
+## Inline button or compact control loading (`1lh` paired slot, `16x16 px` icon-only)
 
 ```css
-.btn .ico-slot {
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.btn .ico-slot,
+.btn .btn-spinner {
   display: inline-grid;
   place-items: center;
-  width: 16px;
-  height: 16px;
+  width: 1lh;
+  height: 1lh;
   flex: none;
 }
 
-.btn[aria-busy="true"] .spinner {
+.btn.icon-only .ico-slot,
+.btn.icon-only .btn-spinner {
   width: 16px;
   height: 16px;
-  animation: nuu-spin 0.8s linear infinite;
+}
+
+.btn .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: currentColor;
+  flex: none;
+}
+
+.btn[aria-busy="true"] .btn-spinner {
+  animation: nuu-spin 220ms var(--ease) infinite;
 }
 
 .btn[aria-busy="true"] .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  animation: pulse 1.4s ease-in-out infinite;
+  animation: pulse var(--slow) var(--ease) infinite alternate;
 }
 
 @keyframes nuu-spin {
@@ -100,27 +158,9 @@ async function loadPanel(panel, task) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn[aria-busy="true"] .spinner,
+  .btn[aria-busy="true"] .btn-spinner,
   .btn[aria-busy="true"] .dot {
     animation: none;
   }
 }
 ```
-
-```js
-async function runButtonFetch(button, task) {
-  button.disabled = true;
-  button.setAttribute('aria-busy', 'true');
-  try {
-    return await task();
-  } finally {
-    button.setAttribute('aria-busy', 'false');
-    button.disabled = false;
-  }
-}
-```
-
-## Loud loading bar (opt-in on request only)
-
-- Use a native `<progress class="loading-bar-loud">` element inside the active card or dialog when the user explicitly asks for a prominent progress bar or when a multi-step job reports determinate progress (`value` and `max`).
-- Pair determinate progress with an accessible label (`aria-label` or `<label>`) and update `value` at coarse milestones so assistive technology is not flooded.
