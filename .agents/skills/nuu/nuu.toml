@@ -1,0 +1,38 @@
+[paths]
+doc = "docs/design.md"
+stylesheet = "references/style.css"
+
+[fonts]
+prefer_project_css = true
+sans = ""
+mono = ""
+files = []
+
+[annotate]
+scale = 2
+crop = "none"
+
+[measure]
+scale = 4
+tolerance = 30
+redline = ""
+
+[board]
+type = "panels"
+columns = 2
+scale = 2
+wireframe = false
+
+[audit]
+breakpoints = ["68em", "60em", "30em", "24em"]
+viewports = [
+  { width = 1920, height = 957, mobile = false, touch = false, report = true },
+  { width = 1080, height = 2437, mobile = false, touch = false, report = false },
+  { width = 958, height = 958, mobile = false, touch = false, report = false },
+  { width = 855, height = 325, mobile = true, touch = true, report = false },
+  { width = 411, height = 799, mobile = true, touch = true, report = true },
+]
+
+[checks.severity]
+TYP101 = "review"
+TYP201 = "review"
