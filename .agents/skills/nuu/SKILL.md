@@ -1,119 +1,98 @@
 ---
+# nonemo: STE100; nonemo: STE200; nonemo: NMP100; nonemo: NMO003
 name: nuu
-description: Build and revise web pages in a settled house style. Use when a task adds or changes a page, dialog, table, form, theme, empty or error state, or any UI that needs icons, colour roles, light and dark schemes, type, spacing, breakpoints, motion, states, optimistic writes, a design document, or measured values at 1280 and 360 px.
-license: MIT
+description: >
+  Use when designing, building, refactoring, reviewing, or auditing a web page,
+  component, stylesheet, layout, or client flow: icons, colour tokens, light and
+  dark schemes, typography, spacing, responsive breakpoints, motion, control and
+  list states, optimistic writes, docs/design.md, computed-style measurement,
+  screenshot annotation, or accessibility and usability inspection.
 ---
 
-# Nemo UI/UX (nuu)
+# House UI and UX
 
-## Shared workflow
+One short specification for every page we ship, paired with a small command-line inspector (`scripts/nuu`). Visual clauses have pairs in `references/examples.md`. The sheet provides copyable declarations, and `references/nuu.md` describes automated and manual checks.
 
-- Install this skill's package with `pip install -e <skill>` or `uv pip install -e <skill>` (`uv tool install -e <skill>`) and run `nuu` directly; preserve an existing design record (`docs/design.md`), or use `references/style.css` (`-P house`).
-- Search the catalog (`nuu search`), verify assets (`nuu assets`), and run static checks (`nuu lint`, `nuu extract`). Run rendered checks (`nuu inspect`, `flow`, `walk`, `a11y`, `audit`, `live`) and `nuu walk` walkthroughs at project widths plus `1280` and `360` px.
-- Retain screenshots, measurements (`measure.py`), flow results, and annotated composite boards (`nuu annotate` / `nuu board`), audit the page against every applicable recipe in `references/recipes/*.md`, separating automated findings (including missing `docs/design.md`) from visual judgment, naming each UI or recipe deviation from `nuu` with its reason, and naming unrun checks. Mark an accepted deviation with `nuu-deviation: <id>: <reason>` ONLY after explicit user approval, NEVER automatically.
-- Keep live edits read-only unless authorized (`-Z`), repair only the requested scope, and update `docs/design.md` with linked visual references in the same change.
-- Format audit and verification reports with [references/audit-report.md](references/audit-report.md) (`Status`, `Counts`, `Unrun Checks`, numbered `Automated Findings` with rule text and one cropped image each, numbered `Visual Judgments` with one cropped image each, `Deviations`, then `Captures`), omit empty Unrun Checks and report sections, state 0 in Counts, and use `-W` (`--wireframe`) for agent inspection only and NEVER commit wireframe files (`*-wireframe.png`) or embed them in reports.
+## Use when
 
-## House profile
+- A task creates, edits, or reviews HTML, CSS, SVG, or client-side UI code.
+- A page needs a design system, palette, type pairing, layout, or `docs/design.md`.
+- A pull request or release needs a rendered layout, contrast, keyboard, or flow audit.
 
-Apply this skill to a page, a component, or an interface change. The sheet is the reference for values, and the design document records the calls that a repository already made.
+## Do not use when
 
-## When to use
-
-- A task adds or changes a page, dialog, table, form, theme, or state.
-- A review asks whether the interface matches the house style.
-- A new pattern needs a decision that later pages must repeat.
+- The task is backend-only, CLI-only, or data-pipeline work with no user-facing surface.
+- The user supplies an explicit external brand book that conflicts with a house token; in that case, record the override in `docs/design.md` and keep the remaining clauses.
 - A page exists and the task changes one of these clauses.
 
 ## Clauses
 
-1. Take each control glyph from Lucide first, then Simple Icons (https://simpleicons.org/), then the vendored Phosphor catalog. Keep the icon licence beside it and inline that same path. A name with no glyph shows its word.
+1. Every icon uses the open-source provider ladder: lucide first, simple-icons for brand marks, then phosphor only when neither carries the glyph. Keep a 24x24 grid and 2 px stroke (stroke-linecap="round", stroke-linejoin="round"), or a plain text label if none has the glyph.
+2. Keep comparable surface icons one size: 16x16 px default, or 20x20 px for standalone hero icons. Text-paired icons MUST match the paired text line height.
+3. Use role-named CSS variables for --bg, --surface, --surface-2, --field, --line, --text, --muted, and --accent. Include --accent-fill, --on-accent, --danger, --warn, --ok, --focus, and --scrollbar-thumb. Component rules contain no hex, RGB, or HSL literals. Give each theme's scrollbar thumb at least 3:1 track contrast. Assign colors by role and state. Make status, selection, and errors understandable without color alone, using text, shape, or another explicit cue. Check contrast against the actual adjacent background in each theme, including text over images.
+4. Build both themes from one role set (`:root` + `@media (prefers-color-scheme: dark)` + `:root[data-theme]`) and offer a 3-way theme control (`System`, `Light`, `Dark`) with centered Lucide `monitor`, `sun`, and `moon` glyphs.
+5. Use sizes from the nine-step type ramp (11, 12, 14, 16, 18, 22, 24, 28, and 32 px) and four weights (400, 500, 600, 700). Start with 32 px for titles, 18 px for body, and 14 px for small text. For dense dashboards, start with 24 px for titles, 16 px for body, and 12 px for small text. Apply the Clause 20 per-view limits. Keep 11 px uppercase .eyebrow labels, a tabular ID face, and offline fonts via [references/recipes/offline-fonts.md](references/recipes/offline-fonts.md) without reload jitter.
+6. Use the 4 px scale (4, 8, 12, 16, 24, 32, and 48 px), or 8 px scale. Set CSS gap, row-gap, and column-gap to zero or whole multiples of the selected scale. Rows are 32 px (40 px on 8 px), icon-only buttons are 32x32 px (24x24 px minimum), and grouped buttons share width and height. Panels use concentric radii (0, 4, 6, 10, or 9999px), 6px default (10 px on 8 px), and no shadows by default. On light surfaces, restrained shadows may distinguish cards and elevated overlays. On coarse pointers, give rows and icon-only buttons >= 44x44 px hit areas. Group related content deliberately.
+7. Layouts change at the compact em breakpoint subset (68em / 1088px, 60em / 960px, and 30em / 480px width, plus 24em / 384px max-height for landscape touch viewports), with zero horizontal scroll. Verify reflow against real content and relevant input modes.
+8. Every transition shares one curve (cubic-bezier(0.22, 1, 0.36, 1)) for 100-150 ms hover/press and 160-220 ms panels. ALWAYS use vendored GSAP for animations without spring overshoot. Reduced motion turns animation off. Recipes use var(--ease), and scope reduced-motion overrides to their own components.
+9. Each control shows default, pointer-only hover, keyboard-only :focus-visible (2 px solid var(--focus) ring, 2 px offset, >= 3:1 contrast), active, disabled, and fixed-size loading via [references/recipes/live-dot.md](references/recipes/live-dot.md) for rows and [references/recipes/loading-bar.md](references/recipes/loading-bar.md) for compact controls. Lists also show empty, failed, and offline. Make interactive elements recognizable, name their action, and make selected, pending, success, warning, and error states clear without relying on hover, motion, or color alone. Link field errors to inputs with recovery steps, preserve keyboard access, and verify named completed or failed feedback on every live action click.
+10. Every write action MUST render its optimistic DOM state immediately under a held slow-network route and mocked clock. Pages MUST persist view state in URL query parameters or localStorage via [references/recipes/page-memory.md](references/recipes/page-memory.md).
+11. Each repo carries docs/design.md (or [paths].doc in nuu.toml), updated in the same change as any visual work.
+12. Read padding, margin, gap, and size per element from the rendered page, compare each with the sheet, and check the house viewports (`1920x957`, `1080x2437`, `958x958`, and `411x799`, plus `855x325` landscape).
+13. For a new pattern, add the entry, Clause 12 viewports, and screenshots in one PR.
+14. Inline nonuu: RULE_ID markers silence false positives on that line and appear in lint, audit, and collect output. Approved deviations use nuu-deviation: <reason> in comments or docs/design.md, and recipe links use nuurecipe: <slug> (nuu collect). Agents MUST NEVER add nuu-deviation: without explicit user approval.
+15. Use outside list markers with a 2ch hanging indent (--indent: 2ch; padding-inline-start: 2ch; list-style-position: outside) and native disc marker size so wrapped lines align with line 1.
+16. Choose line height for legibility at the actual size, measure, and script. Start with 1.1 to 1.3 times the font size for headings and 1.3 to 1.5 for body text, then verify rendered content and accessibility.
+17. Keep h1-h6 letter-spacing within -0.5% to -3% (-0.005em to -0.03em), and non-heading letter-spacing at 0 except .eyebrow at 0.06em.
+18. Left-align prose over 3 lines, forbid justified text, center at most 3 lines, and match heading and body alignment.
+19. Give multiline prose a comfortable reading measure. Use 50 to 75 characters, with 65 as a starting point, when the content and viewport permit. Do not force a minimum width on narrow or compact surfaces.
+20. Use at most 2 ramp font sizes per card or dialog (3 per view, or up to 6 on landing and content sites when needed), varying weight and --muted first. Keep headings larger or bolder than body text.
+21. Match sibling gaps across axes within a group and keep inter-group gaps >= 1.5x intra-group gaps on the Clause 6 scale (start at 2x when room permits).
+22. Align stacked card items on one inline edge with symmetric inline padding, house fonts, non-italic body blocks, and uppercase only on .eyebrow.
+23. Use at most one primary button per card or dialog and name the action instead of Yes/No.
+24. Store and send timestamps in UTC or with numeric offsets, sort by epoch milliseconds, and localize only on display.
+25. Identify the user goal, main flow, and key states before choosing a layout, exploring structure before polish when warranted. Use realistic content with zero placeholder Lorem ipsum copy across representative screen sizes and input modes. Iterate on findings, keep reusable patterns consistent, scale work to the change, and record decisions in the design doc.
+26. In dark themes, distinguish raised surfaces from their backgrounds with surface color, and keep decorative borders and chips subdued without reducing required text or control contrast.
+27. When text overlays an image, verify contrast against the rendered image and use a gradient or another local treatment when needed to preserve legibility and useful image detail.
+28. Review each layout for visual balance, a clear primary action, and unnecessary complexity. Use familiar interaction patterns when they fit the task, and prototype significant flows before finalizing them.
+29. Choose role colors that fit the product or brand, and use shades or transparency when needed to distinguish surfaces and states. Verify each chosen role against its actual background.
+30. For text buttons, start with horizontal padding twice the vertical padding when content and the selected scale permit. Keep primary and secondary actions visually distinct and preserve the Clause 6 size and hit-area rules.
+31. When a task needs a new pattern, inspect relevant real examples and choose illustrations or imagery only when they support the content or user goal.
+32. Check heading letter spacing with real content and the selected typeface. Loosen it when the permitted range looks too tight.
+33. On every live Nuu audit, inspect visible dialog and floating-overlay text and controls for clipping or occlusion at every edge across the five house viewports. Check tooltip and popover surfaces for missing effective backgrounds. Report selector, viewport, bounds, clipping ancestor, and computed surface color.
 
-2. Every glyph on a surface takes the single size the sheet names.
+Component and interaction patterns live in references/recipes/:
 
-3. A component asks the sheet for a role. Nobody writes a colour literal into a component.
+- [offline-fonts.md](references/recipes/offline-fonts.md): bundled offline fonts without reload jitter.
+- [live-dot.md](references/recipes/live-dot.md): 8x8 px pulsing dot in a fixed 16x16 px slot.
+- [loading-bar.md](references/recipes/loading-bar.md): 200 ms delayed 2 px edge bar and fixed-slot control loading.
+- [page-memory.md](references/recipes/page-memory.md): view cache, optimistic writes, and URL/localStorage state.
+- [modal-manager.md](references/recipes/modal-manager.md): shared <dialog> manager, top-right .close-button, and delete confirmation.
+- [range-sliders.md](references/recipes/range-sliders.md): <input type="range"> with step ticks, endpoint labels, and <output> bubble.
+- [relative-timestamps.md](references/recipes/relative-timestamps.md): full and compact relative ages by container width.
+- [scroll-edge-fade.md](references/recipes/scroll-edge-fade.md): scroll-driven CSS mask-image edge fade.
+- [floating-overlay-scroll-fade.md](references/recipes/floating-overlay-scroll-fade.md): scroll fade behind floating header and composer overlays.
+- [scrollbars.md](references/recipes/scrollbars.md): 9999px pill thumb in a 15 px transparent track without arrows.
+- [overflow-and-clipping.md](references/recipes/overflow-and-clipping.md): unclipped rows, focus rings, sticky headers, and tooltips.
+- [table-to-cards.md](references/recipes/table-to-cards.md): narrow-viewport table-to-card reflow with data-label cells.
 
-4. The roles resolve in light and in dark. The theme control names System, Light, and Dark, so the page can follow the machine.
+## Workflow
 
-5. Four sizes from the sheet, three weights, one eyebrow size, and a tabular face for IDs, and MUST bundle and load custom fonts via [references/recipes/offline-fonts.md](references/recipes/offline-fonts.md) without reload jitter.
+1. Read docs/design.md (or [paths].doc in nuu.toml), or create one from references/design-document.md.
+2. Read `references/style.css` and copy only the declarations the page needs. Keep the custom-property names; change their values in `:root` only when `docs/design.md` records a palette or scale.
+3. Read `references/examples.md` and the matching recipe in `references/recipes/` when the change touches a clause or component pattern, so the correct and incorrect dark-mode forms are both in view.
+4. Build or edit the page; run scripts/nuu audit -c <repo>/nuu.toml, adding -u <http-url> when live.
+5. In PR or report screenshot reviews, report open findings only, pairing each with a two-column Before vs After nuu board cropped (-C) and annotated (nuu annotate), adding -W when needed.
 
-6. Every gap lands on the 4 px scale, or the 8 px scale when opted in. Rows are 32 px (40 px on 8 px), and panels take a 6 px radius (10 px on 8 px) with no shadow. Icon-only buttons are symmetric, and a touch target is at least 44 px.
+## Reference files
 
-7. The sheet names 75em, 60em, and 40em for width, plus 30em for short-height landscape. Choose each breakpoint where the content breaks. A dimension outside the list gets no behaviour of its own.
+- AGENTS.md: mandatory agent workflow rules for sample renders, dark-mode defaults, and refs parity.
+- references/nuu.toml: default paths, font preferences, viewports, board presets, and severity overrides.
+- references/nuu.md: 9 subcommands, CLI flags, exit codes, and all 49 conformance rule codes.
+- references/style.css: copyable role tokens, type ramp, spacing scale, and control states.
+- references/examples.md: dark-mode Pass and Fail UI pairs per clause, recipe, and rule.
+- references/design-document.md: six-section template and filled example for docs/design.md.
 
-8. Every transition shares one curve over 160 to 220 ms; for animations, vendor [GSAP](https://github.com/greensock/GSAP) into the project as the go-to library. Reduced motion turns animation off.
+## Learn
 
-9. Each control shows default, hover, focus, active, disabled, and loading without changing element dimensions (NUA309, NUL005) via [references/recipes/live-dot.md](references/recipes/live-dot.md) for a row and a fixed-slot spinner or pulsing dot in [references/recipes/loading-bar.md](references/recipes/loading-bar.md) for a button or compact control awaiting a fetch. Lists also show empty, failed, and offline. Hover exists only where a pointer does, and the focus outline appears only on keyboard navigation (NUA307).
-
-10. The pending row appears before the reply and known version-keyed views paint immediately from in-memory state via [references/recipes/page-memory.md](references/recipes/page-memory.md). A failure retries once with the same ID, so the list holds one row.
-
-11. Record settled calls in the authoritative design record.
-
-12. Read padding, margin, gap, and size per element from the rendered page, compare each with the sheet, and check 1280 and 360.
-
-13. When a page needs a pattern the sheet lacks, the change adds the entry, both widths, and the screenshots, in one pull request.
-
-14. Enable touch input (`hasTouch` and `isMobile`) when auditing or inspecting mobile viewports (`width <= 768` px or `height <= 480` px) so `@media (pointer: coarse)` rules apply.
-
-15. Place a borderless, transparent Lucide `x` exit button at the top right of a container, aligned to the title baseline and content edge with a negative-margin hit box inside container padding, that shows a surface background and text-color shift on hover and active, and place other action buttons at the bottom right.
-
-16. Combine min/max range sliders onto one shared track, and set discrete integer step snap points on integer sliders.
-
-17. Format time in 24-hour time by default; add 12-hour time when requested, and include a 24h/12h option in settings when settings exist.
-
-18. Show a subtle delayed loading bar for long-running UI operations and a fixed-slot spinner or pulsing dot for compact controls awaiting a fetch via [references/recipes/loading-bar.md](references/recipes/loading-bar.md) and [references/recipes/page-memory.md](references/recipes/page-memory.md) for an answer the page already holds. Use a loud loading bar only when requested.
-
-19. Style scrollbars with the thin 10 px rounded thumb on the background track and no arrow buttons via [references/recipes/scrollbars.md](references/recipes/scrollbars.md).
-
-20. Prevent container overflow and focus, shadow, or tooltip clipping via [references/recipes/overflow-and-clipping.md](references/recipes/overflow-and-clipping.md) (`NUM209`, `NUM210`, `NUA308`).
-
-21. Open a confirmation modal warning about the deletion before executing any delete action via [references/recipes/modal-manager.md](references/recipes/modal-manager.md).
-
-## Go-to libraries
-
-- For draggable and reorderable lists, vendor only the required part of [SortableJS](https://github.com/SortableJS/Sortable) with its MIT license instead of writing custom drag-and-drop handlers.
-- For animations and scroll-driven motion, vendor [GSAP](https://github.com/greensock/GSAP) into the project as the go-to library and respect `prefers-reduced-motion: reduce`.
-
-## Order of work
-
-1. Read the authoritative design record, or create docs/design.md from references/design-document.md if none exists.
-2. Copy the declarations the page needs from `references/style.css`. Keep the role names, and change only the values that the repository settles.
-3. Read `references/examples.md` when the change touches a clause, so the correct and incorrect forms are both in view.
-4. Make only authorized page changes, then measure both widths and fix every value the check names.
-5. Update the authoritative design record in the same change as a settled design decision.
-
-## Measuring
-
-`scripts/measure.py check` reads a JSON report of computed values and names every value that leaves the sheet. A value passes when it sits on the scale, when a type property takes a size from the ramp, or when the sheet names that size for that property, such as the 10 px radius.
-
-`scripts/measure.py ruler` reads a gap between two guides on the page, the way a screen ruler does, and answers whether each axis sits on the scale.
-
-```bash
-python scripts/measure.py check report.json
-python scripts/measure.py ruler --from 120,340 --to 264,340
-```
-
-`references/measure.md` holds the browser snippet that writes the report, and the list of what to keep.
-
-## Files
-
-- `references/style.css`: the sheet as code. Roles, type, space, states, and motion.
-- `references/design-document.md`: the eleven sections of `docs/design.md`, with a filled example.
-- `references/examples.md`: one correct and incorrect pair per clause, drawn from the sheet.
-- `references/measure.md`: the report shape, the snippet, and the ruler.
-- `scripts/measure.py`: the check and the ruler.
-
-- `scripts/nuu`: CLI entry point (`references/nuu.md`), alongside `scripts/measure.py` (`references/measure.md`), `scripts/annotate.py` (`references/annotate.md`), `scripts/walk.py` (`references/walk.md`), and `scripts/browser.cjs`.
-- `data/vendor/`: licensed catalog data and source hashes.
-- `references/recipes/offline-fonts.md`: bundled and offline zero-jitter font recipe (`preload` with `crossorigin`, `font-display: block`, inline Base64 WOFF2, `FontFace` binary buffers, and metric-matched fallbacks).
-- `references/recipes/scroll-edge-fade.md`: scroll-driven CSS edge-fade mask recipe for scrollable panels and inputs (`@supports (animation-timeline: scroll(self))`).
-- `references/recipes/floating-overlay-scroll-fade.md` - Full-bleed scroll fade behind floating header and composer overlays
-- `references/recipes/modal-manager.md`: shared dialog modal manager and reusable template recipe (`showModal()`, deliberate autofocus with initial focus-ring suppression until keyboard navigation, and trigger focus restoration).
-- `references/recipes/loading-bar.md`: subtle delayed edge loading-bar recipe for long-running UI operations and fixed-slot spinner or pulsing-dot recipe for inline controls awaiting a fetch (`200ms` anti-flicker delay, `aria-busy` container, compositor `transform`, reduced-motion static fallback, and opt-in loud variant).
-- `references/recipes/scrollbars.md`: thin 10 px rounded-thumb scrollbar recipe on the surface track with arrow buttons hidden.
-- `references/recipes/overflow-and-clipping.md`: overflow, focus-halo, and tooltip anti-clipping recipe (`NUM209`, `NUM210`, `NUA308`).
-- `references/recipes/relative-timestamps.md` - Relative timestamp scale in full and abbreviated forms
-- `references/recipes/live-dot.md` - 6 px amber pulsing live dot in the idle glyph slot with zero dimension shift
-- `references/recipes/table-to-cards.md` - Semantic table that folds into a card grid via display: contents at 75em
-- `references/recipes/page-memory.md` - In-memory page cache keyed by content version that paints before the loading bar
-- `references/audit-report.md`: standalone template for nuu audits and visual verification reports.
+- On `/nuu learn`, survey repo UI patterns, cite target clauses, and publish a maintainer handoff.
