@@ -3,6 +3,7 @@
 ## Publish reports
 
 - A report source is UTF-8 `.md`, at most 2,000,000 bytes.
+- Explain findings, bugs, decisions, and options in plain English, not internal code symbols or database identifiers.
 - Report IDs have 1–80 letters, digits, hyphens or underscores; titles have 1–200 characters.
 - Source edits do not update a published report: call `publish` again.
 - A report that has answers refuses republishing under the same ID; publish its update under a new ID.
@@ -17,8 +18,6 @@
 
 ## Report fields
 
-In report diffs, keep leading and trailing whitespace outside `~~...~~` and `==...==` spans; do not mark whitespace-only runs. Publication rejects possible unparsed `==` or `~~` diff markers; fix the spacing around the markers, or pass `-u` / `--allow-unparsed-markers` when the literal characters are intentional.
-
 | Markdown marker | Control |
 | --- | --- |
 | `- ( ) option` (`- (x)` to mark recommended) | One radio choice; the UI prefixes a marked choice with `* ` and `report publish` prints `you recommended:` |
@@ -26,7 +25,7 @@ In report diffs, keep leading and trailing whitespace outside `~~...~~` and `==.
 | `- ( ) Label: ___` or `- [ ] Label: ___` inside a group | A labeled free-text choice |
 | `Label: ___` or bare `___` | A text answer |
 
-Write an option group's custom slot inside the group, as `- ( ) custom: ___`. The nearest non-empty line before a group is its prompt; a labeled blank supplies its own prompt. Append `{#my-id}` to a prompt to keep the field ID stable. Markers inside fenced code blocks remain text. The server caps a report's fields, prompts and options, and an over-limit value fails with an error the agent reads then. Fix invalid fields before publication. Each submission has its own pending ID; acknowledge every new answer, not just an earlier submission.
+Write an option group's custom slot inside the group, as `- ( ) custom: ___`. The nearest non-empty line before a group is its prompt; a labeled blank supplies its own prompt. Append `{#my-id}` to a prompt to keep the field ID stable. Markers inside fenced code blocks remain text. The server caps a report at 24 fields, prompts and options, and an over-limit value fails with an error the agent reads then. Fix invalid fields before publication. Each submission has its own pending ID; acknowledge every new answer, not just an earlier submission.
 
 Give each group its own prompt, so every answer maps to its question:
 

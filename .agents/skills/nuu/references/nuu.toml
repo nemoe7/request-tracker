@@ -1,25 +1,38 @@
-# Default nuu configuration (nuu.toml).
+[paths]
+doc = "docs/design.md"
+stylesheet = "references/style.css"
 
 [fonts]
-sans = '"Basel Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif'
-mono = '"Basel Grotesk Mono", ui-monospace, "SFMono-Regular", monospace'
-files = [
-  "Basel_Grotesk_Regular.woff2",
-  "Basel_Grotesk_Book.woff2",
-  "Basel_Grotesk_Medium.woff2",
-  "Basel_Grotesk_Bold.woff2",
-  "Basel_Grotesk_Mono_Regular.woff2",
-]
+prefer_project_css = true
+sans = ""
+mono = ""
+files = []
 
 [annotate]
 scale = 2
-renderer = "auto"
+crop = "none"
+
+[measure]
+scale = 4
+tolerance = 30
+redline = ""
 
 [board]
+type = "panels"
 columns = 2
 scale = 2
 wireframe = false
 
 [audit]
-widths = [360, 768, 1280]
-wireframe = false
+breakpoints = ["68em", "60em", "30em", "24em"]
+viewports = [
+  { width = 1920, height = 957, mobile = false, touch = false, report = true },
+  { width = 1080, height = 2437, mobile = false, touch = false, report = false },
+  { width = 958, height = 958, mobile = false, touch = false, report = false },
+  { width = 855, height = 325, mobile = true, touch = true, report = false },
+  { width = 411, height = 799, mobile = true, touch = true, report = true },
+]
+
+[checks.severity]
+TYP101 = "review"
+TYP201 = "review"
